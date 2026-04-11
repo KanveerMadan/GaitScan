@@ -56,3 +56,6 @@ dist/
 *.jpeg
 *.webp
 *.gifoutputs/
+outputs/
+data/raw/
+data/processed/
