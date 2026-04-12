@@ -3,5 +3,10 @@ uvicorn==0.34.0
 python-multipart==0.0.20
 pandas==2.2.3
 numpy==2.0.2
-scikit-learn==1.6.1
-opencv-python-headless
+scipy==1.17.1
+matplotlib==3.10.1
+mediapipe==0.10.9
+opencv-python-headless==4.11.0.86
+reportlab==4.1.0
+pillow==11.2.1
+scikit-learn==1.61.
