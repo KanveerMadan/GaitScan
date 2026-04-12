@@ -4,3 +4,4 @@ python-multipart==0.0.20
 pandas==2.2.3
 numpy==2.0.2
 scikit-learn==1.6.1
+opencv-python-headless
