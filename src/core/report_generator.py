@@ -80,8 +80,8 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
          "Normal" if s['knee_flexion_range_L'] > 50 else "Limited"],
         ["Right Knee Flexion Range", f"{s['knee_flexion_range_R']}°",
          "Normal" if s['knee_flexion_range_R'] > 50 else "Limited"],
-        ["Estimated Cadence",        f"{s['estimated_cadence_steps_per_min']} steps/min",
-         "Normal" if 80 <= s['estimated_cadence_steps_per_min'] <= 140 else "Check"],
+        ["Cadence", f"{s['cadence']} steps/min",
+         "Normal" if 80 <= s['cadence'] <= 140 else "Check"],
     ]
 
     def status_color(val):

@@ -56,7 +56,10 @@ async def analyze(video: UploadFile = File(...)):
         df.to_csv(f"data/processed/{job_id}_angles.csv", index=False)
 
         print(f"[{job_id}] Scoring...")
-        results = calculate_risk_scores(df)
+        from src.core.activity_classifier import classify_activity
+        activity_result = classify_activity(df)
+        results = calculate_risk_scores(df, activity=activity_result["activity"])
+        results["activity"] = activity_result
 
         print(f"[{job_id}] Generating plots...")
         generate_plots(df, output_dir=output_dir)
@@ -71,6 +74,10 @@ async def analyze(video: UploadFile = File(...)):
         return JSONResponse({
             "job_id": job_id,
             "status": "success",
+            "activity": results["activity"],
+            "risk_label": results["risk_label"],
+            "risk_meaning": results["risk_meaning"],
+            "risk_color": results["risk_color"],
             "scores": results["scores"],
             "findings": results["findings"],
             "recommendations": results["recommendations"],
