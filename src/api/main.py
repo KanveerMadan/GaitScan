@@ -99,16 +99,16 @@ async def analyze(
             id           = job_id,
             patient_name = patient_name,
             activity     = activity_result["activity"],
-            confidence   = activity_result.get("confidence", 0),
-            risk_score   = s.get("overall_risk_score", 0),
+            confidence   = int(activity_result.get("confidence", 0)),
+            risk_score   = int(s.get("overall_risk_score", 0)),
             risk_label   = results["risk_label"],
             risk_color   = results["risk_color"],
             risk_meaning = results["risk_meaning"],
-            cadence      = s.get("cadence", 0),
-            knee_si      = s.get("knee_symmetry_index", 0),
-            hip_si       = s.get("hip_symmetry_index", 0),
-            knee_flex_L  = s.get("knee_flexion_range_L", 0),
-            knee_flex_R  = s.get("knee_flexion_range_R", 0),
+            cadence      = float(s.get("cadence", 0)),
+            knee_si      = float(s.get("knee_symmetry_index", 0)),
+            hip_si       = float(s.get("hip_symmetry_index", 0)),
+            knee_flex_L  = float(s.get("knee_flexion_range_L", 0)),
+            knee_flex_R  = float(s.get("knee_flexion_range_R", 0)),
         )
         db.add(session_row)
 
