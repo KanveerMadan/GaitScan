@@ -8,6 +8,7 @@ from src.core.calculate_angles import add_all_angles
 from src.core.risk_scoring import calculate_risk_scores
 from src.core.report_generator import generate_pdf_report
 from src.utils.visualise import generate_plots
+from src.core.exercise_prescription import get_exercise_prescription
 
 app = FastAPI(title="GaitScan API", version="1.0.0")
 
@@ -60,6 +61,12 @@ async def analyze(video: UploadFile = File(...)):
         activity_result = classify_activity(df)
         results = calculate_risk_scores(df, activity=activity_result["activity"])
         results["activity"] = activity_result
+        results["exercises"] = get_exercise_prescription(
+        results["findings"],
+        activity_result["activity"],
+        results["scores"],
+        results["risk_label"]
+)
 
         print(f"[{job_id}] Generating plots...")
         generate_plots(df, output_dir=output_dir)
@@ -81,6 +88,7 @@ async def analyze(video: UploadFile = File(...)):
             "scores": results["scores"],
             "findings": results["findings"],
             "recommendations": results["recommendations"],
+            "exercises": results["exercises"],
             "report_url": f"/report/{job_id}"
         })
 
