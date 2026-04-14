@@ -4,6 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session as DBSession
 import shutil, os, uuid, pandas as pd
 
+from src.api.auth_router import router as auth_router
+from src.core.auth import get_current_user
+from src.models.user import User
+
 from src.core.extract_landmarks import extract_landmarks
 from src.core.calculate_angles import add_all_angles
 from src.core.risk_scoring import calculate_risk_scores
@@ -14,6 +18,8 @@ from src.core.database import get_db, init_db
 from src.core.models import Session as SessionModel, Finding, Exercise
 
 app = FastAPI(title="GaitScan API", version="2.0.0")
+app.include_router(auth_router)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -46,6 +52,7 @@ def status():
 async def analyze(
     video: UploadFile = File(...),
     patient_name: str = "Anonymous",
+    current_user: User = Depends(get_current_user),   
     db: DBSession = Depends(get_db)
 ):
     if not video.filename.endswith((".mp4", ".mov", ".avi")):
@@ -98,6 +105,7 @@ async def analyze(
         session_row = SessionModel(
             id           = job_id,
             patient_name = patient_name,
+            user_id      = current_user.id,   
             activity     = activity_result["activity"],
             confidence   = int(activity_result.get("confidence", 0)),
             risk_score   = int(s.get("overall_risk_score", 0)),
