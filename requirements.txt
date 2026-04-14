@@ -54,3 +54,6 @@ uvicorn==0.34.0
 zipp==3.23.0
 sqlalchemy
 psycopg2-binary
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.9

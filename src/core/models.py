@@ -6,8 +6,12 @@ from src.core.database import Base
 class Session(Base):
     __tablename__ = "sessions"
 
-    id           = Column(String, primary_key=True)   # job_id
+    id           = Column(String, primary_key=True)
     patient_name = Column(String, default="Anonymous")
+
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # ✅ ADD THIS
+    owner = relationship("User", back_populates="sessions")           # ✅ ADD THIS
+
     activity     = Column(String)
     confidence   = Column(Integer)
     risk_score   = Column(Integer)
@@ -15,15 +19,14 @@ class Session(Base):
     risk_color   = Column(String)
     risk_meaning = Column(Text)
     cadence      = Column(Float)
-    knee_si      = Column(Float)   # knee symmetry index
-    hip_si       = Column(Float)   # hip symmetry index
+    knee_si      = Column(Float)
+    hip_si       = Column(Float)
     knee_flex_L  = Column(Float)
     knee_flex_R  = Column(Float)
     created_at   = Column(DateTime, default=datetime.utcnow)
 
     findings  = relationship("Finding",  back_populates="session", cascade="all, delete")
     exercises = relationship("Exercise", back_populates="session", cascade="all, delete")
-
 
 class Finding(Base):
     __tablename__ = "findings"
