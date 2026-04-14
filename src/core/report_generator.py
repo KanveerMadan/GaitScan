@@ -71,18 +71,18 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
 
     s = scores_dict["scores"]
     table_data = [
-        ["Measurement", "Value", "Status"],
-        ["Knee Symmetry Index",    f"{s['knee_symmetry_index']}%",
-         "Normal" if s['knee_symmetry_index'] < 10 else "Asymmetric"],
-        ["Hip Symmetry Index",     f"{s['hip_symmetry_index']}%",
-         "Normal" if s['hip_symmetry_index'] < 10 else "Asymmetric"],
-        ["Left Knee Flexion Range",  f"{s['knee_flexion_range_L']}°",
-         "Normal" if s['knee_flexion_range_L'] > 50 else "Limited"],
-        ["Right Knee Flexion Range", f"{s['knee_flexion_range_R']}°",
-         "Normal" if s['knee_flexion_range_R'] > 50 else "Limited"],
-        ["Cadence", f"{s['cadence']} steps/min",
-         "Normal" if 80 <= s['cadence'] <= 140 else "Check"],
-    ]
+    ["Measurement", "Value", "Status"],
+    ["Knee Symmetry Index", f"{s['knee_symmetry_index']}%",
+     "Normal" if s['knee_symmetry_index'] < 10 else "Asymmetric"],
+    ["Hip Symmetry Index", f"{s['hip_symmetry_index']}%",
+     "Normal" if s['hip_symmetry_index'] < 10 else "Asymmetric"],
+    ["Left Knee Flexion Range", f"{s['knee_flexion_range_L']}°",
+     "Normal" if s['knee_flexion_range_L'] > 50 else "Limited"],
+    ["Right Knee Flexion Range", f"{s['knee_flexion_range_R']}°",
+     "Normal" if s['knee_flexion_range_R'] > 50 else "Limited"],
+    ["Estimated Cadence", f"{s['cadence']} steps/min",
+     "Normal" if 80 <= s['cadence'] <= 140 else "Check"],
+]
 
     def status_color(val):
         if val in ("Normal",): return GREEN
