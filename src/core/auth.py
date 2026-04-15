@@ -9,7 +9,7 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from src.models.user import User
-from src.models.database import get_db   # your existing DB session dependency
+from src.core.database import get_db
 
 # ── secrets (set these as env vars on Render) ──────────────────────────────
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-this-in-production")
