@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
+from typing import Optional 
 
 from src.models.user import User, UserRole
 from src.core.database import get_db
@@ -12,7 +13,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
-    full_name: str | None = None
+    full_name: Optional[str] = None
     role: UserRole = UserRole.patient
 
 class LoginRequest(BaseModel):
