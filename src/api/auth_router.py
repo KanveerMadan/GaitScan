@@ -2,6 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 from typing import Optional 
+from src.core.auth import get_current_user
+from src.core.auth import get_current_user as get_current_user_dep
+from src.core.auth import hash_password, verify_password, create_access_token, get_current_user
 
 from src.models.user import User, UserRole
 from src.core.database import get_db
@@ -58,7 +61,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
 
 
 @router.get("/me")
-def get_me(current_user: User = Depends(get_current_user_dep)):
+def get_me(current_user: User = Depends(get_current_user)):
     return {
         "id": current_user.id,
         "email": current_user.email,
@@ -66,5 +69,3 @@ def get_me(current_user: User = Depends(get_current_user_dep)):
         "full_name": current_user.full_name,
     }
 
-# import at top after defining get_current_user in auth.py
-from src.core.auth import get_current_user as get_current_user_dep
