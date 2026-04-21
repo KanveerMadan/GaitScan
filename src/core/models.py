@@ -7,11 +7,7 @@ class Session(Base):
     __tablename__ = "sessions"
 
     id           = Column(String, primary_key=True)
-    patient_name = Column(String, default="Anonymous")
-
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  
-    owner = relationship("User", back_populates="sessions")          
-
+    patient_name = Column(String, default="Anonymous")        
     activity     = Column(String)
     confidence   = Column(Integer)
     risk_score   = Column(Integer)
