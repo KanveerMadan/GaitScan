@@ -3,10 +3,12 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session as DBSession
 import shutil, os, uuid, pandas as pd
+from src.core.database import init_db
 
 from src.api.auth_router import router as auth_router
 from src.core.auth import get_current_user
 from src.models.user import User
+from src.core.models import Session, Finding, Exercise  # ADD THIS if not already there
 
 from src.core.extract_landmarks import extract_landmarks
 from src.core.calculate_angles import add_all_angles

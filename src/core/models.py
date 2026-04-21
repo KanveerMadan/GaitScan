@@ -9,8 +9,8 @@ class Session(Base):
     id           = Column(String, primary_key=True)
     patient_name = Column(String, default="Anonymous")
 
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # ✅ ADD THIS
-    owner = relationship("User", back_populates="sessions")           # ✅ ADD THIS
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  
+    owner = relationship("User", back_populates="sessions")          
 
     activity     = Column(String)
     confidence   = Column(Integer)

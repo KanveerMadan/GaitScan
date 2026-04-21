@@ -27,5 +27,6 @@ def get_db():
 
 def init_db():
     from src.core.models import Session, Finding, Exercise
+    from src.models.user import User  # ADD THIS
     Base.metadata.create_all(bind=engine)
     print("Database tables created.")

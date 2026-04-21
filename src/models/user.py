@@ -1,7 +1,9 @@
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from src.core.database import Base          
+from src.core.database import Base    
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship      
 import enum
 
 class UserRole(str, enum.Enum):
@@ -17,5 +19,6 @@ class User(Base):
     role = Column(String, nullable=False, default="patient")
     full_name = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    owner = relationship("User", back_populates="sessions")
 
-sessions = relationship("Session", back_populates="owner")
