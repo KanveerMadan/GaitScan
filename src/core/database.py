@@ -1,12 +1,11 @@
-import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+import os
 
-# Use PostgreSQL on Render, SQLite locally
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./gaitscan.db")
 
-# Fix for older Render PostgreSQL URLs (postgres:// → postgresql://)
+# Fix for PostgreSQL URLs from Render (they use postgres:// but SQLAlchemy needs postgresql://)
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
@@ -26,7 +25,7 @@ def get_db():
         db.close()
 
 def init_db():
+    # Import ALL models here so Base knows about every table
+    from src.models.user import User
     from src.core.models import Session, Finding, Exercise
-    from src.models.user import User  # ADD THIS
     Base.metadata.create_all(bind=engine)
-    print("Database tables created.")
