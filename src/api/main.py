@@ -3,6 +3,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session as DBSession
 import shutil, os, uuid
+from .database import Base, engine
 
 from src.core.database import get_db, init_db
 from src.core.models import Session as SessionModel, Finding, Exercise
@@ -36,10 +37,6 @@ os.makedirs("outputs", exist_ok=True)
 
 @app.on_event("startup")
 def startup():
-    from src.models.user import User
-    from src.core.models import Session, Finding, Exercise
-    from src.models.clinician_patient import ClinicianInvite, ClinicianPatient
-    Base.metadata.create_all(bind=engine)
     init_db()
 
 @app.get("/")
