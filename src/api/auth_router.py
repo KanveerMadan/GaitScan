@@ -69,3 +69,10 @@ def get_me(current_user: User = Depends(get_current_user)):
         "role": current_user.role,
         "full_name": current_user.full_name,
     }
+def require_clinician(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.role != "clinician":
+        raise HTTPException(
+            status_code=403,
+            detail="Clinician access required"
+        )
+    return current_user

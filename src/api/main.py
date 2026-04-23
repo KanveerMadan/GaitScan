@@ -16,9 +16,12 @@ from src.utils.visualise import generate_plots
 from src.core.exercise_prescription import get_exercise_prescription
 from src.core.activity_classifier import classify_activity
 from src.api.auth_router import router as auth_router
+from src.api.clinician_router import router as clinician_router
+from src.models.clinician_patient import ClinicianInvite, ClinicianPatient 
 
 app = FastAPI(title="GaitScan API", version="2.0.0")
 app.include_router(auth_router)
+app.include_router(clinician_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,6 +36,10 @@ os.makedirs("outputs", exist_ok=True)
 
 @app.on_event("startup")
 def startup():
+    from src.models.user import User
+    from src.core.models import Session, Finding, Exercise
+    from src.models.clinician_patient import ClinicianInvite, ClinicianPatient
+    Base.metadata.create_all(bind=engine)
     init_db()
 
 @app.get("/")
