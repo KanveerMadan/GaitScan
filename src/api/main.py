@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session as DBSession
 import shutil, os, uuid
-from .database import Base, engine
+from src.core.database import Base, engine
 
 from src.core.database import get_db, init_db
 from src.core.models import Session as SessionModel, Finding, Exercise
