@@ -46,7 +46,7 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     db.refresh(user)
 
     role_str = user.role if isinstance(user.role, str) else user.role.value
-    token = create_access_token({"sub": user.id, "role": role_str})
+    token = create_access_token({"sub": user.email, "role": role_str})
     return TokenResponse(access_token=token, role=role_str, full_name=user.full_name)
 
 
@@ -57,7 +57,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     role_str = user.role if isinstance(user.role, str) else user.role.value
-    token = create_access_token({"sub": user.id, "role": role_str})
+    token = create_access_token({"sub": user.email, "role": role_str})
     return TokenResponse(access_token=token, role=role_str, full_name=user.full_name)
 
 
