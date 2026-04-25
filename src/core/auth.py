@@ -12,7 +12,7 @@ from src.models.user import User
 from src.core.database import get_db
 
 # ── secrets (set these as env vars on Render) ──────────────────────────────
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-this-in-production")
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "gaitscan-kanveer-2024-fixed")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 365  # 1 year
 
