@@ -12,7 +12,7 @@ from src.models.user import User
 from src.core.database import get_db
 
 # ── secrets (set these as env vars on Render) ──────────────────────────────
-SECRET_KEY = "gaitscan-kanveer-permanent-2024"
+SECRET_KEY = "gaitscan2024kanveerpermanent"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 365  # 1 year
 
