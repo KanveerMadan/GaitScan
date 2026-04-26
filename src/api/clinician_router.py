@@ -191,3 +191,10 @@ def get_patient_sessions(
             for s in sessions
         ]
     }
+@router.get("/debug/links")
+def debug_links(
+    clinician: User = Depends(require_clinician),
+    db: Session = Depends(get_db)
+):
+    links = db.query(ClinicianPatient).all()
+    return [{"clinician_id": l.clinician_id, "patient_id": l.patient_id} for l in links]
