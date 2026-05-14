@@ -148,10 +148,63 @@ async def analyze(
         raise HTTPException(500, f"Analysis failed: {str(e)}")
 
 @app.get("/report/{job_id}")
-def get_report(job_id: str):
+def get_report(job_id: str, db: DBSession = Depends(get_db)):
+    # Try to serve from disk first (works locally)
     pdf_path = f"outputs/{job_id}/gaitscan_report.pdf"
-    if not os.path.exists(pdf_path):
+    if os.path.exists(pdf_path):
+        return FileResponse(pdf_path, media_type="application/pdf",
+                            filename="gaitscan_report.pdf")
+
+    # File not on disk (server restarted) — regenerate from database
+    s = db.query(SessionModel).filter(SessionModel.id == job_id).first()
+    if not s:
         raise HTTPException(404, "Report not found")
+
+    # Reconstruct results dict from DB
+    findings = [{
+        "metric": f.metric,
+        "value": f.value,
+        "status": f.status,
+        "plain_english": f.plain_english
+    } for f in s.findings]
+
+    exercises = [{
+        "name": ex.name,
+        "muscle": ex.muscle,
+        "difficulty": ex.difficulty,
+        "instructions": ex.instructions,
+        "why": ex.why
+    } for ex in s.exercises]
+
+    results = {
+        "scores": {
+            "overall_risk_score": s.risk_score,
+            "knee_symmetry_index": s.knee_si,
+            "hip_symmetry_index": s.hip_si,
+            "knee_flexion_range_L": s.knee_flex_L,
+            "knee_flexion_range_R": s.knee_flex_R,
+            "cadence": s.cadence,
+        },
+        "findings": findings,
+        "recommendations": [],
+        "risk_label": s.risk_label,
+        "risk_meaning": s.risk_meaning,
+        "risk_color": s.risk_color,
+        "activity": {
+            "activity": s.activity,
+            "confidence": s.confidence,
+            "icon": "🚶",
+            "description": f"Detected activity: {s.activity}"
+        },
+        "exercises": exercises
+    }
+
+    # Regenerate PDF
+    output_dir = f"outputs/{job_id}"
+    os.makedirs(output_dir, exist_ok=True)
+    pdf_path = f"{output_dir}/gaitscan_report.pdf"
+    generate_pdf_report(results, output_path=pdf_path, plots_dir=output_dir)
+
     return FileResponse(pdf_path, media_type="application/pdf",
                         filename="gaitscan_report.pdf")
 
