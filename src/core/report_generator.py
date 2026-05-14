@@ -80,8 +80,8 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
      "Normal" if s['knee_flexion_range_L'] > 50 else "Limited"],
     ["Right Knee Flexion Range", f"{s['knee_flexion_range_R']}°",
      "Normal" if s['knee_flexion_range_R'] > 50 else "Limited"],
-    ["Estimated Cadence", f"{s['cadence']} steps/min",
-     "Normal" if 80 <= s['cadence'] <= 140 else "Check"],
+    ["Estimated Cadence", f"{s.get('cadence', 0)} steps/min",
+    "Normal" if 80 <= s.get('cadence', 0) <= 140 else "Check"],
 ]
 
     def status_color(val):
@@ -120,8 +120,19 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
     finding_style = ParagraphStyle("finding",
         fontSize=10, fontName="Helvetica",
         textColor=DARK, leftIndent=12, spaceAfter=5, leading=15)
+
     for f in scores_dict["findings"]:
-        elements.append(Paragraph(f"• {f}", finding_style))
+        # Handle both dict format and string format
+        if isinstance(f, dict):
+            metric = f.get("metric", "")
+            value = f.get("value", "")
+            plain = f.get("plain_english", "")
+            status = f.get("status", "good")
+            status_symbol = "✓" if status == "good" else "!" if status == "mild" else "✕"
+            text = f"{status_symbol} <b>{metric}</b> ({value}): {plain}"
+        else:
+            text = str(f)
+        elements.append(Paragraph(text, finding_style))
     elements.append(Spacer(1, 0.5*cm))
 
     # --- Recommendations ---
