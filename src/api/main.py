@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Form
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session as DBSession
@@ -18,9 +18,11 @@ from src.core.exercise_prescription import get_exercise_prescription
 from src.core.activity_classifier import classify_activity
 from src.api.auth_router import router as auth_router
 from src.api.clinician_router import router as clinician_router
-from src.models.clinician_patient import ClinicianInvite, ClinicianPatient 
+from src.models.clinician_patient import ClinicianInvite, ClinicianPatient
 
-app = FastAPI(title="GaitScan API", version="2.0.0")
+VALID_MODES = {"Clinical", "Runner", "Athlete", "Elderly"}
+
+app = FastAPI(title="GaitScan API", version="2.1.0")
 app.include_router(auth_router)
 app.include_router(clinician_router)
 
@@ -41,7 +43,7 @@ def startup():
 
 @app.get("/")
 def root():
-    return {"message": "GaitScan API is running", "version": "2.0.0"}
+    return {"message": "GaitScan API is running", "version": "2.1.0"}
 
 @app.get("/status")
 def status():
@@ -50,12 +52,17 @@ def status():
 @app.post("/analyze")
 async def analyze(
     video: UploadFile = File(...),
-    patient_name: str = "Anonymous",
+    patient_name: str = Form("Anonymous"),
+    mode: str = Form("Clinical"),                  # ← NEW: defaults to Clinical
     current_user: User = Depends(get_current_user),
     db: DBSession = Depends(get_db)
 ):
     if not video.filename.endswith((".mp4", ".mov", ".avi")):
         raise HTTPException(400, "Only .mp4, .mov, .avi files accepted")
+
+    # Sanitise mode — fall back to Clinical if invalid value sent
+    if mode not in VALID_MODES:
+        mode = "Clinical"
 
     job_id = str(uuid.uuid4())[:8]
     video_path = f"data/raw/{job_id}.mp4"
@@ -74,13 +81,20 @@ async def analyze(
         df.to_csv(f"data/processed/{job_id}_angles.csv", index=False)
 
         activity_result = classify_activity(df)
-        results = calculate_risk_scores(df, activity=activity_result["activity"])
+
+        # Pass mode through to both scoring and exercise prescription
+        results = calculate_risk_scores(
+            df,
+            activity=activity_result["activity"],
+            mode=mode
+        )
         results["activity"] = activity_result
         results["exercises"] = get_exercise_prescription(
             results["findings"],
             activity_result["activity"],
             results["scores"],
-            results["risk_label"]
+            results["risk_label"],
+            mode=mode
         )
 
         generate_plots(df, output_dir=output_dir)
@@ -129,17 +143,19 @@ async def analyze(
         db.commit()
 
         return JSONResponse({
-            "job_id":          job_id,
-            "status":          "success",
-            "activity":        results["activity"],
-            "risk_label":      results["risk_label"],
-            "risk_meaning":    results["risk_meaning"],
-            "risk_color":      results["risk_color"],
-            "scores":          results["scores"],
-            "findings":        results["findings"],
-            "recommendations": results["recommendations"],
-            "exercises":       results["exercises"],
-            "report_url":      f"/report/{job_id}"
+            "job_id":            job_id,
+            "status":            "success",
+            "mode":              mode,                          # ← returned to frontend
+            "mode_description":  results.get("mode_description", ""),
+            "activity":          results["activity"],
+            "risk_label":        results["risk_label"],
+            "risk_meaning":      results["risk_meaning"],
+            "risk_color":        results["risk_color"],
+            "scores":            results["scores"],
+            "findings":          results["findings"],
+            "recommendations":   results["recommendations"],
+            "exercises":         results["exercises"],
+            "report_url":        f"/report/{job_id}"
         })
 
     except HTTPException:
@@ -147,59 +163,56 @@ async def analyze(
     except Exception as e:
         raise HTTPException(500, f"Analysis failed: {str(e)}")
 
+
 @app.get("/report/{job_id}")
 def get_report(job_id: str, db: DBSession = Depends(get_db)):
-    # Try to serve from disk first (works locally)
     pdf_path = f"outputs/{job_id}/gaitscan_report.pdf"
     if os.path.exists(pdf_path):
         return FileResponse(pdf_path, media_type="application/pdf",
                             filename="gaitscan_report.pdf")
 
-    # File not on disk (server restarted) — regenerate from database
     s = db.query(SessionModel).filter(SessionModel.id == job_id).first()
     if not s:
         raise HTTPException(404, "Report not found")
 
-    # Reconstruct results dict from DB
     findings = [{
-        "metric": f.metric,
-        "value": f.value,
-        "status": f.status,
+        "metric":        f.metric,
+        "value":         f.value,
+        "status":        f.status,
         "plain_english": f.plain_english
     } for f in s.findings]
 
     exercises = [{
-        "name": ex.name,
-        "muscle": ex.muscle,
-        "difficulty": ex.difficulty,
+        "name":         ex.name,
+        "muscle":       ex.muscle,
+        "difficulty":   ex.difficulty,
         "instructions": ex.instructions,
-        "why": ex.why
+        "why":          ex.why
     } for ex in s.exercises]
 
     results = {
         "scores": {
-            "overall_risk_score": s.risk_score,
+            "overall_risk_score":  s.risk_score,
             "knee_symmetry_index": s.knee_si,
-            "hip_symmetry_index": s.hip_si,
+            "hip_symmetry_index":  s.hip_si,
             "knee_flexion_range_L": s.knee_flex_L,
             "knee_flexion_range_R": s.knee_flex_R,
-            "cadence": s.cadence,
+            "cadence":             s.cadence,
         },
-        "findings": findings,
+        "findings":        findings,
         "recommendations": [],
-        "risk_label": s.risk_label,
-        "risk_meaning": s.risk_meaning,
-        "risk_color": s.risk_color,
+        "risk_label":      s.risk_label,
+        "risk_meaning":    s.risk_meaning,
+        "risk_color":      s.risk_color,
         "activity": {
-            "activity": s.activity,
-            "confidence": s.confidence,
-            "icon": "🚶",
+            "activity":    s.activity,
+            "confidence":  s.confidence,
+            "icon":        "🚶",
             "description": f"Detected activity: {s.activity}"
         },
         "exercises": exercises
     }
 
-    # Regenerate PDF
     output_dir = f"outputs/{job_id}"
     os.makedirs(output_dir, exist_ok=True)
     pdf_path = f"{output_dir}/gaitscan_report.pdf"
@@ -207,6 +220,7 @@ def get_report(job_id: str, db: DBSession = Depends(get_db)):
 
     return FileResponse(pdf_path, media_type="application/pdf",
                         filename="gaitscan_report.pdf")
+
 
 @app.get("/sessions")
 def list_sessions(
@@ -232,6 +246,7 @@ def list_sessions(
         "knee_flex_R":  s.knee_flex_R,
         "created_at":   s.created_at.isoformat(),
     } for s in sessions]
+
 
 @app.get("/sessions/{session_id}")
 def get_session(session_id: str, db: DBSession = Depends(get_db)):
