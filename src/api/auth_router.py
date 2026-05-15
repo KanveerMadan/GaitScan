@@ -9,7 +9,6 @@ from src.core.database import get_db
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-# ── Schemas ────────────────────────────────────────────────────────────────
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
@@ -26,7 +25,6 @@ class TokenResponse(BaseModel):
     role: str
     full_name: Optional[str] = None
 
-# ── Routes ─────────────────────────────────────────────────────────────────
 @router.post("/register", response_model=TokenResponse, status_code=201)
 def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     existing = db.query(User).filter(User.email == payload.email).first()

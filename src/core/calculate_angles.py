@@ -15,22 +15,18 @@ def _p(row, i):
     """Extract (x, y) for landmark i from a DataFrame row."""
     return (row[f"lm{i}_x"], row[f"lm{i}_y"])
 
-# Left side
 def knee_angle_L(row):
     return angle_3pts(_p(row, 23), _p(row, 25), _p(row, 27))
 
-# Right side  
 def knee_angle_R(row):
     return angle_3pts(_p(row, 24), _p(row, 26), _p(row, 28))
 
-# Hip angles
 def hip_angle_L(row):
     return angle_3pts(_p(row, 11), _p(row, 23), _p(row, 25))
 
 def hip_angle_R(row):
     return angle_3pts(_p(row, 12), _p(row, 24), _p(row, 26))
 
-# Shoulder tilt (how level your shoulders are)
 def shoulder_tilt(row):
     return angle_3pts(_p(row, 11), _p(row, 12), (row["lm12_x"] + 0.1, row["lm12_y"]))
 

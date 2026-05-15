@@ -163,9 +163,6 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
         S("sub2", fontSize=9, textColor=GREY, alignment=TA_CENTER)))
     elements.append(Spacer(1, 0.5*cm))
 
-    # ══════════════════════════════════════════════════════════
-    # SUMMARY BOX
-    # ══════════════════════════════════════════════════════════
     activity_info = scores_dict.get("activity", {})
     if isinstance(activity_info, dict):
         activity_name = activity_info.get("activity", "—")
@@ -174,7 +171,6 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
         activity_name = str(activity_info)
         confidence    = "—"
 
-    # colour hex for risk label in HTML paragraph
     risk_hex = "#1D9E75" if risk <= 25 else "#BA7517" if risk <= 50 else "#E24B4A"
 
     summary = Table([[
@@ -209,13 +205,9 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
     elements.append(HRFlowable(width="100%", thickness=1,
                                color=colors.HexColor("#e2e8f0"), spaceAfter=8))
 
-    # ── Section heading style ─────────────────────────────────
     H2 = S("h2", fontSize=13, fontName="Helvetica-Bold", textColor=DARK,
             spaceBefore=12, spaceAfter=6, leading=18)
 
-    # ══════════════════════════════════════════════════════════
-    # MODE CONTEXT BOX
-    # ══════════════════════════════════════════════════════════
     elements.append(Paragraph("Assessment Mode Applied", H2))
     mode_box = Table([[
         Paragraph(
@@ -234,9 +226,6 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
     elements.append(mode_box)
     elements.append(Spacer(1, 0.5*cm))
 
-    # ══════════════════════════════════════════════════════════
-    # CLINICAL MEASUREMENTS
-    # ══════════════════════════════════════════════════════════
     elements.append(Paragraph("Clinical Measurements", H2))
 
     sc = scores_dict["scores"]
@@ -302,9 +291,7 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
     elements.append(meas_t)
     elements.append(Spacer(1, 0.5*cm))
 
-    # ══════════════════════════════════════════════════════════
-    # THRESHOLDS REFERENCE
-    # ══════════════════════════════════════════════════════════
+    
     elements.append(Paragraph(f"Thresholds Applied — {mode} Mode", H2))
     th_data = [["Metric", "Normal Range", "Flagged When"]]
     th_data += MODE_THRESHOLDS_TABLE.get(mode, MODE_THRESHOLDS_TABLE["Clinical"])
@@ -328,9 +315,7 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
     elements.append(HRFlowable(width="100%", thickness=1,
                                color=colors.HexColor("#e2e8f0"), spaceAfter=8))
 
-    # ══════════════════════════════════════════════════════════
-    # FINDINGS
-    # ══════════════════════════════════════════════════════════
+    
     elements.append(Paragraph("Detailed Findings", H2))
 
     STATUS_META = {
@@ -370,9 +355,7 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
 
     elements.append(Spacer(1, 0.3*cm))
 
-    # ══════════════════════════════════════════════════════════
-    # RECOMMENDATIONS
-    # ══════════════════════════════════════════════════════════
+    
     if scores_dict.get("recommendations"):
         elements.append(Paragraph("Recommendations", H2))
         for r in scores_dict["recommendations"]:
@@ -390,9 +373,7 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
             elements.append(Spacer(1, 0.15*cm))
         elements.append(Spacer(1, 0.3*cm))
 
-    # ══════════════════════════════════════════════════════════
-    # EXERCISES
-    # ══════════════════════════════════════════════════════════
+    
     exercises = scores_dict.get("exercises", [])
     if exercises:
         elements.append(HRFlowable(width="100%", thickness=1,
@@ -437,9 +418,7 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
             elements.append(Spacer(1, 0.2*cm))
         elements.append(Spacer(1, 0.3*cm))
 
-    # ══════════════════════════════════════════════════════════
-    # CHARTS
-    # ══════════════════════════════════════════════════════════
+    
     plot_files = [
         ("knee_angles.png",      "Knee Flexion Angle — Left vs Right Over Time"),
         ("hip_angles.png",       "Hip Flexion Angle — Left vs Right Over Time"),
@@ -459,9 +438,7 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
                       alignment=TA_CENTER, spaceAfter=6)))
                 elements.append(Spacer(1, 0.3*cm))
 
-    # ══════════════════════════════════════════════════════════
-    # FOOTER
-    # ══════════════════════════════════════════════════════════
+
     elements.append(Spacer(1, 0.5*cm))
     elements.append(HRFlowable(width="100%", thickness=0.5,
                                color=colors.HexColor("#e2e8f0"), spaceAfter=6))

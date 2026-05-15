@@ -53,14 +53,14 @@ def status():
 async def analyze(
     video: UploadFile = File(...),
     patient_name: str = Form("Anonymous"),
-    mode: str = Form("Clinical"),                  # ← NEW: defaults to Clinical
+    mode: str = Form("Clinical"),                  
     current_user: User = Depends(get_current_user),
     db: DBSession = Depends(get_db)
 ):
     if not video.filename.endswith((".mp4", ".mov", ".avi")):
         raise HTTPException(400, "Only .mp4, .mov, .avi files accepted")
 
-    # Sanitise mode — fall back to Clinical if invalid value sent
+    
     if mode not in VALID_MODES:
         mode = "Clinical"
 
@@ -82,7 +82,6 @@ async def analyze(
 
         activity_result = classify_activity(df)
 
-        # Pass mode through to both scoring and exercise prescription
         results = calculate_risk_scores(
             df,
             activity=activity_result["activity"],

@@ -1,11 +1,11 @@
 MODE_CONFIGS = {
     "Clinical": {
-        "knee_si_flag":    20,   # % asymmetry → flagged
+        "knee_si_flag":    20,   
         "knee_si_mild":    10,
         "hip_si_flag":     20,
         "hip_si_mild":     10,
-        "knee_flex_walk":  45,   # minimum flexion for walking
-        "knee_flex_run":   70,   # minimum flexion for running
+        "knee_flex_walk":  45,   
+        "knee_flex_run":   70,   
         "cadence_ranges": {
             "Walking":       (80,  120, "A healthy walking cadence is 80–120 steps/min."),
             "Brisk Walking": (120, 140, "A healthy brisk walking cadence is 120–140 steps/min."),
@@ -15,13 +15,13 @@ MODE_CONFIGS = {
         "description": "Standard clinical assessment thresholds."
     },
     "Runner": {
-        # Runners are held to tighter symmetry + higher flexion standards
+        
         "knee_si_flag":    15,
         "knee_si_mild":    8,
         "hip_si_flag":     15,
         "hip_si_mild":     8,
         "knee_flex_walk":  50,
-        "knee_flex_run":   80,   # runners need deeper knee drive
+        "knee_flex_run":   80,   
         "cadence_ranges": {
             "Walking":       (80,  120, "A healthy walking cadence is 80–120 steps/min."),
             "Brisk Walking": (150, 170, "Elite brisk-walking cadence is 150–170 steps/min."),
@@ -31,7 +31,7 @@ MODE_CONFIGS = {
         "description": "Optimised for runners — tighter symmetry and higher cadence targets."
     },
     "Athlete": {
-        # Athletes: tightest thresholds across the board
+        
         "knee_si_flag":    10,
         "knee_si_mild":    5,
         "hip_si_flag":     10,
@@ -47,12 +47,12 @@ MODE_CONFIGS = {
         "description": "High-performance mode — flags even minor asymmetries for peak optimisation."
     },
     "Elderly": {
-        # Elderly: more lenient thresholds, focus on fall risk and stability
+        
         "knee_si_flag":    25,
         "knee_si_mild":    15,
         "hip_si_flag":     25,
         "hip_si_mild":     15,
-        "knee_flex_walk":  35,   # lower expectation for flexion
+        "knee_flex_walk":  35,   
         "knee_flex_run":   60,
         "cadence_ranges": {
             "Walking":       (60,  100, "A safe walking cadence for older adults is 60–100 steps/min."),
@@ -83,7 +83,6 @@ def calculate_risk_scores(df, activity="Walking", mode="Clinical"):
       76-100= Serious abnormality. Please consult a doctor.
     """
 
-    # Fall back to Clinical if an unrecognised mode is passed
     cfg = MODE_CONFIGS.get(mode, MODE_CONFIGS["Clinical"])
 
     scores = {}
@@ -91,7 +90,6 @@ def calculate_risk_scores(df, activity="Walking", mode="Clinical"):
     recommendations = []
     risk = 0
 
-    # ── Symmetry Index ────────────────────────────────────────
     knee_avg_L = df["knee_L"].mean()
     knee_avg_R = df["knee_R"].mean()
     knee_si = abs(knee_avg_L - knee_avg_R) / ((knee_avg_L + knee_avg_R) / 2) * 100
@@ -103,7 +101,6 @@ def calculate_risk_scores(df, activity="Walking", mode="Clinical"):
     scores["knee_symmetry_index"] = round(knee_si, 1)
     scores["hip_symmetry_index"]  = round(hip_si, 1)
 
-    # Knee symmetry findings
     if knee_si > cfg["knee_si_flag"]:
         risk += 30
         findings.append({
@@ -139,7 +136,6 @@ def calculate_risk_scores(df, activity="Walking", mode="Clinical"):
             "plain_english": "Both knees are moving very similarly. Good left-right balance."
         })
 
-    # Hip symmetry findings
     if hip_si > cfg["hip_si_flag"]:
         risk += 20
         findings.append({
@@ -169,7 +165,6 @@ def calculate_risk_scores(df, activity="Walking", mode="Clinical"):
             "plain_english": "Both hips are moving evenly. No asymmetry detected."
         })
 
-    # ── Activity-specific scoring ─────────────────────────────
     knee_min_L = df["knee_L"].min()
     knee_min_R = df["knee_R"].min()
     knee_flexion_L = round(180 - knee_min_L, 1)
@@ -240,7 +235,6 @@ def calculate_risk_scores(df, activity="Walking", mode="Clinical"):
                 "plain_english": "Your knees are bending well during each step. Good range of motion detected."
             })
 
-    # ── Cadence ───────────────────────────────────────────────
     duration    = df["time_s"].max()
     knee_series = df["knee_L"].values
     steps = sum(
@@ -272,7 +266,6 @@ def calculate_risk_scores(df, activity="Walking", mode="Clinical"):
             "plain_english": f"Your step rate looks good ({cadence} steps/min). {cadence_note}"
         })
 
-    # ── Final risk score ──────────────────────────────────────
     risk = min(risk, 100)
     scores["overall_risk_score"] = risk
 

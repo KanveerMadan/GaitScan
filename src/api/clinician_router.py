@@ -17,14 +17,13 @@ router = APIRouter(tags=["clinician"])
 def generate_code():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
-# ── Clinician generates invite code ───────────────────────────────────────
 @router.post("/clinician/invite")
 def create_invite(
     clinician: User = Depends(require_clinician),
     db: Session = Depends(get_db)
 ):
     code = generate_code()
-    # ensure unique
+    
     while db.query(ClinicianInvite).filter(ClinicianInvite.code == code).first():
         code = generate_code()
 
@@ -33,7 +32,6 @@ def create_invite(
     db.commit()
     return {"code": code, "message": "Share this code with your patient"}
 
-# ── Patient joins using invite code ───────────────────────────────────────
 class JoinRequest(BaseModel):
     code: str
 
@@ -54,7 +52,7 @@ def join_clinician(
     if not invite:
         raise HTTPException(status_code=404, detail="Invalid or already used invite code")
 
-    # check not already linked
+    
     existing = db.query(ClinicianPatient).filter(
         ClinicianPatient.clinician_id == invite.clinician_id,
         ClinicianPatient.patient_id == current_user.id
@@ -62,11 +60,11 @@ def join_clinician(
     if existing:
         raise HTTPException(status_code=409, detail="Already linked to this clinician")
 
-    # mark invite used
+    
     invite.used = True
     invite.patient_id = current_user.id
 
-    # create link
+    
     link = ClinicianPatient(
         clinician_id=invite.clinician_id,
         patient_id=current_user.id
@@ -76,7 +74,6 @@ def join_clinician(
 
     return {"message": "Successfully linked to your clinician"}
 
-# ── Clinician gets all their patients ─────────────────────────────────────
 @router.get("/clinician/patients")
 def get_patients(
     clinician: User = Depends(require_clinician),
@@ -94,7 +91,7 @@ def get_patients(
         if not patient:
             continue
 
-        # get all sessions for this patient
+        
         sessions = db.query(GaitSession).filter(
             GaitSession.user_id == link.patient_id
         ).order_by(desc(GaitSession.created_at)).all()
@@ -115,13 +112,13 @@ def get_patients(
 
         latest = sessions[0]
 
-        # trend — last 5 sessions oldest first
+        
         trend = [
             {"date": s.created_at.strftime("%d %b"), "risk": s.risk_score}
             for s in reversed(sessions[:5])
         ]
 
-        # flag logic — risk > 50 OR rising across last 3
+        
         flag = False
         if latest.risk_score and latest.risk_score > 50:
             flag = True
@@ -144,11 +141,10 @@ def get_patients(
             "linked_since": link.created_at.isoformat()
         })
 
-    # flagged patients first
+    
     result.sort(key=lambda x: (not x["flag"], x["name"]))
     return result
 
-# ── Clinician gets one patient's full session history ─────────────────────
 @router.get("/clinician/patients/{patient_id}/sessions")
 def get_patient_sessions(
     patient_id: int,

@@ -122,7 +122,6 @@ EXERCISE_KNOWLEDGE_BASE = [
         "instructions": "Stand on one leg, hinge forward at hip lowering hands toward floor, keep back straight. 3 sets of 8 each side.",
         "difficulty": "Hard"
     },
-    # ── Runner-specific ───────────────────────────────────────
     {
         "id": 13,
         "name": "A-skip drill",
@@ -163,7 +162,6 @@ EXERCISE_KNOWLEDGE_BASE = [
         "instructions": "Side plank with top foot on a bench. Hold body straight. 3 sets of 20–30 seconds each side.",
         "difficulty": "Hard"
     },
-    # ── Elderly-specific ──────────────────────────────────────
     {
         "id": 17,
         "name": "Seated leg raises",
@@ -228,14 +226,14 @@ def _match_exercises(findings, activity, mode):
             for exercise in EXERCISE_KNOWLEDGE_BASE:
                 if exercise["id"] in seen_ids:
                     continue
-                # Must be relevant to both activity AND mode
+                
                 if (activity in exercise["activity_relevance"]
                         and mode in exercise["mode_relevance"]):
                     if any(tag in exercise["targets"] for tag in tags):
                         matched.append(exercise)
                         seen_ids.add(exercise["id"])
 
-    # Pad to at least 2 exercises from the same mode
+    
     if len(matched) < 2:
         for exercise in EXERCISE_KNOWLEDGE_BASE:
             if exercise["id"] not in seen_ids and mode in exercise["mode_relevance"]:
