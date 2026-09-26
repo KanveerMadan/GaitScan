@@ -84,6 +84,7 @@ async def analyze(
         session_row = SessionModel(
             id           = job_id,
             patient_name = patient_name,
+            mode         = mode,
             user_id      = current_user.id,
             activity     = activity_result["activity"],
             confidence   = int(activity_result.get("confidence", 0)),

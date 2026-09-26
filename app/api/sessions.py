@@ -53,6 +53,7 @@ def get_report(
         },
         "findings":        [display.finding(f) for f in s.findings],
         "recommendations": [],
+        "mode":            s.mode,
         **display.summary(s.risk_score),
         "activity": {
             "activity":    display.activity(s.activity),
@@ -86,6 +87,7 @@ def session_summary(s: SessionModel) -> dict:
     return {
         "id":           s.id,
         "patient_name": s.patient_name,
+        "mode":         s.mode,
         "activity":     display.activity(s.activity),
         "confidence":   s.confidence,
         "risk_score":   s.risk_score,

@@ -60,6 +60,13 @@ MODE_META = {
     },
 }
 
+UNKNOWN_MODE_META = {
+    "color":       "#64748b",
+    "label":       "Mode not recorded",
+    "description": "This session was analysed before the analysis mode was stored.",
+    "focus":       "Reference thresholds are not shown because the mode is unknown.",
+}
+
 MODE_THRESHOLDS_TABLE = {
     "Clinical": [
         ("Knee Symmetry Index", "< 10%",      "> 20%"),
@@ -101,8 +108,11 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
     )
 
     # ── Colours ───────────────────────────────────────────────
-    mode     = scores_dict.get("mode", "Clinical")
-    meta     = MODE_META.get(mode, MODE_META["Clinical"])
+    # Sessions stored before the mode column existed have mode=None: say so rather
+    # than silently applying Clinical thresholds (F15).
+    mode_known = scores_dict.get("mode") in MODE_META
+    mode     = scores_dict["mode"] if mode_known else "Not recorded"
+    meta     = MODE_META[mode] if mode_known else UNKNOWN_MODE_META
     MODE_HEX = meta["color"]
     MODE_CLR = colors.HexColor(MODE_HEX)
 
@@ -239,26 +249,29 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
     m  = meta
 
     def si_status(v, good):
+        if not mode_known: return ("—", "#64748b")
         if v < good:       return ("Within range",  "#1D9E75")
         if v < good * 2:   return ("Near edge",     "#BA7517")
         return               ("Outside range", "#E24B4A")
 
     def flex_status(v):
+        if not mode_known: return ("—", "#64748b")
         g = m["knee_flex_good"]
         if v >= g:           return ("Within range",  "#1D9E75")
         if v >= g * 0.7:     return ("Near edge",     "#BA7517")
         return                 ("Outside range", "#E24B4A")
 
     def cad_status(v):
+        if not mode_known: return ("—", "#64748b")
         if m["cadence_low"] <= v <= m["cadence_high"]: return ("Within range",  "#1D9E75")
         if v > 0:                                       return ("Outside range", "#BA7517")
         return                                                  ("Not Detected", "#64748b")
 
     rows_raw = [
         ("Knee Symmetry Index",      f"{sc['knee_symmetry_index']}%",
-         si_status(sc['knee_symmetry_index'], m["knee_si_good"])),
+         si_status(sc['knee_symmetry_index'], m.get("knee_si_good"))),
         ("Hip Symmetry Index",       f"{sc['hip_symmetry_index']}%",
-         si_status(sc['hip_symmetry_index'],  m["hip_si_good"])),
+         si_status(sc['hip_symmetry_index'],  m.get("hip_si_good"))),
         ("Left Knee Flexion Range",  f"{sc['knee_flexion_range_L']}°",
          flex_status(sc['knee_flexion_range_L'])),
         ("Right Knee Flexion Range", f"{sc['knee_flexion_range_R']}°",
@@ -270,7 +283,7 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
     meas_data = [[
         Paragraph("<b>Measurement</b>", S("mh", textColor=WHITE, fontName="Helvetica-Bold", fontSize=10)),
         Paragraph("<b>Value</b>",       S("mh2", textColor=WHITE, fontName="Helvetica-Bold", fontSize=10, alignment=TA_CENTER)),
-        Paragraph(f"<b>Status ({mode} Mode)</b>",
+        Paragraph(f"<b>Status ({meta['label']})</b>",
                   S("mh3", textColor=WHITE, fontName="Helvetica-Bold", fontSize=10, alignment=TA_CENTER)),
     ]]
     status_clr_map = {}
@@ -299,25 +312,29 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
     elements.append(Spacer(1, 0.5*cm))
 
     
-    elements.append(Paragraph(f"Thresholds Applied — {mode} Mode", H2))
+    if not mode_known:
+        elements.append(Paragraph("Reference thresholds are not shown: this session's analysis mode was not recorded.",
+                                  S("nomode", fontSize=9, textColor=GREY)))
     th_data = [["Metric", "Reference Range", "Outside Range When"]]
-    th_data += MODE_THRESHOLDS_TABLE.get(mode, MODE_THRESHOLDS_TABLE["Clinical"])
-    th_t = Table(th_data, colWidths=[6*cm, 5.5*cm, 5.5*cm])
-    th_t.setStyle(TableStyle([
-        ("BACKGROUND",    (0,0), (-1,0), LIGHT_BG),
-        ("FONTNAME",      (0,0), (-1,0), "Helvetica-Bold"),
-        ("FONTSIZE",      (0,0), (-1,-1), 9),
-        ("FONTNAME",      (0,1), (-1,-1), "Helvetica"),
-        ("ROWBACKGROUNDS",(0,1), (-1,-1), [WHITE, LIGHT_BG]),
-        ("GRID",          (0,0), (-1,-1), 0.5, colors.HexColor("#e2e8f0")),
-        ("VALIGN",        (0,0), (-1,-1), "MIDDLE"),
-        ("TOPPADDING",    (0,0), (-1,-1), 7),
-        ("BOTTOMPADDING", (0,0), (-1,-1), 7),
-        ("LEFTPADDING",   (0,0), (-1,-1), 10),
-        ("TEXTCOLOR",     (1,1), (1,-1), GREEN),
-        ("TEXTCOLOR",     (2,1), (2,-1), RED),
-    ]))
-    elements.append(th_t)
+    th_data += MODE_THRESHOLDS_TABLE.get(mode, [])
+    if mode_known:
+        elements.append(Paragraph(f"Thresholds Applied — {mode} Mode", H2))
+        th_t = Table(th_data, colWidths=[6*cm, 5.5*cm, 5.5*cm])
+        th_t.setStyle(TableStyle([
+            ("BACKGROUND",    (0,0), (-1,0), LIGHT_BG),
+            ("FONTNAME",      (0,0), (-1,0), "Helvetica-Bold"),
+            ("FONTSIZE",      (0,0), (-1,-1), 9),
+            ("FONTNAME",      (0,1), (-1,-1), "Helvetica"),
+            ("ROWBACKGROUNDS",(0,1), (-1,-1), [WHITE, LIGHT_BG]),
+            ("GRID",          (0,0), (-1,-1), 0.5, colors.HexColor("#e2e8f0")),
+            ("VALIGN",        (0,0), (-1,-1), "MIDDLE"),
+            ("TOPPADDING",    (0,0), (-1,-1), 7),
+            ("BOTTOMPADDING", (0,0), (-1,-1), 7),
+            ("LEFTPADDING",   (0,0), (-1,-1), 10),
+            ("TEXTCOLOR",     (1,1), (1,-1), GREEN),
+            ("TEXTCOLOR",     (2,1), (2,-1), RED),
+        ]))
+        elements.append(th_t)
     elements.append(Spacer(1, 0.5*cm))
     elements.append(HRFlowable(width="100%", thickness=1,
                                color=colors.HexColor("#e2e8f0"), spaceAfter=8))

@@ -27,6 +27,7 @@ class Session(Base):
     __tablename__ = "sessions"
     id           = Column(String, primary_key=True)
     patient_name = Column(String, default="Anonymous")
+    mode         = Column(String, nullable=True)  # NULL for sessions stored before migration 0002
     user_id      = Column(Integer, ForeignKey("users.id"), nullable=True)
     activity     = Column(String)
     confidence   = Column(Integer)
