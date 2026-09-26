@@ -4,7 +4,7 @@ F                                                                        [100%]
 ________________ test_unauthenticated_gets_401[/sessions/{sid}] ________________
 
 client = <starlette.testclient.TestClient object at 0x1077d84d0>
-world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4ZDZhZGI1NGQ...4QGV4YW1wbGUuY29tIiwicm9sZSI6ImNsaW5pY2lhbiIsImV4cCI6MTgyMTk5MTgyOX0.Phy549-GiyrCYgqsLdIwO4m75VDB8R6MbzUzeBaoi8A', ...}
+world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': '<test-token-redacted>', ...}
 path = '/sessions/{sid}'
 
     @pytest.mark.parametrize("path", ["/sessions/{sid}", "/report/{sid}"])
@@ -39,7 +39,7 @@ WARNING  matplotlib.style.core:core.py:213 In /Users/kanveermadan/Desktop/gaitsc
 _________________ test_unauthenticated_gets_401[/report/{sid}] _________________
 
 client = <starlette.testclient.TestClient object at 0x1077d84d0>
-world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4ZDZhZGI1NGQ...4QGV4YW1wbGUuY29tIiwicm9sZSI6ImNsaW5pY2lhbiIsImV4cCI6MTgyMTk5MTgyOX0.Phy549-GiyrCYgqsLdIwO4m75VDB8R6MbzUzeBaoi8A', ...}
+world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': '<test-token-redacted>', ...}
 path = '/report/{sid}'
 
     @pytest.mark.parametrize("path", ["/sessions/{sid}", "/report/{sid}"])
@@ -58,7 +58,7 @@ E        +        where <built-in method format of str object at 0x106b70bb0> = 
 ______________ test_other_users_cannot_read[eve-/sessions/{sid}] _______________
 
 client = <starlette.testclient.TestClient object at 0x1077d84d0>
-world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4ZDZhZGI1NGQ...4QGV4YW1wbGUuY29tIiwicm9sZSI6ImNsaW5pY2lhbiIsImV4cCI6MTgyMTk5MTgyOX0.Phy549-GiyrCYgqsLdIwO4m75VDB8R6MbzUzeBaoi8A', ...}
+world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': '<test-token-redacted>', ...}
 path = '/sessions/{sid}', who = 'eve'
 
     @pytest.mark.parametrize("path", ["/sessions/{sid}", "/report/{sid}"])
@@ -74,7 +74,7 @@ E        +  where 200 = <Response [200 OK]>.status_code
 _______________ test_other_users_cannot_read[eve-/report/{sid}] ________________
 
 client = <starlette.testclient.TestClient object at 0x1077d84d0>
-world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4ZDZhZGI1NGQ...4QGV4YW1wbGUuY29tIiwicm9sZSI6ImNsaW5pY2lhbiIsImV4cCI6MTgyMTk5MTgyOX0.Phy549-GiyrCYgqsLdIwO4m75VDB8R6MbzUzeBaoi8A', ...}
+world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': '<test-token-redacted>', ...}
 path = '/report/{sid}', who = 'eve'
 
     @pytest.mark.parametrize("path", ["/sessions/{sid}", "/report/{sid}"])
@@ -90,7 +90,7 @@ E        +  where 200 = <Response [200 OK]>.status_code
 _____________ test_other_users_cannot_read[carol-/sessions/{sid}] ______________
 
 client = <starlette.testclient.TestClient object at 0x1077d84d0>
-world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4ZDZhZGI1NGQ...4QGV4YW1wbGUuY29tIiwicm9sZSI6ImNsaW5pY2lhbiIsImV4cCI6MTgyMTk5MTgyOX0.Phy549-GiyrCYgqsLdIwO4m75VDB8R6MbzUzeBaoi8A', ...}
+world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': '<test-token-redacted>', ...}
 path = '/sessions/{sid}', who = 'carol'
 
     @pytest.mark.parametrize("path", ["/sessions/{sid}", "/report/{sid}"])
@@ -106,7 +106,7 @@ E        +  where 200 = <Response [200 OK]>.status_code
 ______________ test_other_users_cannot_read[carol-/report/{sid}] _______________
 
 client = <starlette.testclient.TestClient object at 0x1077d84d0>
-world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4ZDZhZGI1NGQ...4QGV4YW1wbGUuY29tIiwicm9sZSI6ImNsaW5pY2lhbiIsImV4cCI6MTgyMTk5MTgyOX0.Phy549-GiyrCYgqsLdIwO4m75VDB8R6MbzUzeBaoi8A', ...}
+world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': '<test-token-redacted>', ...}
 path = '/report/{sid}', who = 'carol'
 
     @pytest.mark.parametrize("path", ["/sessions/{sid}", "/report/{sid}"])
@@ -122,15 +122,15 @@ E        +  where 200 = <Response [200 OK]>.status_code
 ______________________ test_debug_links_endpoint_removed _______________________
 
 client = <starlette.testclient.TestClient object at 0x1077d84d0>
-world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4ZDZhZGI1NGQ...4QGV4YW1wbGUuY29tIiwicm9sZSI6ImNsaW5pY2lhbiIsImV4cCI6MTgyMTk5MTgyOX0.Phy549-GiyrCYgqsLdIwO4m75VDB8R6MbzUzeBaoi8A', ...}
+world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': '<test-token-redacted>', ...}
 
     def test_debug_links_endpoint_removed(client, world):
 >       assert client.get("/debug/links", headers=auth(world["bob"])).status_code == 404
 E       AssertionError: assert 200 == 404
 E        +  where 200 = <Response [200 OK]>.status_code
-E        +    where <Response [200 OK]> = get('/debug/links', headers={'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyY2Y5MDE1OTE4QGV4YW1wbGUuY29tIiwicm9sZSI6ImNsaW5pY2lhbiIsImV4cCI6MTgyMTk5MTgyOX0.Phy549-GiyrCYgqsLdIwO4m75VDB8R6MbzUzeBaoi8A'})
+E        +    where <Response [200 OK]> = get('/debug/links', headers={'Authorization': 'Bearer <test-token-redacted>'})
 E        +      where get = <starlette.testclient.TestClient object at 0x1077d84d0>.get
-E        +      and   {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyY2Y5MDE1OTE4QGV4YW1wbGUuY29tIiwicm9sZSI6ImNsaW5pY2lhbiIsImV4cCI6MTgyMTk5MTgyOX0.Phy549-GiyrCYgqsLdIwO4m75VDB8R6MbzUzeBaoi8A'} = auth('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyY2Y5MDE1OTE4QGV4YW1wbGUuY29tIiwicm9sZSI6ImNsaW5pY2lhbiIsImV4cCI6MTgyMTk5MTgyOX0.Phy549-GiyrCYgqsLdIwO4m75VDB8R6MbzUzeBaoi8A')
+E        +      and   {'Authorization': 'Bearer <test-token-redacted>'} = auth('<test-token-redacted>')
 
 /Users/kanveermadan/Desktop/gaitscan/tests/test_access_control.py:51: AssertionError
 ___________________ test_cors_allows_only_configured_origins ___________________
@@ -149,7 +149,7 @@ E         + *
 /Users/kanveermadan/Desktop/gaitscan/tests/test_access_control.py:57: AssertionError
 __________________ test_tokens_are_signed_with_the_env_secret __________________
 
-signing_input = b'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZWYwZTkzZTRjQGV4YW1wbGUuY29tIiwicm9sZSI6InBhdGllbnQiLCJleHAiOjE4MjE5OTE4Mjl9'
+signing_input = b'<test-token-redacted>'
 header = {'alg': 'HS256', 'typ': 'JWT'}
 signature = b'5\x13\x97S9\xac`\x8f\xa1\x9d\xb4\xd6\xdcx\xba\xde\x19\xc7\xb2\xb6\xad\xcc\x1b\x9f,o%\xe2\xbe;\x9e5'
 key = 'suEnkePdN8d2iwAuRiphY_uuNEz7Poi6gy9d8LI-tmkbpM3qJEBaA-7A3xYgDmU3'
@@ -174,7 +174,7 @@ E               jose.exceptions.JWSSignatureError
 
 During handling of the above exception, another exception occurred:
 
-token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZWYwZTkzZTRjQGV4YW1wbGUuY29tIiwicm9sZSI6InBhdGllbnQiLCJleHAiOjE4MjE5OTE4Mjl9.NROXUzmsYI-hnbTW3Hi63hnHsratzBufLG8l4r47njU'
+token = '<test-token-redacted>'
 key = 'suEnkePdN8d2iwAuRiphY_uuNEz7Poi6gy9d8LI-tmkbpM3qJEBaA-7A3xYgDmU3'
 algorithms = ['HS256'], options = None, audience = None, issuer = None
 subject = None, access_token = None
@@ -233,7 +233,7 @@ subject = None, access_token = None
     
         Examples:
     
-            >>> payload = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhIjoiYiJ9.jiMyrsmD8AoHWeQgmxZ5yq8z0lXS67_QGs52AzC8Ru8'
+            >>> payload = '<test-token-redacted>'
             >>> jwt.decode(payload, 'secret', algorithms='HS256')
     
         """
@@ -274,7 +274,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
     _verify_signature(signing_input, header, signature, key, algorithms)
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-signing_input = b'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZWYwZTkzZTRjQGV4YW1wbGUuY29tIiwicm9sZSI6InBhdGllbnQiLCJleHAiOjE4MjE5OTE4Mjl9'
+signing_input = b'<test-token-redacted>'
 header = {'alg': 'HS256', 'typ': 'JWT'}
 signature = b'5\x13\x97S9\xac`\x8f\xa1\x9d\xb4\xd6\xdcx\xba\xde\x19\xc7\xb2\xb6\xad\xcc\x1b\x9f,o%\xe2\xbe;\x9e5'
 key = 'suEnkePdN8d2iwAuRiphY_uuNEz7Poi6gy9d8LI-tmkbpM3qJEBaA-7A3xYgDmU3'
@@ -311,7 +311,7 @@ client = <starlette.testclient.TestClient object at 0x1077d84d0>
 /Users/kanveermadan/Desktop/gaitscan/tests/test_auth.py:12: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZWYwZTkzZTRjQGV4YW1wbGUuY29tIiwicm9sZSI6InBhdGllbnQiLCJleHAiOjE4MjE5OTE4Mjl9.NROXUzmsYI-hnbTW3Hi63hnHsratzBufLG8l4r47njU'
+token = '<test-token-redacted>'
 key = 'suEnkePdN8d2iwAuRiphY_uuNEz7Poi6gy9d8LI-tmkbpM3qJEBaA-7A3xYgDmU3'
 algorithms = ['HS256'], options = None, audience = None, issuer = None
 subject = None, access_token = None
@@ -370,7 +370,7 @@ subject = None, access_token = None
     
         Examples:
     
-            >>> payload = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhIjoiYiJ9.jiMyrsmD8AoHWeQgmxZ5yq8z0lXS67_QGs52AzC8Ru8'
+            >>> payload = '<test-token-redacted>'
             >>> jwt.decode(payload, 'secret', algorithms='HS256')
     
         """
@@ -447,7 +447,7 @@ E           LENGTH: 29
 /Users/kanveermadan/Desktop/gaitscan/tests/test_auth.py:34: AssertionError
 __________________ test_access_token_lifetime_at_most_one_day __________________
 
-signing_input = b'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlZjZiODY4YmRhQGV4YW1wbGUuY29tIiwicm9sZSI6InBhdGllbnQiLCJleHAiOjE4MjE5OTE4MzB9'
+signing_input = b'<test-token-redacted>'
 header = {'alg': 'HS256', 'typ': 'JWT'}
 signature = b'\x94\xca7\xa8\x93D\xbc\xa3TX\xba\xc6Ti\x97.gX\xbd}\x05\xfe\x9e\x83\xd4\x00\xc7z\x99\xd1I\x8b'
 key = 'suEnkePdN8d2iwAuRiphY_uuNEz7Poi6gy9d8LI-tmkbpM3qJEBaA-7A3xYgDmU3'
@@ -472,7 +472,7 @@ E               jose.exceptions.JWSSignatureError
 
 During handling of the above exception, another exception occurred:
 
-token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlZjZiODY4YmRhQGV4YW1wbGUuY29tIiwicm9sZSI6InBhdGllbnQiLCJleHAiOjE4MjE5OTE4MzB9.lMo3qJNEvKNUWLrGVGmXLmdYvX0F_p6D1ADHepnRSYs'
+token = '<test-token-redacted>'
 key = 'suEnkePdN8d2iwAuRiphY_uuNEz7Poi6gy9d8LI-tmkbpM3qJEBaA-7A3xYgDmU3'
 algorithms = ['HS256'], options = None, audience = None, issuer = None
 subject = None, access_token = None
@@ -531,7 +531,7 @@ subject = None, access_token = None
     
         Examples:
     
-            >>> payload = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhIjoiYiJ9.jiMyrsmD8AoHWeQgmxZ5yq8z0lXS67_QGs52AzC8Ru8'
+            >>> payload = '<test-token-redacted>'
             >>> jwt.decode(payload, 'secret', algorithms='HS256')
     
         """
@@ -572,7 +572,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
     _verify_signature(signing_input, header, signature, key, algorithms)
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-signing_input = b'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlZjZiODY4YmRhQGV4YW1wbGUuY29tIiwicm9sZSI6InBhdGllbnQiLCJleHAiOjE4MjE5OTE4MzB9'
+signing_input = b'<test-token-redacted>'
 header = {'alg': 'HS256', 'typ': 'JWT'}
 signature = b'\x94\xca7\xa8\x93D\xbc\xa3TX\xba\xc6Ti\x97.gX\xbd}\x05\xfe\x9e\x83\xd4\x00\xc7z\x99\xd1I\x8b'
 key = 'suEnkePdN8d2iwAuRiphY_uuNEz7Poi6gy9d8LI-tmkbpM3qJEBaA-7A3xYgDmU3'
@@ -609,7 +609,7 @@ client = <starlette.testclient.TestClient object at 0x1077d84d0>
 /Users/kanveermadan/Desktop/gaitscan/tests/test_auth.py:39: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlZjZiODY4YmRhQGV4YW1wbGUuY29tIiwicm9sZSI6InBhdGllbnQiLCJleHAiOjE4MjE5OTE4MzB9.lMo3qJNEvKNUWLrGVGmXLmdYvX0F_p6D1ADHepnRSYs'
+token = '<test-token-redacted>'
 key = 'suEnkePdN8d2iwAuRiphY_uuNEz7Poi6gy9d8LI-tmkbpM3qJEBaA-7A3xYgDmU3'
 algorithms = ['HS256'], options = None, audience = None, issuer = None
 subject = None, access_token = None
@@ -668,7 +668,7 @@ subject = None, access_token = None
     
         Examples:
     
-            >>> payload = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhIjoiYiJ9.jiMyrsmD8AoHWeQgmxZ5yq8z0lXS67_QGs52AzC8Ru8'
+            >>> payload = '<test-token-redacted>'
             >>> jwt.decode(payload, 'secret', algorithms='HS256')
     
         """
@@ -2058,7 +2058,7 @@ E         + macosx
 ______________________ test_uppercase_extension_accepted _______________________
 
 client = <starlette.testclient.TestClient object at 0x1077d84d0>
-token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4Y2NjYTk5ZTk5QGV4YW1wbGUuY29tIiwicm9sZSI6InBhdGllbnQiLCJleHAiOjE4MjE5OTE4MzV9.f_gT6BOS8xKovfiLNEPJRi5wy5UgUiR8fHqw0ny81VQ'
+token = '<test-token-redacted>'
 fake_pipeline = None
 
     def test_uppercase_extension_accepted(client, token, fake_pipeline):
@@ -2075,7 +2075,7 @@ LENGTH: 21
 ________ test_success_uses_full_uuid_and_keeps_no_raw_or_landmark_files ________
 
 client = <starlette.testclient.TestClient object at 0x1077d84d0>
-token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwY2ZjMWY4ZGE0QGV4YW1wbGUuY29tIiwicm9sZSI6InBhdGllbnQiLCJleHAiOjE4MjE5OTE4MzV9.01VNc8rfQYT3EWT6TYk-qnLSbf2rqTyz3mHRR1hG4zg'
+token = '<test-token-redacted>'
 fake_pipeline = None
 
     def test_success_uses_full_uuid_and_keeps_no_raw_or_landmark_files(client, token, fake_pipeline):
@@ -2103,7 +2103,7 @@ LENGTH: 21
 _____ test_unreadable_video_is_422_without_internal_detail_and_is_deleted ______
 
 client = <starlette.testclient.TestClient object at 0x1077d84d0>
-token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmMTg2NDQ0ZjdkQGV4YW1wbGUuY29tIiwicm9sZSI6InBhdGllbnQiLCJleHAiOjE4MjE5OTE4MzZ9.IVXOL_reMd0lBXQaMWN4gCiVF4rsrJzF5zTCuhCBRPs'
+token = '<test-token-redacted>'
 
     def test_unreadable_video_is_422_without_internal_detail_and_is_deleted(client, token):
         before = set(leftovers())
@@ -2123,7 +2123,7 @@ OpenCV: Couldn't read video stream from file "data/raw/c8d58ba7.mp4"
 _____________ test_unexpected_error_is_generic_500_with_reference ______________
 
 client = <starlette.testclient.TestClient object at 0x1077d84d0>
-token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmMTM5MmUxYjIxQGV4YW1wbGUuY29tIiwicm9sZSI6InBhdGllbnQiLCJleHAiOjE4MjE5OTE4MzZ9.bTf9LwNfKEMnaq8EX8eWHnJvQcB0AKK6kPKVd-VV_7Q'
+token = '<test-token-redacted>'
 monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x14451ead0>
 
     def test_unexpected_error_is_generic_500_with_reference(client, token, monkeypatch):
@@ -2148,7 +2148,7 @@ LENGTH: 21
 ____________________________ test_upload_size_limit ____________________________
 
 client = <starlette.testclient.TestClient object at 0x1077d84d0>
-token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmOWQ3YTU2ZTA1QGV4YW1wbGUuY29tIiwicm9sZSI6InBhdGllbnQiLCJleHAiOjE4MjE5OTE4Mzd9.zpCNVU9I4hsQuRW0DRdcidQROIhEC1AT6sTomGRtt2s'
+token = '<test-token-redacted>'
 monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x144572310>
 
     def test_upload_size_limit(client, token, monkeypatch):

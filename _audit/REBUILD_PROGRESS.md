@@ -35,7 +35,8 @@ Source of truth for which phase is next. Plan: [REBUILD_PLAN.md](REBUILD_PLAN.md
   - `265aabe` fix(pdf): remove the risk-score headline and diagnostic wording
   - `69ebd67` fix(api): serve stored sessions with current wording and a disclaimer
   - `d5850fd` docs(config): document every environment variable in .env.example
-  - (next) docs(audit): add audit, rebuild plan, ADRs, probes and Phase 0 report
+  - `bee2a0f` docs(audit): add audit, rebuild plan, ADRs, probes and Phase 0 report
+  - (next) docs(audit): redact test tokens from Phase 0 test output
 - Frontend commits:
   - `3f87bee` chore(git): ignore env files, media and local databases
   - `1ae4331` test: replace CRA boilerplate test with failing Phase 0 specs

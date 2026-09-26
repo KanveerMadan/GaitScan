@@ -208,8 +208,9 @@ Then in the browser: sign in, upload a clip, download the PDF (and check it open
 
    The "before" column was re-run with v2 against the old code and still shows 15/15 FAIL, so the comparison is fair. The probe also no longer contains the leaked secret; it reads it from git history.
 9. **`tests/test_language.py`** (my new test, not an audit test) exempts exactly one string: the `DISCLAIMER` constant, which must say the tool "does not diagnose".
-10. **Audit report redaction:** removed the literal historical secret values from `_audit/GAITSCAN_AUDIT.md` (F01 evidence row) so no secret value is committed.
-11. **Not done, and still planned:**
+10. **Test-output redaction:** my first `docs(audit)` commit (`bee2a0f`) included `phase0_tests_before.txt`, which contains pytest failure reprs of bearer tokens for throwaway test users. They were signed with a random per-run secret from `tests/conftest.py` that was never persisted, so they authorize nothing anywhere. A follow-up commit redacts them. I did not amend `bee2a0f` (no history rewrites), so the tokens remain in that unpushed commit; squash-merging the PR drops them from `main`.
+11. **Audit report redaction:** removed the literal historical secret values from `_audit/GAITSCAN_AUDIT.md` (F01 evidence row) so no secret value is committed.
+12. **Not done, and still planned:**
     - `runtime.txt` stays until the Docker switch in Phase 1, since Render may still read it.
     - The frontend's `.env.example` (`REACT_APP_API_URL`) is still unused; the env-configured URL comes with Vite in Phase 1.
     - Activity "Confidence %" is still displayed; the classifier is removed in Phase 2.
