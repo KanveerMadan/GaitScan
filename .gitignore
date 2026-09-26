@@ -24,8 +24,10 @@ gaitscan-env/
 # Logs
 *.log
 
-# Environment variables
+# Environment variables (keep only the documented example)
 .env
+.env.*
+!.env.example
 
 # Build
 build/
@@ -55,7 +57,25 @@ dist/
 *.jpg
 *.jpeg
 *.webp
-*.gifoutputs/
+*.gif
+*.MP4
+*.MOV
+*.AVI
+*.MKV
+*.m4v
+*.webm
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Runtime artifacts
 outputs/
 data/raw/
 data/processed/
+
+# Audit scratch (contains derived biometric video and local builds)
+_audit/sandbox/
+_audit/.venv/
+_audit/fe_build/
