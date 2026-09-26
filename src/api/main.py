@@ -12,7 +12,7 @@ from src.core.database import get_db, init_db
 from src.core.models import Session as SessionModel, Finding, Exercise
 from src.models.user import User
 from src.core.auth import get_current_user
-from src.core.extract_landmarks import extract_landmarks
+from src.core.extract_landmarks import VideoReadError, extract_landmarks
 from src.core.calculate_angles import add_all_angles
 from src.core.risk_scoring import calculate_risk_scores
 from src.core.report_generator import generate_pdf_report
@@ -24,6 +24,7 @@ from src.api.clinician_router import router as clinician_router
 from src.models.clinician_patient import ClinicianInvite, ClinicianPatient
 
 VALID_MODES = {"Clinical", "Runner", "Athlete", "Elderly"}
+VIDEO_EXTENSIONS = (".mp4", ".mov", ".avi")
 
 log = logging.getLogger("gaitscan")
 
@@ -47,7 +48,6 @@ app.add_middleware(
 )
 
 os.makedirs("data/raw", exist_ok=True)
-os.makedirs("data/processed", exist_ok=True)
 os.makedirs("outputs", exist_ok=True)
 
 @app.on_event("startup")
@@ -70,28 +70,30 @@ async def analyze(
     current_user: User = Depends(get_current_user),
     db: DBSession = Depends(get_db)
 ):
-    if not video.filename.endswith((".mp4", ".mov", ".avi")):
+    ext = os.path.splitext((video.filename or "").lower())[1]
+    if ext not in VIDEO_EXTENSIONS:
         raise HTTPException(400, "Only .mp4, .mov, .avi files accepted")
 
-    
     if mode not in VALID_MODES:
         mode = "Clinical"
 
-    job_id = str(uuid.uuid4())[:8]
-    video_path = f"data/raw/{job_id}.mp4"
+    job_id = str(uuid.uuid4())
+    video_path = f"data/raw/{job_id}{ext}"
     output_dir = f"outputs/{job_id}"
-    os.makedirs(output_dir, exist_ok=True)
-
-    with open(video_path, "wb") as f:
-        shutil.copyfileobj(video.file, f)
+    succeeded = False
 
     try:
-        df = extract_landmarks(video_path)
+        save_upload(video.file, video_path, settings.max_upload_bytes)
+        os.makedirs(output_dir, exist_ok=True)
+        try:
+            df = extract_landmarks(video_path)
+        except VideoReadError:
+            raise HTTPException(422, "We couldn't read this file as a video. "
+                                     "Please upload an .mp4, .mov or .avi recording.")
         if len(df) < 10:
             raise HTTPException(400, "Could not detect a person in the video.")
 
         df = add_all_angles(df)
-        df.to_csv(f"data/processed/{job_id}_angles.csv", index=False)
 
         activity_result = classify_activity(df)
 
@@ -112,7 +114,6 @@ async def analyze(
         generate_plots(df, output_dir=output_dir)
         pdf_path = f"{output_dir}/gaitscan_report.pdf"
         generate_pdf_report(results, output_path=pdf_path, plots_dir=output_dir)
-        os.remove(video_path)
 
         s = results["scores"]
         session_row = SessionModel(
@@ -153,6 +154,7 @@ async def analyze(
             ))
 
         db.commit()
+        succeeded = True
 
         return JSONResponse({
             "job_id":            job_id,
@@ -172,8 +174,27 @@ async def analyze(
 
     except HTTPException:
         raise
-    except Exception as e:
-        raise HTTPException(500, f"Analysis failed: {str(e)}")
+    except Exception:
+        ref = uuid.uuid4().hex[:12]
+        log.exception("analysis failed ref=%s job=%s", ref, job_id)
+        raise HTTPException(500, f"Analysis failed due to an internal error. Reference: {ref}")
+    finally:
+        # The raw video is never kept, whatever happened; partial outputs are dropped on failure.
+        if os.path.exists(video_path):
+            os.remove(video_path)
+        if not succeeded:
+            shutil.rmtree(output_dir, ignore_errors=True)
+
+
+def save_upload(src, dest: str, limit: int) -> None:
+    """Stream the upload to disk, aborting with 413 once it exceeds `limit` bytes."""
+    written = 0
+    with open(dest, "wb") as f:
+        while chunk := src.read(1024 * 1024):
+            written += len(chunk)
+            if written > limit:
+                raise HTTPException(413, f"Video is larger than {limit // (1024 * 1024)} MB.")
+            f.write(chunk)
 
 
 def get_visible_session(db: DBSession, user: User, session_id: str) -> SessionModel:

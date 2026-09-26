@@ -4,12 +4,17 @@ import pandas as pd
 
 mp_pose = mp.solutions.pose
 
+
+class VideoReadError(ValueError):
+    """The file could not be decoded as a video."""
+
+
 def extract_landmarks(video_path):
     rows = []
     cap = cv2.VideoCapture(video_path)
 
     if not cap.isOpened():
-        raise FileNotFoundError(f"Cannot open video: {video_path}")
+        raise VideoReadError(f"Cannot open video: {video_path}")
 
     fps = cap.get(cv2.CAP_PROP_FPS)
     total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
