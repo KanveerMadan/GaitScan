@@ -39,6 +39,14 @@ migrate(os.environ["DATABASE_URL"])
 PASSWORD = "correct-horse-battery"
 
 
+@pytest.fixture(autouse=True)
+def _reset_rate_limits():
+    """Every test starts with empty auth rate-limit windows (all requests share one test IP)."""
+    from app.core import ratelimit
+    for limiter in ratelimit.ALL:
+        limiter.reset()
+
+
 @pytest.fixture(scope="session")
 def client():
     from fastapi.testclient import TestClient
