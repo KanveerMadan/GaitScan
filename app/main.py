@@ -7,7 +7,6 @@ from app.api.auth import router as auth_router
 from app.api.clinician import router as clinician_router
 from app.api.sessions import router as sessions_router
 from app.core.config import settings
-from app.db.database import init_db
 
 # Interactive docs and the OpenAPI schema are only exposed in dev.
 _docs = settings.docs_enabled
@@ -32,10 +31,6 @@ app.add_middleware(
 
 os.makedirs("data/raw", exist_ok=True)
 os.makedirs("outputs", exist_ok=True)
-
-@app.on_event("startup")
-def startup():
-    init_db()
 
 @app.get("/")
 def root():

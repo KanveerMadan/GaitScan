@@ -22,6 +22,20 @@ os.environ.update({
 os.environ.pop("GROQ_API_KEY", None)
 os.environ.pop("ENABLE_LLM_EXPLANATIONS", None)
 
+
+def migrate(url, rev="head"):
+    """Run Alembic against `url` (the app no longer creates tables at startup)."""
+    from alembic import command
+    from alembic.config import Config
+    cfg = Config(os.path.join(ROOT, "alembic.ini"))
+    cfg.set_main_option("script_location", os.path.join(ROOT, "alembic"))
+    cfg.attributes["database_url"] = url
+    cfg.attributes["configure_logger"] = False
+    command.upgrade(cfg, rev)
+
+
+migrate(os.environ["DATABASE_URL"])
+
 PASSWORD = "correct-horse-battery"
 
 
