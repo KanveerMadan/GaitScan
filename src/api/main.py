@@ -176,16 +176,32 @@ async def analyze(
         raise HTTPException(500, f"Analysis failed: {str(e)}")
 
 
+def get_visible_session(db: DBSession, user: User, session_id: str) -> SessionModel:
+    """Return the session if `user` owns it or is a clinician linked to its owner.
+    Anything else is a 404, so callers can't probe which IDs exist."""
+    s = db.query(SessionModel).filter(SessionModel.id == session_id).first()
+    if s is not None and s.user_id is not None:
+        if s.user_id == user.id:
+            return s
+        if user.role == "clinician" and db.query(ClinicianPatient).filter(
+            ClinicianPatient.clinician_id == user.id,
+            ClinicianPatient.patient_id == s.user_id,
+        ).first():
+            return s
+    raise HTTPException(404, "Session not found")
+
+
 @app.get("/report/{job_id}")
-def get_report(job_id: str, db: DBSession = Depends(get_db)):
-    pdf_path = f"outputs/{job_id}/gaitscan_report.pdf"
+def get_report(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+    db: DBSession = Depends(get_db),
+):
+    s = get_visible_session(db, current_user, job_id)
+    pdf_path = f"outputs/{s.id}/gaitscan_report.pdf"
     if os.path.exists(pdf_path):
         return FileResponse(pdf_path, media_type="application/pdf",
                             filename="gaitscan_report.pdf")
-
-    s = db.query(SessionModel).filter(SessionModel.id == job_id).first()
-    if not s:
-        raise HTTPException(404, "Report not found")
 
     findings = [{
         "metric":        f.metric,
@@ -225,9 +241,8 @@ def get_report(job_id: str, db: DBSession = Depends(get_db)):
         "exercises": exercises
     }
 
-    output_dir = f"outputs/{job_id}"
+    output_dir = f"outputs/{s.id}"
     os.makedirs(output_dir, exist_ok=True)
-    pdf_path = f"{output_dir}/gaitscan_report.pdf"
     generate_pdf_report(results, output_path=pdf_path, plots_dir=output_dir)
 
     return FileResponse(pdf_path, media_type="application/pdf",
@@ -261,10 +276,12 @@ def list_sessions(
 
 
 @app.get("/sessions/{session_id}")
-def get_session(session_id: str, db: DBSession = Depends(get_db)):
-    s = db.query(SessionModel).filter(SessionModel.id == session_id).first()
-    if not s:
-        raise HTTPException(404, "Session not found")
+def get_session(
+    session_id: str,
+    current_user: User = Depends(get_current_user),
+    db: DBSession = Depends(get_db),
+):
+    s = get_visible_session(db, current_user, session_id)
     return {
         "id":           s.id,
         "patient_name": s.patient_name,
