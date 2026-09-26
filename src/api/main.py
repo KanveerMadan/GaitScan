@@ -2,9 +2,12 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Form
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session as DBSession
-import shutil, os, uuid
-from src.core.database import Base, engine
+import logging
+import os
+import shutil
+import uuid
 
+from src.core.config import settings
 from src.core.database import get_db, init_db
 from src.core.models import Session as SessionModel, Finding, Exercise
 from src.models.user import User
@@ -22,15 +25,25 @@ from src.models.clinician_patient import ClinicianInvite, ClinicianPatient
 
 VALID_MODES = {"Clinical", "Runner", "Athlete", "Elderly"}
 
-app = FastAPI(title="GaitScan API", version="2.1.0")
+log = logging.getLogger("gaitscan")
+
+# Interactive docs and the OpenAPI schema are only exposed in dev.
+_docs = settings.docs_enabled
+app = FastAPI(
+    title="GaitScan API",
+    version="2.1.0",
+    docs_url="/docs" if _docs else None,
+    redoc_url="/redoc" if _docs else None,
+    openapi_url="/openapi.json" if _docs else None,
+)
 app.include_router(auth_router)
 app.include_router(clinician_router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=settings.cors_origins,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 os.makedirs("data/raw", exist_ok=True)
