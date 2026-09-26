@@ -1,0 +1,53 @@
+"""F41: structured logs with redaction and request IDs; Sentry only with a DSN and without PII."""
+import json
+import logging
+
+from conftest import PASSWORD, register
+
+
+def test_redaction_removes_secrets_and_emails():
+    from app.core.logging import redact
+    event = {"event": "login failed for alice@example.com", "password": "hunter2-long",
+             "Authorization": "Bearer abc", "new_password": "x", "email": "a@b.com", "path": "/auth/login"}
+    out = redact(None, "info", dict(event))
+    text = json.dumps(out)
+    for secret in ("hunter2-long", "Bearer abc", "alice@example.com", "a@b.com"):
+        assert secret not in text
+    assert out["path"] == "/auth/login"
+
+
+def test_requests_get_an_id_and_one_json_access_line(client, capfd):
+    r = client.get("/status", headers={"X-Request-ID": "req-123"})
+    assert r.headers["X-Request-ID"] == "req-123"
+    r2 = client.get("/status")
+    assert len(r2.headers["X-Request-ID"]) >= 16
+    lines = [json.loads(line) for line in capfd.readouterr().err.splitlines() if line.startswith("{")]
+    access = [e for e in lines if e.get("event") == "request" and e.get("request_id") == "req-123"]
+    assert access and access[0]["status"] == 200 and access[0]["path"] == "/status"
+
+
+def test_login_logs_contain_no_password_or_email(client, capfd):
+    email, _ = register(client)
+    client.post("/auth/login", json={"email": email, "password": "wrong-password-xyz"})
+    logging.getLogger("gaitscan").warning("probe %s", email)   # stdlib calls go through redaction too
+    err = capfd.readouterr().err
+    assert "wrong-password-xyz" not in err and PASSWORD not in err
+    assert email not in err
+
+
+def test_sentry_not_initialised_without_dsn(monkeypatch):
+    import app.core.observability as obs
+    calls = []
+    monkeypatch.setattr(obs.sentry_sdk, "init", lambda **kw: calls.append(kw))
+    obs.init_sentry(dsn="", environment="production")
+    assert calls == []
+
+
+def test_sentry_initialised_without_pii_or_bodies(monkeypatch):
+    import app.core.observability as obs
+    calls = []
+    monkeypatch.setattr(obs.sentry_sdk, "init", lambda **kw: calls.append(kw))
+    obs.init_sentry(dsn="https://key@o0.ingest.example.com/1", environment="production")
+    assert calls and calls[0]["send_default_pii"] is False
+    assert calls[0]["max_request_body_size"] == "never"
+    assert calls[0]["environment"] == "production"
