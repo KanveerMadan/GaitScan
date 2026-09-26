@@ -49,6 +49,16 @@ Source of truth for which phase is next. Plan: [REBUILD_PLAN.md](REBUILD_PLAN.md
 - Status: in progress
 - Scope amended 2026-09-27 (owner request): + F10 login rate limiting, + F12 email enumeration (mitigation; full closure needs Phase 4 invite/email flow), + F15 mode persisted for PDF regeneration, + password minimum length 10 on registration and password change only (legacy short passwords still log in). See REBUILD_PLAN D6 Phase 1 task 11.
 - Branches: backend `rebuild/phase-1-foundations`, frontend `rebuild/phase-1-foundations`, both **stacked on the unmerged phase-0 branches** (branching from `main` would drop Phase 0).
+- **Stopped mid-phase (usage limit), 2026-09-27.** Backend suite: 104 passed, 1 skipped (Postgres test needs TEST_POSTGRES_URL). ruff check + format clean.
+- Done (backend): plan amendment; golden test; gaitcore/ + app/ split; pyproject + uv.lock (pip-audit 40 -> 2, both protobuf, pinned by mediapipe 0.10.9, unreachable, cleared in Phase 2); PyJWT; validated settings (DATABASE_URL required outside dev); Alembic 0001 idempotent baseline + 0002 session mode (F15 fixed); rate limits (F10), equal-cost login (F12 mitigated, residual until Phase 4), 10-char minimum + POST /auth/change-password; structlog JSON + redaction + request IDs + optional Sentry (F41); invite codes via secrets; ruff clean.
+- Next, in order:
+  1. mypy: strict on gaitcore (add type hints), lenient on app; fix until clean.
+  2. .pre-commit-config.yaml (ruff, ruff-format, mypy, detect-secrets) in backend.
+  3. /healthz endpoint (+ test); Dockerfile (python:3.11-slim, non-root, uvicorn --proxy-headers, `alembic upgrade head` before start), .dockerignore, render.yaml (web, healthCheckPath /healthz). Start Docker Desktop, build + run locally, test against Postgres container (TEST_POSTGRES_URL).
+  4. .github/workflows/ci.yml (uv sync --frozen, ruff, mypy, pytest with Postgres service, pip-audit with the two protobuf IDs ignored + justification, docker build) + dependabot.yml.
+  5. .env.example (add SENTRY_DSN, note DATABASE_URL required in prod); README (setup, architecture, capture protocol, known limitations); CONTRIBUTING.md; docs/architecture.md; move ADRs to docs/adr.
+  6. Frontend (branch created, no commits yet): CRA -> Vite + TS allowJs, VITE_API_BASE_URL, Vitest port of the 11 tests, change-password form, register placeholder "At least 10 characters", 429 message handling, axios upgrade, eslint + prettier + pre-commit, CI workflow, vercel.json, @sentry/react; npm audit.
+  7. Re-run security probe v2 (update: long passwords, expect F10/F15 PASS), golden check on walk01 (local), write phase-reports/PHASE_1.md.
 
 ## Phase 2 — Measurement core v2
 - Status: todo
