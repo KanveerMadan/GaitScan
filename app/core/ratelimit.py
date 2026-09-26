@@ -4,6 +4,7 @@ ponytail: in-process memory. Correct for one uvicorn worker on one instance (the
 current deployment). With several workers or instances each has its own counts, so
 move this to Postgres or Redis when scaling out.
 """
+
 import threading
 import time
 from collections import defaultdict, deque

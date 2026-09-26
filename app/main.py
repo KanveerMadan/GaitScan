@@ -38,9 +38,11 @@ app.add_middleware(
 os.makedirs("data/raw", exist_ok=True)
 os.makedirs("outputs", exist_ok=True)
 
+
 @app.get("/")
 def root():
     return {"message": "GaitScan API is running", "version": "2.1.0"}
+
 
 @app.get("/status")
 def status():

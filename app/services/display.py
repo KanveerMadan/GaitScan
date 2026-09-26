@@ -8,6 +8,7 @@ legacy vocabulary below.
 ponytail: regex filter over stored text. Delete once pre-Phase-0 rows are purged
 or re-analysed (Phase 2 re-baselines results with a pipeline_version).
 """
+
 import re
 
 from gaitcore.legacy import summary_for_score

@@ -1,4 +1,5 @@
 """Session history, session detail and PDF report endpoints (owner or linked clinician only)."""
+
 import os
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -22,10 +23,15 @@ def get_visible_session(db: DBSession, user: User, session_id: str) -> SessionMo
     if s is not None and s.user_id is not None:
         if s.user_id == user.id:
             return s
-        if user.role == "clinician" and db.query(ClinicianPatient).filter(
-            ClinicianPatient.clinician_id == user.id,
-            ClinicianPatient.patient_id == s.user_id,
-        ).first():
+        if (
+            user.role == "clinician"
+            and db.query(ClinicianPatient)
+            .filter(
+                ClinicianPatient.clinician_id == user.id,
+                ClinicianPatient.patient_id == s.user_id,
+            )
+            .first()
+        ):
             return s
     raise HTTPException(404, "Session not found")
 
@@ -39,27 +45,26 @@ def get_report(
     s = get_visible_session(db, current_user, job_id)
     pdf_path = f"outputs/{s.id}/gaitscan_report.pdf"
     if os.path.exists(pdf_path):
-        return FileResponse(pdf_path, media_type="application/pdf",
-                            filename="gaitscan_report.pdf")
+        return FileResponse(pdf_path, media_type="application/pdf", filename="gaitscan_report.pdf")
 
     results = {
         "scores": {
-            "overall_risk_score":  s.risk_score,
+            "overall_risk_score": s.risk_score,
             "knee_symmetry_index": s.knee_si,
-            "hip_symmetry_index":  s.hip_si,
+            "hip_symmetry_index": s.hip_si,
             "knee_flexion_range_L": s.knee_flex_L,
             "knee_flexion_range_R": s.knee_flex_R,
-            "cadence":             s.cadence,
+            "cadence": s.cadence,
         },
-        "findings":        [display.finding(f) for f in s.findings],
+        "findings": [display.finding(f) for f in s.findings],
         "recommendations": [],
-        "mode":            s.mode,
+        "mode": s.mode,
         **display.summary(s.risk_score),
         "activity": {
-            "activity":    display.activity(s.activity),
-            "confidence":  s.confidence,
-            "icon":        "🚶",
-            "description": f"Detected activity: {display.activity(s.activity)}"
+            "activity": display.activity(s.activity),
+            "confidence": s.confidence,
+            "icon": "🚶",
+            "description": f"Detected activity: {display.activity(s.activity)}",
         },
         "exercises": [display.exercise(ex) for ex in s.exercises],
     }
@@ -68,36 +73,35 @@ def get_report(
     os.makedirs(output_dir, exist_ok=True)
     generate_pdf_report(results, output_path=pdf_path, plots_dir=output_dir)
 
-    return FileResponse(pdf_path, media_type="application/pdf",
-                        filename="gaitscan_report.pdf")
+    return FileResponse(pdf_path, media_type="application/pdf", filename="gaitscan_report.pdf")
 
 
 @router.get("/sessions")
-def list_sessions(
-    current_user: User = Depends(get_current_user),
-    db: DBSession = Depends(get_db)
-):
-    sessions = db.query(SessionModel)\
-        .filter(SessionModel.user_id == current_user.id)\
-        .order_by(SessionModel.created_at.desc()).all()
+def list_sessions(current_user: User = Depends(get_current_user), db: DBSession = Depends(get_db)):
+    sessions = (
+        db.query(SessionModel)
+        .filter(SessionModel.user_id == current_user.id)
+        .order_by(SessionModel.created_at.desc())
+        .all()
+    )
     return [session_summary(s) for s in sessions]
 
 
 def session_summary(s: SessionModel) -> dict:
     return {
-        "id":           s.id,
+        "id": s.id,
         "patient_name": s.patient_name,
-        "mode":         s.mode,
-        "activity":     display.activity(s.activity),
-        "confidence":   s.confidence,
-        "risk_score":   s.risk_score,
+        "mode": s.mode,
+        "activity": display.activity(s.activity),
+        "confidence": s.confidence,
+        "risk_score": s.risk_score,
         **display.summary(s.risk_score),
-        "cadence":      s.cadence,
-        "knee_si":      s.knee_si,
-        "hip_si":       s.hip_si,
-        "knee_flex_L":  s.knee_flex_L,
-        "knee_flex_R":  s.knee_flex_R,
-        "created_at":   s.created_at.isoformat(),
+        "cadence": s.cadence,
+        "knee_si": s.knee_si,
+        "hip_si": s.hip_si,
+        "knee_flex_L": s.knee_flex_L,
+        "knee_flex_R": s.knee_flex_R,
+        "created_at": s.created_at.isoformat(),
     }
 
 
@@ -110,7 +114,7 @@ def get_session(
     s = get_visible_session(db, current_user, session_id)
     return {
         **session_summary(s),
-        "findings":   [display.finding(f) for f in s.findings],
-        "exercises":  [display.exercise(ex) for ex in s.exercises],
+        "findings": [display.finding(f) for f in s.findings],
+        "exercises": [display.exercise(ex) for ex in s.exercises],
         "disclaimer": DISCLAIMER,
     }

@@ -5,6 +5,7 @@ tests/golden/legacy_pipeline.json was generated from the pre-refactor code
 synthetic landmarks only. Regenerate ONLY for an intentional output change, and
 say so in the commit.
 """
+
 import json
 import os
 import sys
@@ -27,6 +28,7 @@ def _pipeline():
     from gaitcore.activity import classify_activity
     from gaitcore.angles import add_all_angles
     from gaitcore.legacy import calculate_risk_scores
+
     return add_all_angles, classify_activity, calculate_risk_scores, _match_exercises
 
 
@@ -49,11 +51,14 @@ def compute():
         df = add_all_angles(synthetic_landmarks(steps_per_min=spm, knee_scale_R=ks))
         key = f"spm={spm},knee_scale_R={ks}"
         out[key] = {
-            "angle_means": {c: float(df[c].mean()) for c in ("knee_L", "knee_R", "hip_L", "hip_R", "shoulder_tilt")},
+            "angle_means": {
+                c: float(df[c].mean()) for c in ("knee_L", "knee_R", "hip_L", "hip_R", "shoulder_tilt")
+            },
             "activity": classify_activity(df),
             "scoring": {
                 f"{mode}/{act}": calculate_risk_scores(df, activity=act, mode=mode)
-                for mode in MODES for act in ACTIVITIES
+                for mode in MODES
+                for act in ACTIVITIES
             },
         }
         out[key]["exercise_ids"] = {

@@ -6,6 +6,7 @@ Fails closed: ENV defaults to "production", and production refuses to start with
 missing/placeholder JWT secret, without an explicit CORS allow-list, or without
 DATABASE_URL. Error messages never echo the offending value.
 """
+
 import os
 import secrets
 
@@ -47,7 +48,7 @@ class Settings(BaseModel):
         if len(self.jwt_secret) < MIN_SECRET_LEN or self.jwt_secret.lower() in PLACEHOLDER_SECRETS:
             raise ValueError(
                 "JWT_SECRET is missing, a placeholder, or shorter than 32 characters. "
-                "Generate one with: python -c \"import secrets; print(secrets.token_urlsafe(48))\""
+                'Generate one with: python -c "import secrets; print(secrets.token_urlsafe(48))"'
             )
         if not self.cors_origins:
             if not dev:
@@ -58,7 +59,7 @@ class Settings(BaseModel):
                 raise ValueError("DATABASE_URL is required outside ENV=dev (no silent SQLite fallback).")
             self.database_url = "sqlite:///./gaitscan.db"
         if self.database_url.startswith("postgres://"):
-            self.database_url = "postgresql://" + self.database_url[len("postgres://"):]
+            self.database_url = "postgresql://" + self.database_url[len("postgres://") :]
         self.max_upload_bytes = self.max_upload_mb * 1024 * 1024
         return self
 
@@ -78,7 +79,9 @@ def load_settings(environ: "os._Environ[str] | dict[str, str] | None" = None) ->
         return Settings.model_validate({k.lower(): v for k, v in environ.items()})
     except ValidationError as e:
         # `from None`: the chained ValidationError would print the rejected input value.
-        raise RuntimeError("; ".join(err["msg"].removeprefix("Value error, ") for err in e.errors())) from None
+        raise RuntimeError(
+            "; ".join(err["msg"].removeprefix("Value error, ") for err in e.errors())
+        ) from None
 
 
 settings = load_settings()

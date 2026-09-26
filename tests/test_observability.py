@@ -1,4 +1,5 @@
 """F41: structured logs with redaction and request IDs; Sentry only with a DSN and without PII."""
+
 import json
 import logging
 
@@ -7,8 +8,15 @@ from conftest import PASSWORD, register
 
 def test_redaction_removes_secrets_and_emails():
     from app.core.logging import redact
-    event = {"event": "login failed for alice@example.com", "password": "hunter2-long",
-             "Authorization": "Bearer abc", "new_password": "x", "email": "a@b.com", "path": "/auth/login"}
+
+    event = {
+        "event": "login failed for alice@example.com",
+        "password": "hunter2-long",
+        "Authorization": "Bearer abc",
+        "new_password": "x",
+        "email": "a@b.com",
+        "path": "/auth/login",
+    }
     out = redact(None, "info", dict(event))
     text = json.dumps(out)
     for secret in ("hunter2-long", "Bearer abc", "alice@example.com", "a@b.com"):
@@ -29,7 +37,7 @@ def test_requests_get_an_id_and_one_json_access_line(client, capfd):
 def test_login_logs_contain_no_password_or_email(client, capfd):
     email, _ = register(client)
     client.post("/auth/login", json={"email": email, "password": "wrong-password-xyz"})
-    logging.getLogger("gaitscan").warning("probe %s", email)   # stdlib calls go through redaction too
+    logging.getLogger("gaitscan").warning("probe %s", email)  # stdlib calls go through redaction too
     err = capfd.readouterr().err
     assert "wrong-password-xyz" not in err and PASSWORD not in err
     assert email not in err
@@ -37,6 +45,7 @@ def test_login_logs_contain_no_password_or_email(client, capfd):
 
 def test_sentry_not_initialised_without_dsn(monkeypatch):
     import app.core.observability as obs
+
     calls = []
     monkeypatch.setattr(obs.sentry_sdk, "init", lambda **kw: calls.append(kw))
     obs.init_sentry(dsn="", environment="production")
@@ -45,6 +54,7 @@ def test_sentry_not_initialised_without_dsn(monkeypatch):
 
 def test_sentry_initialised_without_pii_or_bodies(monkeypatch):
     import app.core.observability as obs
+
     calls = []
     monkeypatch.setattr(obs.sentry_sdk, "init", lambda **kw: calls.append(kw))
     obs.init_sentry(dsn="https://key@o0.ingest.example.com/1", environment="production")
@@ -58,10 +68,12 @@ def test_exception_tracebacks_are_redacted(client, capfd, monkeypatch):
 
     def boom(path):
         raise RuntimeError("failure while processing bob@example.com")
+
     monkeypatch.setattr(analysis, "extract_landmarks", boom)
     _, t = register(client)
-    client.post("/analyze", headers={"Authorization": f"Bearer {t}"},
-                files={"video": ("v.mp4", b"x", "video/mp4")})
+    client.post(
+        "/analyze", headers={"Authorization": f"Bearer {t}"}, files={"video": ("v.mp4", b"x", "video/mp4")}
+    )
     err = capfd.readouterr().err
-    assert "Traceback" in err            # the traceback is logged server-side...
+    assert "Traceback" in err  # the traceback is logged server-side...
     assert "bob@example.com" not in err  # ...but redacted

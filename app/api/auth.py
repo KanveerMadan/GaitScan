@@ -20,7 +20,9 @@ def require_new_password(password: str) -> None:
     """Only new passwords (registration, change) must meet the minimum; login never checks length,
     so accounts created before the rule keep working."""
     if len(password) < MIN_PASSWORD_LENGTH:
-        raise HTTPException(status_code=422, detail=f"Password must be at least {MIN_PASSWORD_LENGTH} characters.")
+        raise HTTPException(
+            status_code=422, detail=f"Password must be at least {MIN_PASSWORD_LENGTH} characters."
+        )
 
 
 class RegisterRequest(BaseModel):

@@ -1,4 +1,5 @@
 """F36: no diagnostic / injury / prescription language reaches users (audit §6 A3)."""
+
 import ast
 import json
 import pathlib
@@ -23,6 +24,7 @@ def disclaimer():
     # The disclaimer must say what the tool does NOT do ("does not diagnose"); it is the
     # only string exempt from the scan, and only as this exact constant.
     from gaitcore.legacy import DISCLAIMER
+
     return DISCLAIMER
 
 
@@ -40,7 +42,9 @@ def string_literals(path):
 def test_no_banned_wording_in_backend_string_literals():
     assert pathlib.Path(ROOT, "app", "main.py").exists()  # guard: never scan an empty tree
     hits = []
-    for p in sorted([*pathlib.Path(ROOT, "app").rglob("*.py"), *pathlib.Path(ROOT, "gaitcore").rglob("*.py")]):
+    for p in sorted(
+        [*pathlib.Path(ROOT, "app").rglob("*.py"), *pathlib.Path(ROOT, "gaitcore").rglob("*.py")]
+    ):
         rel = p.relative_to(ROOT).as_posix()
         if rel in ALLOWED_FILES:
             continue
@@ -72,12 +76,14 @@ def assert_clean(obj):
 def test_scoring_output_is_clean(mode, activity, knee_scale_R):
     from gaitcore.angles import add_all_angles
     from gaitcore.legacy import calculate_risk_scores
+
     df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
     assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
 
 
 def test_analyze_response_is_clean_and_carries_disclaimer(client, monkeypatch):
     import app.api.analysis as m
+
     monkeypatch.setattr(m, "extract_landmarks", lambda p: synthetic_landmarks(knee_scale_R=0.3))
     _, t = register(client)
     r = client.post("/analyze", headers=auth(t), files={"video": ("w.mp4", b"x" * 64, "video/mp4")})
@@ -102,10 +108,16 @@ def test_legacy_rows_are_served_without_legacy_wording(client, monkeypatch):
 
     captured = {}
     import app.api.sessions as m
-    monkeypatch.setattr(m, "generate_pdf_report",
-                        lambda results, output_path, plots_dir: captured.update(results) or
-                        open(output_path, "wb").write(b"%PDF-stub"))
+
+    monkeypatch.setattr(
+        m,
+        "generate_pdf_report",
+        lambda results, output_path, plots_dir: (
+            captured.update(results) or open(output_path, "wb").write(b"%PDF-stub")
+        ),
+    )
     import shutil
+
     shutil.rmtree(f"outputs/{sid}", ignore_errors=True)
     assert client.get(f"/report/{sid}", headers=auth(alice_t)).status_code == 200
     assert_clean(json.loads(json.dumps(captured, default=str)))

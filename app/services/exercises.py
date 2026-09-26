@@ -12,7 +12,7 @@ EXERCISE_KNOWLEDGE_BASE = [
         "activity_relevance": ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"],
         "mode_relevance": ["Clinical", "Runner", "Athlete", "Elderly"],
         "instructions": "Stand on one leg, slowly bend the knee to 45°, hold 2 seconds, return. 3 sets of 10 reps each side.",
-        "difficulty": "Moderate"
+        "difficulty": "Moderate",
     },
     {
         "id": 2,
@@ -22,7 +22,7 @@ EXERCISE_KNOWLEDGE_BASE = [
         "activity_relevance": ["Walking", "Brisk Walking", "Asymmetric Walking"],
         "mode_relevance": ["Clinical", "Runner", "Athlete", "Elderly"],
         "instructions": "Lie on your side, lift the top leg to 45°, hold 3 seconds, lower slowly. 3 sets of 15 reps each side.",
-        "difficulty": "Easy"
+        "difficulty": "Easy",
     },
     {
         "id": 3,
@@ -32,7 +32,7 @@ EXERCISE_KNOWLEDGE_BASE = [
         "activity_relevance": ["Walking", "Brisk Walking", "Asymmetric Walking"],
         "mode_relevance": ["Clinical", "Elderly"],
         "instructions": "Walk in a straight line placing heel directly in front of opposite toe with each step. 2 sets of 20 steps.",
-        "difficulty": "Easy"
+        "difficulty": "Easy",
     },
     {
         "id": 4,
@@ -42,7 +42,7 @@ EXERCISE_KNOWLEDGE_BASE = [
         "activity_relevance": ["Running", "Brisk Walking"],
         "mode_relevance": ["Clinical", "Runner", "Athlete"],
         "instructions": "March in place driving knees up to hip height alternately. Start slow, build speed. 3 sets of 30 seconds.",
-        "difficulty": "Moderate"
+        "difficulty": "Moderate",
     },
     {
         "id": 5,
@@ -52,7 +52,7 @@ EXERCISE_KNOWLEDGE_BASE = [
         "activity_relevance": ["Walking", "Running", "Asymmetric Walking", "Brisk Walking"],
         "mode_relevance": ["Clinical", "Runner", "Athlete", "Elderly"],
         "instructions": "Lie on back, feet flat, push hips up until body is straight, hold 3 seconds. 3 sets of 12 reps.",
-        "difficulty": "Easy"
+        "difficulty": "Easy",
     },
     {
         "id": 6,
@@ -62,7 +62,7 @@ EXERCISE_KNOWLEDGE_BASE = [
         "activity_relevance": ["Walking", "Running", "Brisk Walking"],
         "mode_relevance": ["Clinical", "Runner", "Athlete"],
         "instructions": "Place resistance band above knees, feet shoulder-width, bend slightly and walk sideways 15 steps each direction. 3 sets.",
-        "difficulty": "Moderate"
+        "difficulty": "Moderate",
     },
     {
         "id": 7,
@@ -72,7 +72,7 @@ EXERCISE_KNOWLEDGE_BASE = [
         "activity_relevance": ["Walking", "Brisk Walking", "Running"],
         "mode_relevance": ["Clinical", "Runner", "Athlete", "Elderly"],
         "instructions": "Stand at edge of step, lower heel below step level, raise up on toes. 3 sets of 20 reps.",
-        "difficulty": "Easy"
+        "difficulty": "Easy",
     },
     {
         "id": 8,
@@ -82,7 +82,7 @@ EXERCISE_KNOWLEDGE_BASE = [
         "activity_relevance": ["Walking", "Asymmetric Walking", "Brisk Walking"],
         "mode_relevance": ["Clinical", "Elderly"],
         "instructions": "Step up onto a sturdy box or step, drive through the heel, fully extend, step back down. 3 sets of 10 each leg.",
-        "difficulty": "Moderate"
+        "difficulty": "Moderate",
     },
     {
         "id": 9,
@@ -92,7 +92,7 @@ EXERCISE_KNOWLEDGE_BASE = [
         "activity_relevance": ["Running"],
         "mode_relevance": ["Runner", "Athlete"],
         "instructions": "Run at easy pace focusing on quick light steps. Use a metronome app set to 170 BPM. 5 minute intervals.",
-        "difficulty": "Moderate"
+        "difficulty": "Moderate",
     },
     {
         "id": 10,
@@ -102,7 +102,7 @@ EXERCISE_KNOWLEDGE_BASE = [
         "activity_relevance": ["Walking", "Running", "Brisk Walking", "Asymmetric Walking"],
         "mode_relevance": ["Clinical", "Runner", "Athlete", "Elderly"],
         "instructions": "Kneel on one knee, push hips forward gently until stretch felt in front of hip. Hold 30 seconds each side. 3 reps.",
-        "difficulty": "Easy"
+        "difficulty": "Easy",
     },
     {
         "id": 11,
@@ -112,7 +112,7 @@ EXERCISE_KNOWLEDGE_BASE = [
         "activity_relevance": ["Walking", "Asymmetric Walking", "Brisk Walking"],
         "mode_relevance": ["Clinical", "Elderly"],
         "instructions": "Stand feet together, hands on knees, make gentle circles with both knees. 10 clockwise, 10 anticlockwise. 2 sets.",
-        "difficulty": "Easy"
+        "difficulty": "Easy",
     },
     {
         "id": 12,
@@ -122,7 +122,7 @@ EXERCISE_KNOWLEDGE_BASE = [
         "activity_relevance": ["Walking", "Running", "Brisk Walking"],
         "mode_relevance": ["Clinical", "Runner", "Athlete"],
         "instructions": "Stand on one leg, hinge forward at hip lowering hands toward floor, keep back straight. 3 sets of 8 each side.",
-        "difficulty": "Hard"
+        "difficulty": "Hard",
     },
     {
         "id": 13,
@@ -132,7 +132,7 @@ EXERCISE_KNOWLEDGE_BASE = [
         "activity_relevance": ["Running", "Brisk Walking"],
         "mode_relevance": ["Runner", "Athlete"],
         "instructions": "Skip forward driving one knee up to hip height while pushing off the opposite toe. 3 sets of 20m each side.",
-        "difficulty": "Moderate"
+        "difficulty": "Moderate",
     },
     {
         "id": 14,
@@ -142,7 +142,7 @@ EXERCISE_KNOWLEDGE_BASE = [
         "activity_relevance": ["Running"],
         "mode_relevance": ["Runner", "Athlete"],
         "instructions": "Run 80–100m gradually accelerating to 85% max effort, then decelerate. Focus on quick turnover. 4–6 reps.",
-        "difficulty": "Hard"
+        "difficulty": "Hard",
     },
     {
         "id": 15,
@@ -152,7 +152,7 @@ EXERCISE_KNOWLEDGE_BASE = [
         "activity_relevance": ["Running"],
         "mode_relevance": ["Athlete"],
         "instructions": "Stand in front of a box, jump up landing softly with both feet, step down. 4 sets of 8 reps. Land quietly.",
-        "difficulty": "Hard"
+        "difficulty": "Hard",
     },
     {
         "id": 16,
@@ -162,7 +162,7 @@ EXERCISE_KNOWLEDGE_BASE = [
         "activity_relevance": ["Running", "Brisk Walking"],
         "mode_relevance": ["Athlete", "Runner"],
         "instructions": "Side plank with top foot on a bench. Hold body straight. 3 sets of 20–30 seconds each side.",
-        "difficulty": "Hard"
+        "difficulty": "Hard",
     },
     {
         "id": 17,
@@ -172,7 +172,7 @@ EXERCISE_KNOWLEDGE_BASE = [
         "activity_relevance": ["Walking", "Asymmetric Walking"],
         "mode_relevance": ["Elderly"],
         "instructions": "Sit in a chair, straighten one leg holding 5 seconds, lower slowly. 3 sets of 12 reps each leg.",
-        "difficulty": "Easy"
+        "difficulty": "Easy",
     },
     {
         "id": 18,
@@ -182,7 +182,7 @@ EXERCISE_KNOWLEDGE_BASE = [
         "activity_relevance": ["Walking", "Asymmetric Walking"],
         "mode_relevance": ["Elderly"],
         "instructions": "From seated, stand up without using hands. Lower back slowly. 3 sets of 10 reps. Use hands only if needed for safety.",
-        "difficulty": "Easy"
+        "difficulty": "Easy",
     },
     {
         "id": 19,
@@ -192,7 +192,7 @@ EXERCISE_KNOWLEDGE_BASE = [
         "activity_relevance": ["Walking", "Asymmetric Walking"],
         "mode_relevance": ["Elderly"],
         "instructions": "Stand with one foot directly in front of the other (heel to toe). Hold 30 seconds. Repeat 3 times each side. Use a wall nearby for safety.",
-        "difficulty": "Easy"
+        "difficulty": "Easy",
     },
 ]
 
@@ -204,11 +204,11 @@ def _match_exercises(findings, activity, mode):
 
     tag_map = {
         "knee_symmetry": ["knee_asymmetry", "knee_weakness"],
-        "hip_symmetry":  ["hip_asymmetry", "hip_weakness"],
-        "knee_flexion":  ["low_knee_flexion", "knee_stiffness", "limited_range"],
-        "knee_drive":    ["low_knee_flexion", "running_efficiency"],
-        "cadence":       ["low_cadence", "walking_efficiency", "running_efficiency"],
-        "asymmetry":          ["asymmetry", "stride_irregularity", "balance"],
+        "hip_symmetry": ["hip_asymmetry", "hip_weakness"],
+        "knee_flexion": ["low_knee_flexion", "knee_stiffness", "limited_range"],
+        "knee_drive": ["low_knee_flexion", "running_efficiency"],
+        "cadence": ["low_cadence", "walking_efficiency", "running_efficiency"],
+        "asymmetry": ["asymmetry", "stride_irregularity", "balance"],
         "less-moving_side": ["asymmetry", "balance", "stride_irregularity"],
     }
 
@@ -228,14 +228,12 @@ def _match_exercises(findings, activity, mode):
             for exercise in EXERCISE_KNOWLEDGE_BASE:
                 if exercise["id"] in seen_ids:
                     continue
-                
-                if (activity in exercise["activity_relevance"]
-                        and mode in exercise["mode_relevance"]):
+
+                if activity in exercise["activity_relevance"] and mode in exercise["mode_relevance"]:
                     if any(tag in exercise["targets"] for tag in tags):
                         matched.append(exercise)
                         seen_ids.add(exercise["id"])
 
-    
     if len(matched) < 2:
         for exercise in EXERCISE_KNOWLEDGE_BASE:
             if exercise["id"] not in seen_ids and mode in exercise["mode_relevance"]:
@@ -259,15 +257,22 @@ def get_exercise_prescription(findings, activity, scores, risk_label, mode="Clin
     if not matched_exercises:
         return []
 
-    why_map = _llm_explanations(findings, activity, risk_label, mode, matched_exercises) if settings.enable_llm_explanations else {}
+    why_map = (
+        _llm_explanations(findings, activity, risk_label, mode, matched_exercises)
+        if settings.enable_llm_explanations
+        else {}
+    )
 
-    return [{
-        "name":         ex["name"],
-        "muscle":       ex["muscle"],
-        "difficulty":   ex["difficulty"],
-        "instructions": ex["instructions"],
-        "why":          why_map.get(i + 1, "General exercise matched to the measurements above."),
-    } for i, ex in enumerate(matched_exercises)]
+    return [
+        {
+            "name": ex["name"],
+            "muscle": ex["muscle"],
+            "difficulty": ex["difficulty"],
+            "instructions": ex["instructions"],
+            "why": why_map.get(i + 1, "General exercise matched to the measurements above."),
+        }
+        for i, ex in enumerate(matched_exercises)
+    ]
 
 
 def _llm_explanations(findings, activity, risk_label, mode, matched_exercises):
@@ -275,20 +280,22 @@ def _llm_explanations(findings, activity, risk_label, mode, matched_exercises):
     from groq import Groq
 
     flagged = [f for f in findings if f.get("status") in ("mild", "flagged")]
-    findings_summary = "\n".join(
-        f"- {f['metric']}: {f['value']} — {f['plain_english']}" for f in flagged
-    ) if flagged else "- All measurements within the reference ranges"
+    findings_summary = (
+        "\n".join(f"- {f['metric']}: {f['value']} — {f['plain_english']}" for f in flagged)
+        if flagged
+        else "- All measurements within the reference ranges"
+    )
 
     exercises_list = "\n".join(
-        f"{i+1}. {ex['name']} (targets: {', '.join(ex['targets'][:2])})"
+        f"{i + 1}. {ex['name']} (targets: {', '.join(ex['targets'][:2])})"
         for i, ex in enumerate(matched_exercises)
     )
 
     audience = {
         "Clinical": "general adult",
-        "Runner":   "recreational or competitive runner",
-        "Athlete":  "trained athlete",
-        "Elderly":  "older adult focused on stability and safe movement",
+        "Runner": "recreational or competitive runner",
+        "Athlete": "trained athlete",
+        "Elderly": "older adult focused on stability and safe movement",
     }.get(mode, "general adult")
 
     prompt = f"""You are writing short, neutral exercise descriptions for a {audience}.
@@ -313,9 +320,7 @@ For each exercise, write one plain sentence (max 25 words) describing which meas
 
     try:
         message = Groq(timeout=15).chat.completions.create(
-            model="llama-3.1-8b-instant",
-            max_tokens=500,
-            messages=[{"role": "user", "content": prompt}]
+            model="llama-3.1-8b-instant", max_tokens=500, messages=[{"role": "user", "content": prompt}]
         )
         raw = message.choices[0].message.content.strip()
         if raw.startswith("```"):

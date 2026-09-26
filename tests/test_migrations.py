@@ -1,4 +1,5 @@
 """Alembic migrations build the same schema as the models, and adopt a pre-Alembic database."""
+
 import os
 
 import pytest
@@ -13,6 +14,7 @@ from conftest import ROOT, migrate
 def schema_diff(url):
     from app.db import models  # noqa: F401
     from app.db.database import Base
+
     engine = sa.create_engine(url)
     with engine.connect() as conn:
         diff = compare_metadata(MigrationContext.configure(conn), Base.metadata)
@@ -22,6 +24,7 @@ def schema_diff(url):
 
 def head_revision():
     from alembic.script import ScriptDirectory
+
     cfg = Config(os.path.join(ROOT, "alembic.ini"))
     cfg.set_main_option("script_location", os.path.join(ROOT, "alembic"))
     return ScriptDirectory.from_config(cfg).get_current_head()
@@ -49,7 +52,9 @@ def test_adopts_pre_alembic_database(tmp_path):
     engine = sa.create_engine(url)
     with engine.begin() as conn:
         conn.execute(sa.text("DROP TABLE alembic_version"))
-        conn.execute(sa.text("INSERT INTO users (email, hashed_password, role) VALUES ('a@b.com', 'x', 'patient')"))
+        conn.execute(
+            sa.text("INSERT INTO users (email, hashed_password, role) VALUES ('a@b.com', 'x', 'patient')")
+        )
     engine.dispose()
     migrate(url)  # must not fail on existing tables
     assert current_revision(url) == head_revision()

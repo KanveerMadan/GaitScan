@@ -1,4 +1,5 @@
 """F01/F08/F09: configuration comes from the environment and production refuses unsafe values."""
+
 import os
 import secrets
 import subprocess
@@ -9,12 +10,17 @@ import pytest
 from conftest import ROOT
 
 GOOD_SECRET = secrets.token_urlsafe(48)
-PROD = {"ENV": "production", "JWT_SECRET": GOOD_SECRET, "CORS_ORIGINS": "https://app.example.com",
-        "DATABASE_URL": "sqlite:///./x.db"}
+PROD = {
+    "ENV": "production",
+    "JWT_SECRET": GOOD_SECRET,
+    "CORS_ORIGINS": "https://app.example.com",
+    "DATABASE_URL": "sqlite:///./x.db",
+}
 
 
 def load(env):
     from app.core.config import load_settings
+
     return load_settings(env)
 
 
@@ -54,8 +60,14 @@ def test_postgres_scheme_is_normalised():
 
 def test_refusal_traceback_never_contains_the_value(tmp_path):
     weak = "distinctive-weak-value-123"
-    r = _import_app({"ENV": "production", "JWT_SECRET": weak, "CORS_ORIGINS": "https://a.example.com",
-                     "DATABASE_URL": f"sqlite:///{tmp_path}/x.db"})
+    r = _import_app(
+        {
+            "ENV": "production",
+            "JWT_SECRET": weak,
+            "CORS_ORIGINS": "https://a.example.com",
+            "DATABASE_URL": f"sqlite:///{tmp_path}/x.db",
+        }
+    )
     assert r.returncode != 0 and "JWT_SECRET" in r.stderr
     assert weak not in r.stderr
 
@@ -87,16 +99,27 @@ def test_production_settings_parse():
 
 
 def _import_app(env):
-    clean = {k: v for k, v in os.environ.items()
-             if k not in ("ENV", "JWT_SECRET", "CORS_ORIGINS", "DATABASE_URL")}
+    clean = {
+        k: v for k, v in os.environ.items() if k not in ("ENV", "JWT_SECRET", "CORS_ORIGINS", "DATABASE_URL")
+    }
     return subprocess.run(
         [sys.executable, "-c", "from app.main import app; print(app.docs_url, app.openapi_url)"],
-        cwd=ROOT, env={**clean, **env}, capture_output=True, text=True, timeout=120)
+        cwd=ROOT,
+        env={**clean, **env},
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
 
 
 def test_app_refuses_to_start_in_production_without_secret(tmp_path):
-    r = _import_app({"ENV": "production", "CORS_ORIGINS": "https://a.example.com",
-                     "DATABASE_URL": f"sqlite:///{tmp_path}/x.db"})
+    r = _import_app(
+        {
+            "ENV": "production",
+            "CORS_ORIGINS": "https://a.example.com",
+            "DATABASE_URL": f"sqlite:///{tmp_path}/x.db",
+        }
+    )
     assert r.returncode != 0
     assert "JWT_SECRET" in r.stderr
 

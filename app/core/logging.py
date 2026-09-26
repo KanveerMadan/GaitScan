@@ -4,6 +4,7 @@ Both structlog loggers and stdlib `logging` calls (uvicorn, our 'gaitscan' logge
 are rendered through the same processor chain, so redaction applies everywhere.
 Request bodies are never logged.
 """
+
 import logging
 import re
 import sys
@@ -13,8 +14,17 @@ import uuid
 import structlog
 from starlette.middleware.base import BaseHTTPMiddleware
 
-REDACT_KEYS = {"password", "current_password", "new_password", "token", "access_token",
-               "authorization", "jwt_secret", "email", "cookie"}
+REDACT_KEYS = {
+    "password",
+    "current_password",
+    "new_password",
+    "token",
+    "access_token",
+    "authorization",
+    "jwt_secret",
+    "email",
+    "cookie",
+}
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+(\.[\w-]+)+")
 
 
@@ -54,11 +64,15 @@ def configure_logging() -> None:
         cache_logger_on_first_use=True,
     )
     handler = _StderrHandler()
-    handler.setFormatter(structlog.stdlib.ProcessorFormatter(
-        foreign_pre_chain=shared,
-        processors=[structlog.stdlib.ProcessorFormatter.remove_processors_meta,
-                    structlog.processors.JSONRenderer()],
-    ))
+    handler.setFormatter(
+        structlog.stdlib.ProcessorFormatter(
+            foreign_pre_chain=shared,
+            processors=[
+                structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+                structlog.processors.JSONRenderer(),
+            ],
+        )
+    )
     root = logging.getLogger()
     root.handlers = [handler]
     root.setLevel(logging.INFO)
@@ -82,6 +96,10 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
             return response
         finally:
             structlog.get_logger("gaitscan.access").info(
-                "request", method=request.method, path=request.url.path, status=status,
-                duration_ms=round((time.perf_counter() - start) * 1000, 1))
+                "request",
+                method=request.method,
+                path=request.url.path,
+                status=status,
+                duration_ms=round((time.perf_counter() - start) * 1000, 1),
+            )
             structlog.contextvars.clear_contextvars()

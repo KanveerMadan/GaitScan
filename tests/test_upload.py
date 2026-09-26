@@ -1,4 +1,5 @@
 """F02, F06, F07, F09: upload handling, cleanup, error leakage."""
+
 import glob
 import os
 
@@ -17,6 +18,7 @@ def token(client):
 def fake_pipeline(monkeypatch):
     """Skip MediaPipe: return synthetic landmarks for any uploaded file."""
     import app.api.analysis as m
+
     monkeypatch.setattr(m, "extract_landmarks", lambda path: synthetic_landmarks())
 
 
@@ -30,7 +32,9 @@ def test_rejects_non_video_extension(client, token):
 
 
 def test_uppercase_extension_accepted(client, token, fake_pipeline):
-    r = client.post("/analyze", headers=auth(token), files={"video": ("IMG_0001.MOV", b"x" * 64, "video/quicktime")})
+    r = client.post(
+        "/analyze", headers=auth(token), files={"video": ("IMG_0001.MOV", b"x" * 64, "video/quicktime")}
+    )
     assert r.status_code == 200, r.text
 
 
@@ -44,8 +48,11 @@ def test_success_uses_full_uuid_and_keeps_no_raw_or_landmark_files(client, token
 
 def test_unreadable_video_is_422_without_internal_detail_and_is_deleted(client, token):
     before = set(leftovers())
-    r = client.post("/analyze", headers=auth(token),
-                    files={"video": ("evil.mp4", b"#!/bin/sh\necho not a video\n" * 50, "video/mp4")})
+    r = client.post(
+        "/analyze",
+        headers=auth(token),
+        files={"video": ("evil.mp4", b"#!/bin/sh\necho not a video\n" * 50, "video/mp4")},
+    )
     assert r.status_code == 422
     body = r.text
     assert "data/raw" not in body and "Traceback" not in body and "Cannot open" not in body
@@ -57,6 +64,7 @@ def test_unexpected_error_is_generic_500_with_reference(client, token, monkeypat
 
     def boom(path):
         raise RuntimeError("internal detail /srv/app/secret-path")
+
     monkeypatch.setattr(m, "extract_landmarks", boom)
     before = set(leftovers())
     r = client.post("/analyze", headers=auth(token), files={"video": ("walk.mp4", b"x" * 64, "video/mp4")})
@@ -68,6 +76,7 @@ def test_unexpected_error_is_generic_500_with_reference(client, token, monkeypat
 
 def test_upload_size_limit(client, token, monkeypatch):
     import app.api.analysis as m
+
     monkeypatch.setattr(m.settings, "max_upload_bytes", 1000)
     before = set(leftovers())
     r = client.post("/analyze", headers=auth(token), files={"video": ("big.mp4", b"x" * 5000, "video/mp4")})
