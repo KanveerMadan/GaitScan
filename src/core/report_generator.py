@@ -8,6 +8,8 @@ import os
 from datetime import datetime
 from xml.sax.saxutils import escape
 
+from src.core.risk_scoring import DISCLAIMER, summary_for_score
+
 # ─────────────────────────────────────────────────────────────
 # MODE CONFIG
 # ─────────────────────────────────────────────────────────────
@@ -15,8 +17,8 @@ MODE_META = {
     "Clinical": {
         "color":          "#378ADD",
         "label":          "Clinical Mode",
-        "description":    "Standard physiotherapy assessment thresholds.",
-        "focus":          "General gait health, joint mobility, and symmetry.",
+        "description":    "General reference thresholds (not clinically validated).",
+        "focus":          "Joint motion and left-right symmetry.",
         "knee_si_good":   10,
         "hip_si_good":    10,
         "knee_flex_good": 50,
@@ -26,8 +28,8 @@ MODE_META = {
     "Runner": {
         "color":          "#1D9E75",
         "label":          "Runner Mode",
-        "description":    "Tighter symmetry targets and higher cadence standards for runners.",
-        "focus":          "Running efficiency, injury prevention, and stride optimisation.",
+        "description":    "Tighter symmetry and higher cadence reference ranges for runners (not clinically validated).",
+        "focus":          "Running cadence, knee drive and symmetry.",
         "knee_si_good":   8,
         "hip_si_good":    8,
         "knee_flex_good": 80,
@@ -37,8 +39,8 @@ MODE_META = {
     "Athlete": {
         "color":          "#7C3AED",
         "label":          "Athlete Mode",
-        "description":    "Strictest thresholds for peak biomechanical performance.",
-        "focus":          "Peak efficiency, power transfer, and asymmetry elimination.",
+        "description":    "Strictest reference ranges (not clinically validated).",
+        "focus":          "Symmetry and cadence against strict reference ranges.",
         "knee_si_good":   5,
         "hip_si_good":    5,
         "knee_flex_good": 85,
@@ -48,8 +50,8 @@ MODE_META = {
     "Elderly": {
         "color":          "#BA7517",
         "label":          "Elderly Mode",
-        "description":    "Adjusted thresholds prioritising fall risk and safe movement.",
-        "focus":          "Fall prevention, stability, and joint safety.",
+        "description":    "Wider reference ranges intended for older adults (not clinically validated).",
+        "focus":          "Joint motion and step rate against wider reference ranges.",
         "knee_si_good":   15,
         "hip_si_good":    15,
         "knee_flex_good": 35,
@@ -60,31 +62,31 @@ MODE_META = {
 
 MODE_THRESHOLDS_TABLE = {
     "Clinical": [
-        ("Knee Symmetry Index", "< 10% — normal",      "> 20% — flagged"),
-        ("Hip Symmetry Index",  "< 10% — normal",      "> 20% — flagged"),
-        ("Knee Flexion (Walk)", "> 50° — normal",       "< 45° — limited"),
-        ("Knee Drive (Run)",    "> 70° — normal",       "< 70° — insufficient"),
+        ("Knee Symmetry Index", "< 10%",      "> 20%"),
+        ("Hip Symmetry Index",  "< 10%",      "> 20%"),
+        ("Knee Flexion (Walk)", "> 50°",       "< 45° — limited"),
+        ("Knee Drive (Run)",    "> 70°",       "< 70° — insufficient"),
         ("Cadence (Walking)",   "80–120 steps/min",     "< 80 steps/min — low"),
     ],
     "Runner": [
-        ("Knee Symmetry Index", "< 8% — normal",       "> 15% — flagged"),
-        ("Hip Symmetry Index",  "< 8% — normal",       "> 15% — flagged"),
-        ("Knee Flexion (Walk)", "> 50° — normal",       "< 50° — limited"),
-        ("Knee Drive (Run)",    "> 80° — normal",       "< 80° — insufficient"),
+        ("Knee Symmetry Index", "< 8%",       "> 15%"),
+        ("Hip Symmetry Index",  "< 8%",       "> 15%"),
+        ("Knee Flexion (Walk)", "> 50°",       "< 50° — limited"),
+        ("Knee Drive (Run)",    "> 80°",       "< 80° — insufficient"),
         ("Cadence (Running)",   "170–200 steps/min",    "< 170 steps/min — low"),
     ],
     "Athlete": [
-        ("Knee Symmetry Index", "< 5% — normal",       "> 10% — flagged"),
-        ("Hip Symmetry Index",  "< 5% — normal",       "> 10% — flagged"),
-        ("Knee Flexion (Walk)", "> 55° — normal",       "< 55° — limited"),
-        ("Knee Drive (Run)",    "> 85° — normal",       "< 85° — insufficient"),
+        ("Knee Symmetry Index", "< 5%",       "> 10%"),
+        ("Hip Symmetry Index",  "< 5%",       "> 10%"),
+        ("Knee Flexion (Walk)", "> 55°",       "< 55° — limited"),
+        ("Knee Drive (Run)",    "> 85°",       "< 85° — insufficient"),
         ("Cadence (Running)",   "175–210 steps/min",    "< 175 steps/min — low"),
     ],
     "Elderly": [
-        ("Knee Symmetry Index", "< 15% — normal",      "> 25% — flagged"),
-        ("Hip Symmetry Index",  "< 15% — normal",      "> 25% — flagged"),
-        ("Knee Flexion (Walk)", "> 35° — normal",       "< 35° — limited"),
-        ("Knee Drive (Run)",    "> 60° — normal",       "< 60° — insufficient"),
+        ("Knee Symmetry Index", "< 15%",      "> 25%"),
+        ("Hip Symmetry Index",  "< 15%",      "> 25%"),
+        ("Knee Flexion (Walk)", "> 35°",       "< 35° — limited"),
+        ("Knee Drive (Run)",    "> 60°",       "< 60° — insufficient"),
         ("Cadence (Walking)",   "60–100 steps/min",     "< 60 steps/min — low"),
     ],
 }
@@ -112,19 +114,8 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
     AMBER     = colors.HexColor("#BA7517")
     WHITE     = colors.white
 
-    risk = scores_dict["scores"]["overall_risk_score"]
-    if risk <= 25:
-        risk_color = GREEN
-        risk_label = "Low Risk"
-    elif risk <= 50:
-        risk_color = AMBER
-        risk_label = "Moderate Concern"
-    elif risk <= 75:
-        risk_color = RED
-        risk_label = "Significant Issues"
-    else:
-        risk_color = RED
-        risk_label = "Serious Abnormality"
+    summary_label, summary_meaning, summary_colour = summary_for_score(
+        scores_dict["scores"]["overall_risk_score"])
 
     # ── Style helper ──────────────────────────────────────────
     def S(name, **kw):
@@ -161,12 +152,23 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
     ]))
     elements.append(banner)
     elements.append(Spacer(1, 0.25*cm))
-    elements.append(Paragraph("AI-Powered Gait &amp; Posture Analysis Report",
+    elements.append(Paragraph("Gait Measurement Report — experimental, not clinically validated",
                                S("sub1", fontSize=9, textColor=GREY, alignment=TA_CENTER)))
     elements.append(Paragraph(
         f"Generated: {datetime.now().strftime('%d %B %Y, %I:%M %p')}",
         S("sub2", fontSize=9, textColor=GREY, alignment=TA_CENTER)))
-    elements.append(Spacer(1, 0.5*cm))
+    elements.append(Spacer(1, 0.3*cm))
+    notice = Table([[Paragraph(esc(DISCLAIMER), S("notice", fontSize=8.5, leading=12, textColor=DARK))]],
+                   colWidths=[17*cm])
+    notice.setStyle(TableStyle([
+        ("BACKGROUND",    (0,0), (-1,-1), colors.HexColor("#fffbeb")),
+        ("BOX",           (0,0), (-1,-1), 0.5, AMBER),
+        ("TOPPADDING",    (0,0), (-1,-1), 8),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 8),
+        ("LEFTPADDING",   (0,0), (-1,-1), 10),
+    ]))
+    elements.append(notice)
+    elements.append(Spacer(1, 0.4*cm))
 
     activity_info = scores_dict.get("activity", {})
     if isinstance(activity_info, dict):
@@ -176,14 +178,14 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
         activity_name = str(activity_info)
         confidence    = "—"
 
-    risk_hex = "#1D9E75" if risk <= 25 else "#BA7517" if risk <= 50 else "#E24B4A"
+    summary_hex = "#1D9E75" if summary_colour == "green" else "#BA7517"
 
     summary = Table([[
         Paragraph(
-            f'<b>Risk Score</b><br/>'
-            f'<font size="26" color="{risk_hex}"><b>{risk}/100</b></font><br/>'
-            f'<font size="10" color="{risk_hex}"><b>{risk_label}</b></font>',
-            S("rs", alignment=TA_CENTER, leading=22)),
+            f'<b>Summary</b><br/>'
+            f'<font size="14" color="{summary_hex}"><b>{esc(summary_label)}</b></font><br/>'
+            f'<font size="8" color="#64748b">{esc(summary_meaning)}</font>',
+            S("rs", alignment=TA_CENTER, leading=16)),
         Paragraph(
             f'<b>Activity Detected</b><br/>'
             f'<font size="16"><b>{esc(activity_name)}</b></font><br/>'
@@ -217,7 +219,7 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
     mode_box = Table([[
         Paragraph(
             f'<b>{meta["label"]}</b> — {meta["description"]}<br/>'
-            f'<font size="9" color="#64748b"><b>Clinical focus:</b> {meta["focus"]}</font>',
+            f'<font size="9" color="#64748b"><b>Focus:</b> {meta["focus"]}</font>',
             S("mb", leading=16, fontSize=10))
     ]], colWidths=[17*cm])
     mode_box.setStyle(TableStyle([
@@ -231,25 +233,25 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
     elements.append(mode_box)
     elements.append(Spacer(1, 0.5*cm))
 
-    elements.append(Paragraph("Clinical Measurements", H2))
+    elements.append(Paragraph("Measurements", H2))
 
     sc = scores_dict["scores"]
     m  = meta
 
     def si_status(v, good):
-        if v < good:       return ("Normal",  "#1D9E75")
-        if v < good * 2:   return ("Mild",    "#BA7517")
-        return               ("Flagged", "#E24B4A")
+        if v < good:       return ("Within range",  "#1D9E75")
+        if v < good * 2:   return ("Near edge",     "#BA7517")
+        return               ("Outside range", "#E24B4A")
 
     def flex_status(v):
         g = m["knee_flex_good"]
-        if v >= g:           return ("Normal",     "#1D9E75")
-        if v >= g * 0.7:     return ("Limited",    "#BA7517")
-        return                 ("Restricted", "#E24B4A")
+        if v >= g:           return ("Within range",  "#1D9E75")
+        if v >= g * 0.7:     return ("Near edge",     "#BA7517")
+        return                 ("Outside range", "#E24B4A")
 
     def cad_status(v):
-        if m["cadence_low"] <= v <= m["cadence_high"]: return ("Normal",        "#1D9E75")
-        if v > 0:                                       return ("Outside Target","#BA7517")
+        if m["cadence_low"] <= v <= m["cadence_high"]: return ("Within range",  "#1D9E75")
+        if v > 0:                                       return ("Outside range", "#BA7517")
         return                                                  ("Not Detected", "#64748b")
 
     rows_raw = [
@@ -298,7 +300,7 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
 
     
     elements.append(Paragraph(f"Thresholds Applied — {mode} Mode", H2))
-    th_data = [["Metric", "Normal Range", "Flagged When"]]
+    th_data = [["Metric", "Reference Range", "Outside Range When"]]
     th_data += MODE_THRESHOLDS_TABLE.get(mode, MODE_THRESHOLDS_TABLE["Clinical"])
     th_t = Table(th_data, colWidths=[6*cm, 5.5*cm, 5.5*cm])
     th_t.setStyle(TableStyle([
@@ -321,12 +323,12 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
                                color=colors.HexColor("#e2e8f0"), spaceAfter=8))
 
     
-    elements.append(Paragraph("Detailed Findings", H2))
+    elements.append(Paragraph("Measurement Details", H2))
 
     STATUS_META = {
-        "good":    ("#f0fdf4", "#1D9E75", "NORMAL"),
-        "mild":    ("#fffbeb", "#BA7517", "MILD"),
-        "flagged": ("#fff1f2", "#E24B4A", "FLAGGED"),
+        "good":    ("#f0fdf4", "#1D9E75", "WITHIN RANGE"),
+        "mild":    ("#fffbeb", "#BA7517", "NEAR EDGE"),
+        "flagged": ("#fff1f2", "#E24B4A", "OUTSIDE RANGE"),
     }
 
     for f in scores_dict["findings"]:
@@ -362,7 +364,7 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
 
     
     if scores_dict.get("recommendations"):
-        elements.append(Paragraph("Recommendations", H2))
+        elements.append(Paragraph("Discussion Points", H2))
         for r in scores_dict["recommendations"]:
             rd = Table([[
                 Paragraph(f"→  {esc(r)}", S("rec", fontSize=10, leading=15))
@@ -383,9 +385,9 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
     if exercises:
         elements.append(HRFlowable(width="100%", thickness=1,
                                    color=colors.HexColor("#e2e8f0"), spaceAfter=8))
-        elements.append(Paragraph("Prescribed Exercises", H2))
+        elements.append(Paragraph("Exercises to Discuss with Your Physiotherapist", H2))
         elements.append(Paragraph(
-            f"Personalised to your findings under {mode} Mode.",
+            "General exercises matched to the measurements above. Not a treatment plan.",
             S("exsub", fontSize=9, textColor=GREY, spaceAfter=8, leading=13)))
 
         DIFF_COLORS = {
@@ -400,7 +402,7 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
                 Paragraph(
                     f'<b>{i+1}. {esc(ex["name"])}</b>  '
                     f'<font size="8" color="#64748b">{esc(ex.get("muscle",""))}</font><br/>'
-                    f'<font size="9" color="{MODE_HEX}"><b>Why for you:</b> {esc(ex.get("why",""))}</font><br/>'
+                    f'<font size="9" color="{MODE_HEX}"><b>Why this may help:</b> {esc(ex.get("why",""))}</font><br/>'
                     f'<font size="9" color="#374151"><b>How:</b> {esc(ex.get("instructions",""))}</font>',
                     S("ex", leading=15, fontSize=10)),
                 Paragraph(
@@ -449,11 +451,9 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
                                color=colors.HexColor("#e2e8f0"), spaceAfter=6))
     footer = S("ft", fontSize=7.5, textColor=GREY, alignment=TA_CENTER, leading=12)
     elements.append(Paragraph(
-        f"GaitScan — AI-Powered Gait Analysis  |  Mode: {mode}  |  "
+        f"GaitScan — gait measurement (experimental)  |  Mode: {esc(mode)}  |  "
         f"Generated {datetime.now().strftime('%d %B %Y')}", footer))
-    elements.append(Paragraph(
-        "This report is for informational purposes only and does not constitute medical advice. "
-        "Please consult a qualified physiotherapist or physician for clinical decisions.", footer))
+    elements.append(Paragraph(esc(DISCLAIMER), footer))
 
     doc.build(elements)
     print(f"  Report saved: {output_path}")
