@@ -5,7 +5,7 @@ Source of truth for which phase is next. Plan: [REBUILD_PLAN.md](REBUILD_PLAN.md
 | Phase | Status |
 |---|---|
 | 0 — Stop the bleeding | done |
-| 1 — Foundations | todo |
+| 1 — Foundations | in progress |
 | 2 — Measurement core v2 | todo |
 | 3 — Async jobs + object storage | todo |
 | 4 — Tenancy, auth, consent, deletion | todo |
@@ -46,7 +46,9 @@ Source of truth for which phase is next. Plan: [REBUILD_PLAN.md](REBUILD_PLAN.md
 - Next: Phase 1 — Foundations (can start without waiting for the human actions; nothing in it depends on the deploy).
 
 ## Phase 1 — Foundations
-- Status: todo
+- Status: in progress
+- Scope amended 2026-09-27 (owner request): + F10 login rate limiting, + F12 email enumeration (mitigation; full closure needs Phase 4 invite/email flow), + F15 mode persisted for PDF regeneration, + password minimum length 10 on registration and password change only (legacy short passwords still log in). See REBUILD_PLAN D6 Phase 1 task 11.
+- Branches: backend `rebuild/phase-1-foundations`, frontend `rebuild/phase-1-foundations`, both **stacked on the unmerged phase-0 branches** (branching from `main` would drop Phase 0).
 
 ## Phase 2 — Measurement core v2
 - Status: todo
