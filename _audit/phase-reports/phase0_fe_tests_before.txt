@@ -1,0 +1,13 @@
+  ✕ login never stores the password in the browser (51 ms)
+  ✕ purges plaintext credentials saved by earlier versions (3 ms)
+  ✕ registration offers no role choice and sends no role (6 ms)
+  ✕ never logs the bearer token (14 ms)
+  ✕ shows the not-a-medical-device disclaimer before and after sign-in (3 ms)
+  ✕ upload screen gives the capture protocol, not 'any angle' (4 ms)
+  ✕ results show a measurement summary without a risk score (1018 ms)
+  ✕ report download is an authenticated request (1036 ms)
+  ✕ history shows no risk score (106 ms)
+  ✕ clinician dashboard shows no risk score or attention flag (18 ms)
+  ✕ an expired session (401) signs the user out (4 ms)
+    Received string:      "GaitScanBeta🎥 Analyse📈 HistoryTTestPatientSign outUpload a walking or running videoStandard physiotherapy assessment — suitable for all users.Analysis Mode🩺Clinical✓Standard physioBalanced thresholdsAll activity typesGeneral rehab🏃RunnerPerformance & injury⚡AthletePeak efficiency🧓ElderlyFall risk & stability🎥Drop your video hereor click to browseChoose videoSupports .mp4 .mov .avi · Phone, CCTV, sports footage · Any angle"
+Tests:       11 failed, 11 total

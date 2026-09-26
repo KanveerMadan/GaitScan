@@ -1,0 +1,57 @@
+{
+    "determinism": {
+        "same_shape": true,
+        "max_abs_coord_diff": 0.0
+    },
+    "noise": {
+        "sigma=0.001": {
+            "activity_counts": {
+                "Walking": 25
+            },
+            "cadence_min_max": [
+                96.4,
+                114.3
+            ],
+            "risk_scores_seen": [
+                0
+            ]
+        },
+        "sigma=0.002": {
+            "activity_counts": {
+                "Walking": 25
+            },
+            "cadence_min_max": [
+                96.4,
+                117.9
+            ],
+            "risk_scores_seen": [
+                0
+            ]
+        },
+        "sigma=0.004": {
+            "activity_counts": {
+                "Walking": 20,
+                "Brisk Walking": 5
+            },
+            "cadence_min_max": [
+                100.0,
+                135.7
+            ],
+            "risk_scores_seen": [
+                0
+            ]
+        }
+    },
+    "every_other_frame": [
+        "Walking",
+        82.3,
+        0
+    ],
+    "simulated_stiff_right_knee": {
+        "activity": "Walking",
+        "risk": 20,
+        "knee_flex_L": 81.5,
+        "knee_flex_R": 38.3,
+        "knee_SI": 7.7
+    }
+}

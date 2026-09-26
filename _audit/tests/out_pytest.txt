@@ -1,0 +1,171 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0 -- /Users/kanveermadan/Desktop/gaitscan/_audit/.venv/bin/python
+rootdir: /Users/kanveermadan/Desktop/gaitscan/_audit
+plugins: anyio-4.12.1
+collecting ... collected 18 items
+
+../tests/test_angles_audit.py::test_angle_known_values[A0-B0-C0-90.0] PASSED [  5%]
+../tests/test_angles_audit.py::test_angle_known_values[A1-B1-C1-180.0] PASSED [ 11%]
+../tests/test_angles_audit.py::test_angle_known_values[A2-B2-C2-0.0] PASSED [ 16%]
+../tests/test_angles_audit.py::test_angle_known_values[A3-B3-C3-45.0] PASSED [ 22%]
+../tests/test_angles_audit.py::test_angle_known_values[A4-B4-C4-120.0] PASSED [ 27%]
+../tests/test_angles_audit.py::test_arccos_domain_is_clipped PASSED      [ 33%]
+../tests/test_angles_audit.py::test_returns_degrees_not_radians PASSED   [ 38%]
+../tests/test_angles_audit.py::test_y_axis_inversion_does_not_change_unsigned_angle PASSED [ 44%]
+../tests/test_angles_audit.py::test_degenerate_points_should_be_nan FAILED [ 50%]
+../tests/test_angles_audit.py::test_left_knee_uses_mediapipe_left_indices PASSED [ 55%]
+../tests/test_angles_audit.py::test_hip_angle_is_trunk_thigh_not_hip_flexion PASSED [ 61%]
+../tests/test_angles_audit.py::test_aspect_ratio_preserves_angle_on_portrait_video FAILED [ 66%]
+../tests/test_angles_audit.py::test_shoulder_tilt_level_shoulders_facing_either_way FAILED [ 72%]
+../tests/test_angles_audit.py::test_cadence_reports_steps_per_minute FAILED [ 77%]
+../tests/test_angles_audit.py::test_cadence_robust_to_jitter[3] PASSED   [ 83%]
+../tests/test_angles_audit.py::test_cadence_robust_to_jitter[6] FAILED   [ 88%]
+../tests/test_angles_audit.py::test_healthy_walker_classified_walking FAILED [ 94%]
+../tests/test_angles_audit.py::test_symmetry_index_detects_halved_knee_rom FAILED [100%]
+
+=================================== FAILURES ===================================
+_____________________ test_degenerate_points_should_be_nan _____________________
+
+    def test_degenerate_points_should_be_nan():
+        """EXPECTED FAIL: coincident landmarks (e.g. occluded knee collapsed onto hip)
+        must not produce a confident angle. Current code returns 90.0."""
+        v = angle_3pts((0.5, 0.5), (0.5, 0.5), (0.6, 0.9))
+>       assert math.isnan(v), f"got {v}"
+E       AssertionError: got 90.0
+E       assert False
+E        +  where False = <built-in function isnan>(90.0)
+E        +    where <built-in function isnan> = math.isnan
+
+../tests/test_angles_audit.py:53: AssertionError
+_____________ test_aspect_ratio_preserves_angle_on_portrait_video ______________
+
+    def test_aspect_ratio_preserves_angle_on_portrait_video():
+        """EXPECTED FAIL: a true 90 deg knee in PIXEL space on a 480x848 frame.
+        MediaPipe returns x/width, y/height; the app takes angles on those directly."""
+        W, H = 480, 848
+        hip, knee, ankle = (240, 300), (240, 500), (440, 500)   # 90 deg in pixels
+        n = lambda p: (p[0] / W, p[1] / H)
+        r = row_from({23: n(hip), 25: n(knee), 27: n(ankle)})
+        assert knee_angle_L(r) == pytest.approx(90.0, abs=1.0)
+        # the axis-aligned case above survives; a diagonal thigh/shank exposes the distortion
+        hip, knee, ankle = (240, 300), (340, 480), (240, 660)   # 121.9 deg in pixels
+        true = angle_3pts(hip, knee, ankle)
+        r = row_from({23: n(hip), 25: n(knee), 27: n(ankle)})
+>       assert knee_angle_L(r) == pytest.approx(true, abs=1.0), f"true {true:.1f} vs app {knee_angle_L(r):.1f}"
+E       AssertionError: true 121.9 vs app 91.1
+E       assert 91.07091785005099 == 121.8907918018373 ± 1
+E         
+E         comparison failed
+E         Obtained: 91.07091785005099
+E         Expected: 121.8907918018373 ± 1
+
+../tests/test_angles_audit.py:83: AssertionError
+_____________ test_shoulder_tilt_level_shoulders_facing_either_way _____________
+
+    def test_shoulder_tilt_level_shoulders_facing_either_way():
+        """EXPECTED FAIL: level shoulders should be 0 deg tilt regardless of walking direction.
+        Facing the other way (left shoulder to the right of right shoulder) returns 180."""
+        facing_a = row_from({11: (0.4, 0.3), 12: (0.6, 0.3)})
+        facing_b = row_from({11: (0.6, 0.3), 12: (0.4, 0.3)})
+>       assert shoulder_tilt(facing_a) == pytest.approx(0, abs=1)
+E       assert 179.94270423242082 == 0 ± 1
+E         
+E         comparison failed
+E         Obtained: 179.94270423242082
+E         Expected: 0 ± 1
+
+../tests/test_angles_audit.py:90: AssertionError
+____________________ test_cadence_reports_steps_per_minute _____________________
+
+    def test_cadence_reports_steps_per_minute():
+        """EXPECTED FAIL: 110 steps/min walker. App counts left-knee cycles only -> ~55."""
+        df = synthetic_walk(110)
+        r = calculate_risk_scores(df, activity="Walking")
+>       assert r["scores"]["cadence"] == pytest.approx(110, rel=0.1), r["scores"]["cadence"]
+E       AssertionError: np.float64(54.1)
+E       assert np.float64(54.1) == 110 ± 11
+E         
+E         comparison failed
+E         Obtained: 54.1
+E         Expected: 110 ± 11
+
+../tests/test_angles_audit.py:114: AssertionError
+_______________________ test_cadence_robust_to_jitter[6] _______________________
+
+noise = 6
+
+    @pytest.mark.parametrize("noise", [3, 6])
+    def test_cadence_robust_to_jitter(noise):
+        """3 deg passes; 6 deg is EXPECTED FAIL. Measured on the sample clip, frame-to-frame
+        knee jumps have median 4.5 deg and p95 24 deg, and there is no smoothing or hysteresis."""
+        clean = calculate_risk_scores(synthetic_walk(110), activity="Walking")["scores"]["cadence"]
+        noisy = calculate_risk_scores(synthetic_walk(110, noise_deg=noise), activity="Walking")["scores"]["cadence"]
+>       assert noisy == pytest.approx(clean, rel=0.1), (clean, noisy)
+E       AssertionError: (np.float64(54.1), np.float64(75.1))
+E       assert np.float64(75.1) == 54.1 ± 5.41
+E         
+E         comparison failed
+E         Obtained: 75.1
+E         Expected: 54.1 ± 5.41
+
+../tests/test_angles_audit.py:122: AssertionError
+____________________ test_healthy_walker_classified_walking ____________________
+
+    def test_healthy_walker_classified_walking():
+        """EXPECTED FAIL: a clean 110 steps/min walk with 60 deg knee flexion."""
+        act = classify_activity(synthetic_walk(110))
+>       assert act["activity"] == "Walking", act
+E       AssertionError: {'activity': 'Unknown', 'icon': '❓', 'confidence': 30, 'description': 'Could not confidently classify the activity. Detected 54.1 steps/min cadence and 62.0° knee flexion. Ensure the full body is visible and the video is at least 5 seconds long.', ...}
+E       assert 'Unknown' == 'Walking'
+E         
+E         - Walking
+E         + Unknown
+
+../tests/test_angles_audit.py:127: AssertionError
+_________________ test_symmetry_index_detects_halved_knee_rom __________________
+
+    def test_symmetry_index_detects_halved_knee_rom():
+        """EXPECTED FAIL: right knee flexes 30 deg vs left 60 deg (50% ROM loss).
+        SI computed on MEAN absolute angle (~160 deg) compresses this below the 10% 'mild' cut."""
+        df = synthetic_walk(110)
+        df["knee_R"] = 178 - (178 - df["knee_R"]) * 0.5
+        r = calculate_risk_scores(df, activity="Walking")
+        knee = [f for f in r["findings"] if f["metric"] == "Knee Symmetry"][0]
+>       assert knee["status"] != "good", (r["scores"]["knee_symmetry_index"], knee["status"])
+E       AssertionError: (np.float64(7.3), 'good')
+E       assert 'good' != 'good'
+
+../tests/test_angles_audit.py:137: AssertionError
+=============================== warnings summary ===============================
+tests/test_angles_audit.py::test_left_knee_uses_mediapipe_left_indices
+tests/test_angles_audit.py::test_left_knee_uses_mediapipe_left_indices
+tests/test_angles_audit.py::test_left_knee_uses_mediapipe_left_indices
+tests/test_angles_audit.py::test_left_knee_uses_mediapipe_left_indices
+tests/test_angles_audit.py::test_left_knee_uses_mediapipe_left_indices
+tests/test_angles_audit.py::test_left_knee_uses_mediapipe_left_indices
+  /Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/matplotlib/_fontconfig_pattern.py:88: PyparsingDeprecationWarning: 'parseString' deprecated - use 'parse_string'
+    parse = parser.parseString(pattern)
+
+tests/test_angles_audit.py::test_left_knee_uses_mediapipe_left_indices
+tests/test_angles_audit.py::test_left_knee_uses_mediapipe_left_indices
+tests/test_angles_audit.py::test_left_knee_uses_mediapipe_left_indices
+tests/test_angles_audit.py::test_left_knee_uses_mediapipe_left_indices
+tests/test_angles_audit.py::test_left_knee_uses_mediapipe_left_indices
+tests/test_angles_audit.py::test_left_knee_uses_mediapipe_left_indices
+  /Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/matplotlib/_fontconfig_pattern.py:92: PyparsingDeprecationWarning: 'resetCache' deprecated - use 'reset_cache'
+    parser.resetCache()
+
+tests/test_angles_audit.py::test_left_knee_uses_mediapipe_left_indices
+  /Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/matplotlib/_mathtext.py:45: PyparsingDeprecationWarning: 'enablePackrat' deprecated - use 'enable_packrat'
+    ParserElement.enablePackrat()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED ../tests/test_angles_audit.py::test_degenerate_points_should_be_nan - ...
+FAILED ../tests/test_angles_audit.py::test_aspect_ratio_preserves_angle_on_portrait_video
+FAILED ../tests/test_angles_audit.py::test_shoulder_tilt_level_shoulders_facing_either_way
+FAILED ../tests/test_angles_audit.py::test_cadence_reports_steps_per_minute
+FAILED ../tests/test_angles_audit.py::test_cadence_robust_to_jitter[6] - Asse...
+FAILED ../tests/test_angles_audit.py::test_healthy_walker_classified_walking
+FAILED ../tests/test_angles_audit.py::test_symmetry_index_detects_halved_knee_rom
+================== 7 failed, 11 passed, 13 warnings in 1.18s ===================

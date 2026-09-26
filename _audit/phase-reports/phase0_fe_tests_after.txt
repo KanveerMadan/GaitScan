@@ -1,0 +1,12 @@
+  ✓ login never stores the password in the browser (54 ms)
+  ✓ purges plaintext credentials saved by earlier versions (4 ms)
+  ✓ registration offers no role choice and sends no role (20 ms)
+  ✓ never logs the bearer token (10 ms)
+  ✓ shows the not-a-medical-device disclaimer before and after sign-in (7 ms)
+  ✓ upload screen gives the capture protocol, not 'any angle' (4 ms)
+  ✓ results show a measurement summary without a risk score (13 ms)
+  ✓ report download is an authenticated request (17 ms)
+  ✓ history shows no risk score (75 ms)
+  ✓ clinician dashboard shows no risk score or attention flag (8 ms)
+  ✓ an expired session (401) signs the user out (8 ms)
+Tests:       11 passed, 11 total
