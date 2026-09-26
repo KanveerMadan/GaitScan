@@ -28,7 +28,7 @@ PASSWORD = "correct-horse-battery"
 @pytest.fixture(scope="session")
 def client():
     from fastapi.testclient import TestClient
-    from src.api.main import app
+    from app.main import app
     with TestClient(app) as c:
         yield c
 
@@ -45,8 +45,8 @@ def auth(token):
 
 
 def db_user(email):
-    from src.core.database import SessionLocal
-    from src.models.user import User
+    from app.db.database import SessionLocal
+    from app.db.models import User
     db = SessionLocal()
     try:
         return db.query(User).filter(User.email == email).first().id
@@ -56,8 +56,8 @@ def db_user(email):
 
 def promote_to_clinician(email):
     """Stands in for the admin step that replaces self-assigned roles."""
-    from src.core.database import SessionLocal
-    from src.models.user import User
+    from app.db.database import SessionLocal
+    from app.db.models import User
     db = SessionLocal()
     try:
         u = db.query(User).filter(User.email == email).first()
@@ -68,8 +68,8 @@ def promote_to_clinician(email):
 
 
 def link(clinician_email, patient_email):
-    from src.core.database import SessionLocal
-    from src.models.clinician_patient import ClinicianPatient
+    from app.db.database import SessionLocal
+    from app.db.models import ClinicianPatient
     db = SessionLocal()
     try:
         db.add(ClinicianPatient(clinician_id=db_user(clinician_email), patient_id=db_user(patient_email)))
@@ -81,8 +81,8 @@ def link(clinician_email, patient_email):
 def seed_session(owner_email, legacy_text=False):
     """Insert a finished analysis directly (no video needed). legacy_text mimics rows
     written before Phase 0, which carry diagnostic wording."""
-    from src.core.database import SessionLocal
-    from src.core.models import Session, Finding, Exercise
+    from app.db.database import SessionLocal
+    from app.db.models import Session, Finding, Exercise
     sid = str(uuid.uuid4())
     db = SessionLocal()
     try:

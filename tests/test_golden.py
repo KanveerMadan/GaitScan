@@ -1,7 +1,7 @@
 """Golden test: the Phase 1 refactor must not change any analysis output.
 
 tests/golden/legacy_pipeline.json was generated from the pre-refactor code
-(commit b7e9408) with `python tests/test_golden.py --regenerate`. Inputs are
+(commit f17025c, src/ layout) with `python tests/test_golden.py --regenerate`. Inputs are
 synthetic landmarks only. Regenerate ONLY for an intentional output change, and
 say so in the commit.
 """
@@ -23,16 +23,10 @@ ACTIVITIES = ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"]
 
 
 def _pipeline():
-    try:  # post-refactor layout
-        from gaitcore.angles import add_all_angles
-        from gaitcore.activity import classify_activity
-        from gaitcore.legacy import calculate_risk_scores
-        from app.services.exercises import _match_exercises
-    except ImportError:  # pre-refactor layout (used once, to generate the file)
-        from src.core.calculate_angles import add_all_angles
-        from src.core.activity_classifier import classify_activity
-        from src.core.risk_scoring import calculate_risk_scores
-        from src.core.exercise_prescription import _match_exercises
+    from app.services.exercises import _match_exercises
+    from gaitcore.activity import classify_activity
+    from gaitcore.angles import add_all_angles
+    from gaitcore.legacy import calculate_risk_scores
     return add_all_angles, classify_activity, calculate_risk_scores, _match_exercises
 
 

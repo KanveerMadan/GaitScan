@@ -1,15 +1,15 @@
 """Audit unit tests for src/core/calculate_angles.py, activity/cadence and symmetry logic.
 Tests marked 'EXPECTED FAIL' encode what a correct implementation must satisfy; they
 fail against the current code and are the evidence for audit findings.
-Run: cd _audit/sandbox && ../.venv/bin/python -m pytest ../tests -v
+Run (repo root): python -m pytest _audit/tests -v
 """
 import math, os, sys
 import numpy as np, pandas as pd, pytest
 
 sys.path.insert(0, os.getcwd())
-from src.core.calculate_angles import angle_3pts, knee_angle_L, hip_angle_L, shoulder_tilt, add_all_angles
-from src.core.activity_classifier import classify_activity
-from src.core.risk_scoring import calculate_risk_scores
+from gaitcore.angles import angle_3pts, knee_angle_L, hip_angle_L, shoulder_tilt, add_all_angles
+from gaitcore.activity import classify_activity
+from gaitcore.legacy import calculate_risk_scores
 
 
 def row_from(points):

@@ -17,7 +17,7 @@ BASE = {
 
 
 def test_pdf_survives_markup_characters_in_any_text(tmp_path):
-    from src.core.report_generator import generate_pdf_report
+    from app.services.report_pdf import generate_pdf_report
     data = dict(BASE, exercises=[{"name": "Bridge <1>", "muscle": "a&b", "difficulty": "Easy",
                                   "instructions": "Hold <3 s>", "why": "Keeps your L<R imbalance in check"}])
     out = tmp_path / "r.pdf"
@@ -28,7 +28,7 @@ def test_pdf_survives_markup_characters_in_any_text(tmp_path):
 def test_plotting_module_selects_agg_backend_itself():
     env = {k: v for k, v in os.environ.items() if k != "MPLBACKEND"}
     r = subprocess.run([sys.executable, "-c",
-                        "import src.utils.visualise, matplotlib; print(matplotlib.get_backend())"],
+                        "import app.services.plots, matplotlib; print(matplotlib.get_backend())"],
                        cwd=ROOT, env=env, capture_output=True, text=True, timeout=120)
     assert r.returncode == 0, r.stderr[-500:]
     assert r.stdout.strip().lower() == "agg"

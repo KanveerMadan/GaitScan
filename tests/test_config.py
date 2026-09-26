@@ -14,7 +14,7 @@ PROD = {"ENV": "production", "JWT_SECRET": GOOD_SECRET, "CORS_ORIGINS": "https:/
 
 
 def load(env):
-    from src.core.config import load_settings
+    from app.core.config import load_settings
     return load_settings(env)
 
 
@@ -67,7 +67,7 @@ def _import_app(env):
     clean = {k: v for k, v in os.environ.items()
              if k not in ("ENV", "JWT_SECRET", "CORS_ORIGINS", "DATABASE_URL")}
     return subprocess.run(
-        [sys.executable, "-c", "from src.api.main import app; print(app.docs_url, app.openapi_url)"],
+        [sys.executable, "-c", "from app.main import app; print(app.docs_url, app.openapi_url)"],
         cwd=ROOT, env={**clean, **env}, capture_output=True, text=True, timeout=120)
 
 
