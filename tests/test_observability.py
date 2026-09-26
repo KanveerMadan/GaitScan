@@ -51,3 +51,17 @@ def test_sentry_initialised_without_pii_or_bodies(monkeypatch):
     assert calls and calls[0]["send_default_pii"] is False
     assert calls[0]["max_request_body_size"] == "never"
     assert calls[0]["environment"] == "production"
+
+
+def test_exception_tracebacks_are_redacted(client, capfd, monkeypatch):
+    import app.api.analysis as analysis
+
+    def boom(path):
+        raise RuntimeError("failure while processing bob@example.com")
+    monkeypatch.setattr(analysis, "extract_landmarks", boom)
+    _, t = register(client)
+    client.post("/analyze", headers={"Authorization": f"Bearer {t}"},
+                files={"video": ("v.mp4", b"x", "video/mp4")})
+    err = capfd.readouterr().err
+    assert "Traceback" in err            # the traceback is logged server-side...
+    assert "bob@example.com" not in err  # ...but redacted

@@ -7,6 +7,11 @@ from app.api.auth import router as auth_router
 from app.api.clinician import router as clinician_router
 from app.api.sessions import router as sessions_router
 from app.core.config import settings
+from app.core.logging import RequestLogMiddleware, configure_logging
+from app.core.observability import init_sentry
+
+configure_logging()
+init_sentry(settings.sentry_dsn, settings.env)
 
 # Interactive docs and the OpenAPI schema are only exposed in dev.
 _docs = settings.docs_enabled
@@ -22,6 +27,7 @@ app.include_router(clinician_router)
 app.include_router(analysis_router)
 app.include_router(sessions_router)
 
+app.add_middleware(RequestLogMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
