@@ -1,9 +1,9 @@
 import matplotlib
 
 matplotlib.use("Agg")  # headless, thread-safe backend; must be set before pyplot is imported
-import matplotlib.pyplot as plt
-import pandas as pd
 import os
+
+import matplotlib.pyplot as plt
 
 
 def generate_plots(df, output_dir="outputs"):
@@ -61,8 +61,8 @@ def generate_plots(df, output_dir="outputs"):
 
     x = range(len(metrics))
     fig, ax = plt.subplots(figsize=(9, 4))
-    bars_l = ax.bar([i - 0.2 for i in x], left_vals, width=0.38, label="Left", color="#378ADD", alpha=0.85)
-    bars_r = ax.bar([i + 0.2 for i in x], right_vals, width=0.38, label="Right", color="#D85A30", alpha=0.85)
+    ax.bar([i - 0.2 for i in x], left_vals, width=0.38, label="Left", color="#378ADD", alpha=0.85)
+    ax.bar([i + 0.2 for i in x], right_vals, width=0.38, label="Right", color="#D85A30", alpha=0.85)
     ax.set_xticks(list(x))
     ax.set_xticklabels(metrics)
     ax.set_ylabel("Angle (degrees)")

@@ -3,9 +3,8 @@
 import io
 import shutil
 
-from pypdf import PdfReader
-
 from conftest import auth, register, seed_session
+from pypdf import PdfReader
 from synthetic import synthetic_landmarks
 
 

@@ -3,7 +3,6 @@
 import uuid
 
 import pytest
-
 from conftest import PASSWORD, auth, register
 
 

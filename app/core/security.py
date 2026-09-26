@@ -1,15 +1,14 @@
 from datetime import datetime, timedelta
-from typing import Optional
 
+import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-import jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-from app.db.models import User
 from app.core.config import settings
 from app.db.database import get_db
+from app.db.models import User
 
 ALGORITHM = "HS256"
 
@@ -25,7 +24,7 @@ def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain[:72], hashed)
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.access_token_minutes))
     to_encode.update({"exp": expire})
@@ -46,7 +45,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
             raise credentials_exception
 
     except jwt.PyJWTError:
-        raise credentials_exception
+        raise credentials_exception from None
 
     user = db.query(User).filter(User.email == email).first()
 

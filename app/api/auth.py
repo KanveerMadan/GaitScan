@@ -1,5 +1,3 @@
-from typing import Optional
-
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
@@ -28,7 +26,7 @@ def require_new_password(password: str) -> None:
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
-    full_name: Optional[str] = None
+    full_name: str | None = None
     # No role field: roles are never client-supplied. Clinicians are promoted by an admin.
 
 
@@ -44,9 +42,9 @@ class ChangePasswordRequest(BaseModel):
 
 class TokenResponse(BaseModel):
     access_token: str
-    token_type: str = "bearer"
+    token_type: str = "bearer"  # noqa: S105 (OAuth2 token type, not a secret)
     role: str
-    full_name: Optional[str] = None
+    full_name: str | None = None
 
 
 def _token_response(user: User) -> TokenResponse:

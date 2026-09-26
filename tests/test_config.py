@@ -6,7 +6,6 @@ import subprocess
 import sys
 
 import pytest
-
 from conftest import ROOT
 
 GOOD_SECRET = secrets.token_urlsafe(48)

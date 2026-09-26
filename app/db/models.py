@@ -8,7 +8,7 @@ from sqlalchemy.sql import func
 from app.db.database import Base
 
 
-class UserRole(str, enum.Enum):
+class UserRole(enum.StrEnum):
     patient = "patient"
     clinician = "clinician"
 

@@ -6,8 +6,7 @@ import pathlib
 import re
 
 import pytest
-
-from conftest import ROOT, auth, link, promote_to_clinician, register, seed_session, PASSWORD
+from conftest import PASSWORD, ROOT, auth, link, promote_to_clinician, register, seed_session
 from synthetic import synthetic_landmarks
 
 BANNED = re.compile(

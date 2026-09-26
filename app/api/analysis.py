@@ -12,7 +12,8 @@ from sqlalchemy.orm import Session as DBSession
 from app.core.config import settings
 from app.core.security import get_current_user
 from app.db.database import get_db
-from app.db.models import Exercise, Finding, Session as SessionModel, User
+from app.db.models import Exercise, Finding, User
+from app.db.models import Session as SessionModel
 from app.services.exercises import get_exercise_prescription
 from app.services.plots import generate_plots
 from app.services.report_pdf import generate_pdf_report
@@ -56,7 +57,7 @@ async def analyze(
         except VideoReadError:
             raise HTTPException(
                 422, "We couldn't read this file as a video. Please upload an .mp4, .mov or .avi recording."
-            )
+            ) from None
         if len(df) < 10:
             raise HTTPException(400, "Could not detect a person in the video.")
 
@@ -148,7 +149,7 @@ async def analyze(
     except Exception:
         ref = uuid.uuid4().hex[:12]
         log.exception("analysis failed ref=%s job=%s", ref, job_id)
-        raise HTTPException(500, f"Analysis failed due to an internal error. Reference: {ref}")
+        raise HTTPException(500, f"Analysis failed due to an internal error. Reference: {ref}") from None
     finally:
         # The raw video is never kept, whatever happened; partial outputs are dropped on failure.
         if os.path.exists(video_path):

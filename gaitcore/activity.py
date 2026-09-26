@@ -20,8 +20,8 @@ def classify_activity(df):
     knee_avg_R = df["knee_R"].mean()
     asymmetry = abs(knee_avg_L - knee_avg_R) / ((knee_avg_L + knee_avg_R) / 2) * 100
 
-    from scipy.signal import find_peaks
     import numpy as np
+    from scipy.signal import find_peaks
 
     ankle_y = df["lm27_y"].values
     peaks, _ = find_peaks(ankle_y, distance=int(fps * 0.25), prominence=0.01)

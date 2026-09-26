@@ -28,8 +28,9 @@ os.environ.pop("ENABLE_LLM_EXPLANATIONS", None)
 
 def migrate(url, rev="head"):
     """Run Alembic against `url` (the app no longer creates tables at startup)."""
-    from alembic import command
     from alembic.config import Config
+
+    from alembic import command
 
     cfg = Config(os.path.join(ROOT, "alembic.ini"))
     cfg.set_main_option("script_location", os.path.join(ROOT, "alembic"))
@@ -55,6 +56,7 @@ def _reset_rate_limits():
 @pytest.fixture(scope="session")
 def client():
     from fastapi.testclient import TestClient
+
     from app.main import app
 
     with TestClient(app) as c:
@@ -113,7 +115,7 @@ def seed_session(owner_email, legacy_text=False):
     """Insert a finished analysis directly (no video needed). legacy_text mimics rows
     written before Phase 0, which carry diagnostic wording."""
     from app.db.database import SessionLocal
-    from app.db.models import Session, Finding, Exercise
+    from app.db.models import Exercise, Finding, Session
 
     sid = str(uuid.uuid4())
     db = SessionLocal()

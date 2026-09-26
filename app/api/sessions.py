@@ -8,7 +8,8 @@ from sqlalchemy.orm import Session as DBSession
 
 from app.core.security import get_current_user
 from app.db.database import get_db
-from app.db.models import ClinicianPatient, Session as SessionModel, User
+from app.db.models import ClinicianPatient, User
+from app.db.models import Session as SessionModel
 from app.services import display
 from app.services.report_pdf import generate_pdf_report
 from gaitcore.legacy import DISCLAIMER

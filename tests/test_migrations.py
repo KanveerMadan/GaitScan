@@ -7,7 +7,6 @@ import sqlalchemy as sa
 from alembic.autogenerate import compare_metadata
 from alembic.config import Config
 from alembic.migration import MigrationContext
-
 from conftest import ROOT, migrate
 
 

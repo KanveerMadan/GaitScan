@@ -1,17 +1,15 @@
 import secrets
 import string
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy import desc
-from pydantic import BaseModel
-from typing import Optional, List
-from collections import defaultdict
 
-from app.services import display
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy import desc
+from sqlalchemy.orm import Session
+
 from app.core.security import get_current_user, require_clinician
 from app.db.database import get_db
-from app.db.models import User
-from app.db.models import ClinicianInvite, ClinicianPatient
+from app.db.models import ClinicianInvite, ClinicianPatient, User
+from app.services import display
 
 router = APIRouter(tags=["clinician"])
 
@@ -46,7 +44,7 @@ def join_clinician(
 
     invite = (
         db.query(ClinicianInvite)
-        .filter(ClinicianInvite.code == payload.code.upper(), ClinicianInvite.used == False)
+        .filter(ClinicianInvite.code == payload.code.upper(), ClinicianInvite.used.is_(False))
         .first()
     )
 

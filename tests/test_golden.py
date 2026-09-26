@@ -10,8 +10,6 @@ import json
 import os
 import sys
 
-import pytest
-
 HERE = os.path.dirname(os.path.abspath(__file__))
 GOLDEN = os.path.join(HERE, "golden", "legacy_pipeline.json")
 sys.path.insert(0, HERE)

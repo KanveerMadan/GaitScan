@@ -4,7 +4,6 @@ import os
 import time
 
 import jwt
-
 from conftest import PASSWORD, auth, register
 
 

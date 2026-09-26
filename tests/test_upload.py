@@ -1,10 +1,8 @@
 """F02, F06, F07, F09: upload handling, cleanup, error leakage."""
 
 import glob
-import os
 
 import pytest
-
 from conftest import auth, register
 from synthetic import synthetic_landmarks
 

@@ -1,7 +1,6 @@
 """F02, F03, F08: every session/report endpoint requires auth and ownership (or a clinician link)."""
 
 import pytest
-
 from conftest import auth, link, promote_to_clinician, register, seed_session
 
 
