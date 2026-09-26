@@ -6,6 +6,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 import os
 from datetime import datetime
+from xml.sax.saxutils import escape
 
 # ─────────────────────────────────────────────────────────────
 # MODE CONFIG
@@ -133,6 +134,10 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
             setattr(p, k, v)
         return p
 
+    def esc(v):
+        """Escape text for ReportLab's mini-markup (a bare '<' or '&' otherwise aborts the build)."""
+        return escape(str(v))
+
     elements = []
 
     # ══════════════════════════════════════════════════════════
@@ -181,12 +186,12 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
             S("rs", alignment=TA_CENTER, leading=22)),
         Paragraph(
             f'<b>Activity Detected</b><br/>'
-            f'<font size="16"><b>{activity_name}</b></font><br/>'
-            f'<font size="9" color="#64748b">Confidence: {confidence}%</font>',
+            f'<font size="16"><b>{esc(activity_name)}</b></font><br/>'
+            f'<font size="9" color="#64748b">Confidence: {esc(confidence)}%</font>',
             S("act", alignment=TA_CENTER, leading=22)),
         Paragraph(
             f'<b>Analysis Mode</b><br/>'
-            f'<font size="14"><b>{mode}</b></font><br/>'
+            f'<font size="14"><b>{esc(mode)}</b></font><br/>'
             f'<font size="9" color="#64748b">{meta["description"]}</font>',
             S("md", alignment=TA_CENTER, leading=16)),
     ]], colWidths=[5.5*cm, 5.5*cm, 6*cm])
@@ -337,9 +342,9 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
         fd = Table([[
             Paragraph(
                 f'<font color="{s_hex}"><b>{s_lbl}</b></font>   '
-                f'<b>{metric}</b>   '
-                f'<font size="9" color="#64748b">{value}</font><br/>'
-                f'<font size="9" color="#374151">{plain}</font>',
+                f'<b>{esc(metric)}</b>   '
+                f'<font size="9" color="#64748b">{esc(value)}</font><br/>'
+                f'<font size="9" color="#374151">{esc(plain)}</font>',
                 S("fd", leading=15, fontSize=10))
         ]], colWidths=[17*cm])
         fd.setStyle(TableStyle([
@@ -360,7 +365,7 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
         elements.append(Paragraph("Recommendations", H2))
         for r in scores_dict["recommendations"]:
             rd = Table([[
-                Paragraph(f"→  {r}", S("rec", fontSize=10, leading=15))
+                Paragraph(f"→  {esc(r)}", S("rec", fontSize=10, leading=15))
             ]], colWidths=[17*cm])
             rd.setStyle(TableStyle([
                 ("BACKGROUND",    (0,0), (-1,-1), colors.HexColor("#fffbeb")),
@@ -393,13 +398,13 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
             diff_bg, diff_fg = DIFF_COLORS.get(diff, ("#f1f5f9", "#1a1a2e"))
             ex_t = Table([[
                 Paragraph(
-                    f'<b>{i+1}. {ex["name"]}</b>  '
-                    f'<font size="8" color="#64748b">{ex.get("muscle","")}</font><br/>'
-                    f'<font size="9" color="{MODE_HEX}"><b>Why for you:</b> {ex.get("why","")}</font><br/>'
-                    f'<font size="9" color="#374151"><b>How:</b> {ex.get("instructions","")}</font>',
+                    f'<b>{i+1}. {esc(ex["name"])}</b>  '
+                    f'<font size="8" color="#64748b">{esc(ex.get("muscle",""))}</font><br/>'
+                    f'<font size="9" color="{MODE_HEX}"><b>Why for you:</b> {esc(ex.get("why",""))}</font><br/>'
+                    f'<font size="9" color="#374151"><b>How:</b> {esc(ex.get("instructions",""))}</font>',
                     S("ex", leading=15, fontSize=10)),
                 Paragraph(
-                    f'<font color="{diff_fg}"><b>{diff}</b></font>',
+                    f'<font color="{diff_fg}"><b>{esc(diff)}</b></font>',
                     S("dff", fontSize=8, alignment=TA_CENTER,
                       textColor=colors.HexColor(diff_fg))),
             ]], colWidths=[14.5*cm, 2.5*cm])
