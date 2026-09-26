@@ -13,7 +13,7 @@ class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
     full_name: Optional[str] = None
-    role: UserRole = UserRole.patient
+    # No role field: roles are never client-supplied. Clinicians are promoted by an admin.
 
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -31,13 +31,11 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     if existing:
         raise HTTPException(status_code=409, detail="Email already registered")
 
-    role_str = payload.role.value if hasattr(payload.role, "value") else payload.role
-
     user = User(
         email=payload.email,
         hashed_password=hash_password(payload.password),
         full_name=payload.full_name,
-        role=role_str,
+        role=UserRole.patient.value,
     )
     db.add(user)
     db.commit()
