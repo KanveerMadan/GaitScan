@@ -259,7 +259,7 @@ def get_exercise_prescription(findings, activity, scores, risk_label, mode="Clin
     if not matched_exercises:
         return []
 
-    why_map = _llm_explanations(findings, activity, risk_label, mode, matched_exercises) if settings.enable_llm else {}
+    why_map = _llm_explanations(findings, activity, risk_label, mode, matched_exercises) if settings.enable_llm_explanations else {}
 
     return [{
         "name":         ex["name"],

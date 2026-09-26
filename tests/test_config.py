@@ -37,6 +37,29 @@ def test_error_message_never_echoes_secret_value():
     assert weak not in str(e.value)
 
 
+def test_production_requires_database_url():
+    env = {k: v for k, v in PROD.items() if k != "DATABASE_URL"}
+    with pytest.raises(RuntimeError, match="DATABASE_URL"):
+        load(env)
+
+
+def test_dev_falls_back_to_local_sqlite():
+    assert load({"ENV": "dev"}).database_url.startswith("sqlite:///")
+
+
+def test_postgres_scheme_is_normalised():
+    s = load({**PROD, "DATABASE_URL": "postgres://u:p@h:5432/d"})
+    assert s.database_url == "postgresql://u:p@h:5432/d"
+
+
+def test_refusal_traceback_never_contains_the_value(tmp_path):
+    weak = "distinctive-weak-value-123"
+    r = _import_app({"ENV": "production", "JWT_SECRET": weak, "CORS_ORIGINS": "https://a.example.com",
+                     "DATABASE_URL": f"sqlite:///{tmp_path}/x.db"})
+    assert r.returncode != 0 and "JWT_SECRET" in r.stderr
+    assert weak not in r.stderr
+
+
 def test_production_requires_cors_origins():
     env = {k: v for k, v in PROD.items() if k != "CORS_ORIGINS"}
     with pytest.raises(RuntimeError, match="CORS_ORIGINS"):
@@ -51,7 +74,7 @@ def test_env_defaults_to_production_fail_closed():
 def test_dev_generates_ephemeral_secret():
     s = load({"ENV": "dev"})
     assert len(s.jwt_secret) >= 32
-    assert s.cors_origins == ["http://localhost:3000"]
+    assert s.cors_origins == ["http://localhost:3000", "http://localhost:5173"]  # CRA / Vite dev servers
     assert s.docs_enabled
 
 
