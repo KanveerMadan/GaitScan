@@ -14,7 +14,8 @@ from src.models.user import User
 from src.core.auth import get_current_user
 from src.core.extract_landmarks import VideoReadError, extract_landmarks
 from src.core.calculate_angles import add_all_angles
-from src.core.risk_scoring import calculate_risk_scores
+from src.core import legacy_display as display
+from src.core.risk_scoring import DISCLAIMER, calculate_risk_scores
 from src.core.report_generator import generate_pdf_report
 from src.utils.visualise import generate_plots
 from src.core.exercise_prescription import get_exercise_prescription
@@ -159,7 +160,7 @@ async def analyze(
         return JSONResponse({
             "job_id":            job_id,
             "status":            "success",
-            "mode":              mode,                          # ← returned to frontend
+            "mode":              mode,
             "mode_description":  results.get("mode_description", ""),
             "activity":          results["activity"],
             "risk_label":        results["risk_label"],
@@ -169,7 +170,8 @@ async def analyze(
             "findings":          results["findings"],
             "recommendations":   results["recommendations"],
             "exercises":         results["exercises"],
-            "report_url":        f"/report/{job_id}"
+            "report_url":        f"/report/{job_id}",
+            "disclaimer":        DISCLAIMER,
         })
 
     except HTTPException:
@@ -224,21 +226,6 @@ def get_report(
         return FileResponse(pdf_path, media_type="application/pdf",
                             filename="gaitscan_report.pdf")
 
-    findings = [{
-        "metric":        f.metric,
-        "value":         f.value,
-        "status":        f.status,
-        "plain_english": f.plain_english
-    } for f in s.findings]
-
-    exercises = [{
-        "name":         ex.name,
-        "muscle":       ex.muscle,
-        "difficulty":   ex.difficulty,
-        "instructions": ex.instructions,
-        "why":          ex.why
-    } for ex in s.exercises]
-
     results = {
         "scores": {
             "overall_risk_score":  s.risk_score,
@@ -248,18 +235,16 @@ def get_report(
             "knee_flexion_range_R": s.knee_flex_R,
             "cadence":             s.cadence,
         },
-        "findings":        findings,
+        "findings":        [display.finding(f) for f in s.findings],
         "recommendations": [],
-        "risk_label":      s.risk_label,
-        "risk_meaning":    s.risk_meaning,
-        "risk_color":      s.risk_color,
+        **display.summary(s.risk_score),
         "activity": {
-            "activity":    s.activity,
+            "activity":    display.activity(s.activity),
             "confidence":  s.confidence,
             "icon":        "🚶",
-            "description": f"Detected activity: {s.activity}"
+            "description": f"Detected activity: {display.activity(s.activity)}"
         },
-        "exercises": exercises
+        "exercises": [display.exercise(ex) for ex in s.exercises],
     }
 
     output_dir = f"outputs/{s.id}"
@@ -278,22 +263,24 @@ def list_sessions(
     sessions = db.query(SessionModel)\
         .filter(SessionModel.user_id == current_user.id)\
         .order_by(SessionModel.created_at.desc()).all()
+    return [session_summary(s) for s in sessions]
 
-    return [{
+
+def session_summary(s: SessionModel) -> dict:
+    return {
         "id":           s.id,
         "patient_name": s.patient_name,
-        "activity":     s.activity,
+        "activity":     display.activity(s.activity),
         "confidence":   s.confidence,
         "risk_score":   s.risk_score,
-        "risk_label":   s.risk_label,
-        "risk_color":   s.risk_color,
+        **display.summary(s.risk_score),
         "cadence":      s.cadence,
         "knee_si":      s.knee_si,
         "hip_si":       s.hip_si,
         "knee_flex_L":  s.knee_flex_L,
         "knee_flex_R":  s.knee_flex_R,
         "created_at":   s.created_at.isoformat(),
-    } for s in sessions]
+    }
 
 
 @app.get("/sessions/{session_id}")
@@ -304,31 +291,8 @@ def get_session(
 ):
     s = get_visible_session(db, current_user, session_id)
     return {
-        "id":           s.id,
-        "patient_name": s.patient_name,
-        "activity":     s.activity,
-        "confidence":   s.confidence,
-        "risk_score":   s.risk_score,
-        "risk_label":   s.risk_label,
-        "risk_color":   s.risk_color,
-        "risk_meaning": s.risk_meaning,
-        "cadence":      s.cadence,
-        "knee_si":      s.knee_si,
-        "hip_si":       s.hip_si,
-        "knee_flex_L":  s.knee_flex_L,
-        "knee_flex_R":  s.knee_flex_R,
-        "created_at":   s.created_at.isoformat(),
-        "findings": [{
-            "metric":        f.metric,
-            "value":         f.value,
-            "status":        f.status,
-            "plain_english": f.plain_english
-        } for f in s.findings],
-        "exercises": [{
-            "name":         ex.name,
-            "muscle":       ex.muscle,
-            "difficulty":   ex.difficulty,
-            "instructions": ex.instructions,
-            "why":          ex.why
-        } for ex in s.exercises]
+        **session_summary(s),
+        "findings":   [display.finding(f) for f in s.findings],
+        "exercises":  [display.exercise(ex) for ex in s.exercises],
+        "disclaimer": DISCLAIMER,
     }
