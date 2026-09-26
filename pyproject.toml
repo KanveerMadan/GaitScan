@@ -46,6 +46,7 @@ dev = [
     "pre-commit>=4.3",
     "pandas-stubs",
     "types-passlib",
+    "pypdf>=6.1",
 ]
 
 [tool.uv]
