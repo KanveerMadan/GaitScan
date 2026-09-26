@@ -1,0 +1,83 @@
+[project]
+name = "gaitscan"
+version = "0.1.0"
+description = "Video-based gait measurement API (experimental, not a medical device)"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    # web
+    "fastapi>=0.118",
+    "uvicorn>=0.37",
+    "python-multipart>=0.0.31",
+    "pydantic-settings>=2.10",
+    "email-validator>=2.2",
+    # auth (passlib + bcrypt<4 until ADR-004 moves hashing to bcrypt directly in Phase 4)
+    "pyjwt>=2.10",
+    "passlib[bcrypt]==1.7.4",
+    "bcrypt==3.2.2",
+    # data
+    "sqlalchemy>=2.0.43",
+    "alembic>=1.16",
+    "psycopg2-binary>=2.9.10",
+    # analysis (gaitcore)
+    "mediapipe==0.10.9",
+    "protobuf>=3.20.3,<4",
+    "opencv-python-headless>=4.12",
+    "numpy>=2.0",
+    "pandas>=2.2",
+    "scipy>=1.13",
+    # reports
+    "matplotlib>=3.9",
+    "reportlab>=4.4",
+    "pillow>=12.3",
+    # optional LLM phrasing (off unless ENABLE_LLM_EXPLANATIONS)
+    "groq>=0.30",
+    # observability
+    "structlog>=25.4",
+    "sentry-sdk[fastapi]>=2.35",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4",
+    "httpx>=0.28",
+    "ruff>=0.13",
+    "mypy>=1.18",
+    "pre-commit>=4.3",
+    "pandas-stubs",
+    "types-passlib",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# _audit/tests is the audit spec (expected failures until Phase 2); run it explicitly.
+norecursedirs = ["_audit", ".venv", "node_modules", ".git"]
+addopts = "-p no:cacheprovider"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+extend-exclude = ["_audit", "alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S"]
+ignore = [
+    "E501",   # long lines: formatter handles code; long strings are copy
+    "B008",   # FastAPI Depends() in defaults is idiomatic
+    "S101",   # assert in tests
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S", "B"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+exclude = ["_audit/", "alembic/"]
+
+[[tool.mypy.overrides]]
+module = "gaitcore.*"
+strict = true

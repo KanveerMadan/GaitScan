@@ -16,7 +16,7 @@ if os.path.exists("probe.db"):
     os.remove("probe.db")
 sys.path.insert(0, os.getcwd())
 from fastapi.testclient import TestClient
-from jose import jwt
+import jwt  # PyJWT (works in both the audit venv and the project venv)
 from src.api.main import app
 from src.core.database import SessionLocal
 from src.models.user import User
@@ -84,7 +84,7 @@ r = c.get("/debug/links", headers=H(mallory))
 check("F03 /debug/links exposes other clinicians' links", r.status_code == 200 and len(r.json()) > 0, r.json())
 
 # 7. Token lifetime   [F08]
-claims = jwt.get_unverified_claims(alice)
+claims = jwt.decode(alice, options={"verify_signature": False})
 check("F08 access token lifetime > 1 day", claims["exp"] - time.time() > 86400, f"{(claims['exp']-time.time())/86400:.1f} days")
 
 # 8. Upload: non-video content left on disk; internal detail leaked   [F06 F07 F09]

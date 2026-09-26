@@ -2,7 +2,7 @@
 import os
 import time
 
-from jose import jwt
+import jwt
 
 from conftest import PASSWORD, auth, register
 
