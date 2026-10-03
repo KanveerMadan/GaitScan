@@ -1,6 +1,7 @@
 """Alembic migrations build the same schema as the models, and adopt a pre-Alembic database."""
 
 import os
+from datetime import datetime
 
 import pytest
 import sqlalchemy as sa
@@ -73,3 +74,49 @@ def test_postgres_fresh_database_matches_models():
     engine.dispose()
     migrate(url)
     assert schema_diff(url) == []
+
+
+def _reset_postgres(url):
+    engine = sa.create_engine(url)
+    with engine.begin() as conn:
+        conn.execute(sa.text("DROP SCHEMA public CASCADE; CREATE SCHEMA public"))
+    engine.dispose()
+
+
+DB_BACKENDS = ["sqlite"] + (["postgres"] if os.getenv("TEST_POSTGRES_URL") else [])
+
+
+@pytest.mark.parametrize("backend", DB_BACKENDS)
+@pytest.mark.parametrize("variant", ["phase0", "early"])
+def test_upgrade_keeps_every_row_and_column_of_a_create_all_database(tmp_path, backend, variant):
+    """Production was built by create_all (no alembic_version). Upgrading must lose nothing."""
+    from legacy_schema import build_legacy_db
+
+    if backend == "postgres":
+        url = os.environ["TEST_POSTGRES_URL"]
+        _reset_postgres(url)
+    else:
+        url = f"sqlite:///{tmp_path}/legacy.db"
+    rows = build_legacy_db(url, variant)
+
+    migrate(url)
+
+    assert current_revision(url) == head_revision()
+    assert schema_diff(url) == []
+    engine = sa.create_engine(url)
+    with engine.connect() as conn:
+        for table, expected in rows.items():
+            got = [dict(r._mapping) for r in conn.execute(sa.text(f"SELECT * FROM {table} ORDER BY id"))]  # noqa: S608
+            assert len(got) == len(expected), table
+            for g, e in zip(got, expected, strict=True):
+                for col, val in e.items():
+                    if isinstance(val, datetime) and isinstance(g[col], str):  # SQLite stores text
+                        g[col] = datetime.fromisoformat(g[col])
+                    if isinstance(val, datetime) and g[col].tzinfo is None:
+                        val = val.replace(tzinfo=None)
+                    assert g[col] == val, (table, col)
+                assert set(e) <= set(g), table  # no legacy column dropped
+        assert conn.execute(sa.text("SELECT mode FROM sessions")).scalar() is None  # 0002: not recorded
+    engine.dispose()
+    if backend == "postgres":
+        _reset_postgres(url)
