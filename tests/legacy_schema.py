@@ -177,5 +177,14 @@ def build_legacy_db(url: str, variant: str) -> dict[str, list[dict[str, object]]
             if table.name == "users" and variant == "early":
                 payload = [{**r, "role": UserRole(r["role"])} for r in payload]
             conn.execute(table.insert(), payload)
+        if engine.dialect.name == "postgresql":  # explicit ids: advance sequences as app inserts did
+            for table in md.sorted_tables:
+                if table.name != "sessions":
+                    conn.execute(
+                        sa.text(
+                            f"SELECT setval(pg_get_serial_sequence('{table.name}', 'id'), "
+                            f"(SELECT max(id) FROM {table.name}))"
+                        )
+                    )
     engine.dispose()
     return rows

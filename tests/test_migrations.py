@@ -118,5 +118,18 @@ def test_upgrade_keeps_every_row_and_column_of_a_create_all_database(tmp_path, b
                 assert set(e) <= set(g), table  # no legacy column dropped
         assert conn.execute(sa.text("SELECT mode FROM sessions")).scalar() is None  # 0002: not recorded
     engine.dispose()
+    # The upgraded database still accepts new rows (ids, defaults, FKs intact).
+    from sqlalchemy.orm import Session as OrmSession
+
+    from app.db.models import Session, User
+
+    engine = sa.create_engine(url)
+    with OrmSession(engine) as db:
+        user = User(email="new@example.com", hashed_password="h", role="patient")
+        db.add(user)
+        db.flush()
+        db.add(Session(id="ef56ab78", user_id=user.id, mode="Clinical"))
+        db.commit()
+    engine.dispose()
     if backend == "postgres":
         _reset_postgres(url)
