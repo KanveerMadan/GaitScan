@@ -1,4 +1,39 @@
-MODE_CONFIGS = {
+from typing import TypedDict
+
+import pandas as pd
+
+
+class ModeConfig(TypedDict):
+    knee_si_flag: int
+    knee_si_mild: int
+    hip_si_flag: int
+    hip_si_mild: int
+    knee_flex_walk: int
+    knee_flex_run: int
+    # activity -> (low, high, note), cadence in steps/min
+    cadence_ranges: dict[str, tuple[int, int, str]]
+    description: str
+
+
+class Finding(TypedDict):
+    metric: str
+    value: str
+    status: str  # good | mild | flagged
+    plain_english: str
+
+
+class ScoringResult(TypedDict):
+    scores: dict[str, float]
+    findings: list[Finding]
+    recommendations: list[str]
+    risk_label: str
+    risk_meaning: str
+    risk_color: str
+    mode: str
+    mode_description: str
+
+
+MODE_CONFIGS: dict[str, ModeConfig] = {
     "Clinical": {
         "knee_si_flag": 20,
         "knee_si_mild": 10,
@@ -73,7 +108,7 @@ DISCLAIMER = (
 )
 
 
-def summary_for_score(score):
+def summary_for_score(score: float | None) -> tuple[str, str, str]:
     """Neutral (label, meaning, colour) for a stored deviation score.
 
     The score only counts how many measurements fell outside the reference
@@ -108,7 +143,9 @@ def summary_for_score(score):
     )
 
 
-def calculate_risk_scores(df, activity="Walking", mode="Clinical"):
+def calculate_risk_scores(
+    df: pd.DataFrame, activity: str = "Walking", mode: str = "Clinical"
+) -> ScoringResult:
     """
     Compare whole-clip gait measurements against the reference ranges of `mode`.
 
@@ -119,9 +156,9 @@ def calculate_risk_scores(df, activity="Walking", mode="Clinical"):
 
     cfg = MODE_CONFIGS.get(mode, MODE_CONFIGS["Clinical"])
 
-    scores = {}
-    findings = []
-    recommendations = []
+    scores: dict[str, float] = {}
+    findings: list[Finding] = []
+    recommendations: list[str] = []
     risk = 0
 
     knee_avg_L = df["knee_L"].mean()

@@ -102,7 +102,7 @@ def session_summary(s: SessionModel) -> dict:
         "hip_si": s.hip_si,
         "knee_flex_L": s.knee_flex_L,
         "knee_flex_R": s.knee_flex_R,
-        "created_at": s.created_at.isoformat(),
+        "created_at": s.created_at.isoformat() if s.created_at else None,
     }
 
 

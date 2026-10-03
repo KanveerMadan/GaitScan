@@ -17,16 +17,21 @@ from app.db.models import Session as SessionModel
 from app.services.exercises import get_exercise_prescription
 from app.services.plots import generate_plots
 from app.services.report_pdf import generate_pdf_report
-from gaitcore.activity import classify_activity
+from gaitcore.activity import ActivityResult, classify_activity
 from gaitcore.angles import add_all_angles
 from gaitcore.landmarks import VideoReadError, extract_landmarks
-from gaitcore.legacy import DISCLAIMER, calculate_risk_scores
+from gaitcore.legacy import DISCLAIMER, ScoringResult, calculate_risk_scores
 
 VALID_MODES = {"Clinical", "Runner", "Athlete", "Elderly"}
 VIDEO_EXTENSIONS = (".mp4", ".mov", ".avi")
 
 log = logging.getLogger("gaitscan")
 router = APIRouter(tags=["analysis"])
+
+
+class AnalysisReport(ScoringResult):
+    activity: ActivityResult
+    exercises: list[dict[str, str]]
 
 
 @router.post("/analyze")
@@ -65,14 +70,17 @@ async def analyze(
 
         activity_result = classify_activity(df)
 
-        results = calculate_risk_scores(df, activity=activity_result["activity"], mode=mode)
-        results["activity"] = activity_result
-        results["exercises"] = get_exercise_prescription(
-            results["findings"],
-            activity_result["activity"],
-            results["scores"],
-            results["risk_label"],
-            mode=mode,
+        scoring = calculate_risk_scores(df, activity=activity_result["activity"], mode=mode)
+        results = AnalysisReport(
+            **scoring,
+            activity=activity_result,
+            exercises=get_exercise_prescription(
+                scoring["findings"],
+                activity_result["activity"],
+                scoring["scores"],
+                scoring["risk_label"],
+                mode=mode,
+            ),
         )
 
         generate_plots(df, output_dir=output_dir)

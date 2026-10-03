@@ -1,4 +1,24 @@
-def classify_activity(df):
+from typing import TypedDict
+
+import pandas as pd
+
+
+class ActivityMetrics(TypedDict):
+    cadence: float
+    knee_flexion_range: float
+    asymmetry_index: float
+    cadence_irregularity: float
+
+
+class ActivityResult(TypedDict):
+    activity: str
+    icon: str
+    confidence: int
+    description: str
+    metrics: ActivityMetrics
+
+
+def classify_activity(df: pd.DataFrame) -> ActivityResult:
     """
     Analyses gait metrics from angle DataFrame and classifies
     the activity type with confidence score and plain English explanation.
@@ -23,11 +43,11 @@ def classify_activity(df):
     import numpy as np
     from scipy.signal import find_peaks
 
-    ankle_y = df["lm27_y"].values
+    ankle_y = df["lm27_y"].to_numpy(dtype=float)
     peaks, _ = find_peaks(ankle_y, distance=int(fps * 0.25), prominence=0.01)
     if len(peaks) > 2:
         intervals = np.diff(peaks)
-        cadence_irregularity = round(np.std(intervals) / np.mean(intervals) * 100, 1)
+        cadence_irregularity: float = float(round(np.std(intervals) / np.mean(intervals) * 100, 1))
     else:
         cadence_irregularity = 0
 
