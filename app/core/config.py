@@ -29,6 +29,8 @@ class Settings(BaseModel):
     max_upload_bytes: int = 0  # derived from max_upload_mb
     enable_llm_explanations: bool = False
     sentry_dsn: str = ""
+    # Proxies in front of the app that append to X-Forwarded-For (see app/core/ratelimit.py).
+    trusted_proxy_hops: int = 0
 
     @field_validator("env")
     @classmethod

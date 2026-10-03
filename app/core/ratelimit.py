@@ -1,5 +1,21 @@
 """Sliding-window rate limits for authentication endpoints (F10, F12).
 
+Client address and its trust assumption
+---------------------------------------
+Per-IP limits key on `client_ip()`. With TRUSTED_PROXY_HOPS=0 (default) that is the
+TCP peer and all forwarding headers are ignored. With N > 0 we assume exactly N
+proxies sit in front of the app and each *appends* the address it received from to
+X-Forwarded-For. The entry N places from the right was written by the outermost
+trusted proxy and is the real client; anything left of it was written by the client
+and is never read, so a spoofed header cannot choose the bucket.
+
+Render (assumed, not in Render's docs): client -> Cloudflare -> Render proxy -> app,
+both appending, so XFF = "<client-written...>, <client>, <Cloudflare edge>" and
+render.yaml sets TRUSTED_PROXY_HOPS=2. If the real chain has fewer appending proxies,
+the chosen entry could be client-written (spoofable); with more, users share an
+edge address. Verify after deploying (PHASE_1.md, human actions). uvicorn's own
+--proxy-headers is disabled in the Dockerfile because it trusts the leftmost entry.
+
 ponytail: in-process memory. Correct for one uvicorn worker on one instance (the
 current deployment). With several workers or instances each has its own counts, so
 move this to Postgres or Redis when scaling out.
@@ -10,6 +26,8 @@ import time
 from collections import defaultdict, deque
 
 from fastapi import HTTPException, Request
+
+from app.core.config import settings
 
 
 class SlidingWindowLimiter:
@@ -52,10 +70,16 @@ ALL = (login_failures_per_email, login_attempts_per_ip, registrations_per_ip)
 
 
 def client_ip(request: Request) -> str:
-    # Behind Render's proxy this is only the real client when uvicorn runs with
-    # --proxy-headers (see Dockerfile); X-Forwarded-For can be spoofed, so the
-    # per-email limit is the control that protects an individual account.
-    return request.client.host if request.client else "unknown"
+    peer = request.client.host if request.client else "unknown"
+    hops = settings.trusted_proxy_hops
+    if hops <= 0:
+        return peer
+    chain = [a.strip() for a in request.headers.get("x-forwarded-for", "").split(",")]
+    chain = [a for a in chain if a]
+    if not chain:
+        return peer
+    # Shorter than `hops`: no client-written entries can be present, so the leftmost is trusted.
+    return chain[-hops] if len(chain) >= hops else chain[0]
 
 
 def enforce(*checks: tuple[SlidingWindowLimiter, str]) -> None:
