@@ -3,7 +3,6 @@ import string
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
 from app.core.security import get_current_user, require_clinician
@@ -78,7 +77,7 @@ def get_patients(clinician: User = Depends(require_clinician), db: Session = Dep
 
     links = db.query(ClinicianPatient).filter(ClinicianPatient.clinician_id == clinician.id).all()
 
-    result = []
+    result: list[dict[str, object]] = []
     for link in links:
         patient = db.query(User).filter(User.id == link.patient_id).first()
         if not patient:
@@ -87,7 +86,7 @@ def get_patients(clinician: User = Depends(require_clinician), db: Session = Dep
         sessions = (
             db.query(GaitSession)
             .filter(GaitSession.user_id == link.patient_id)
-            .order_by(desc(GaitSession.created_at))
+            .order_by(GaitSession.created_at.desc())
             .all()
         )
 
@@ -102,7 +101,7 @@ def get_patients(clinician: User = Depends(require_clinician), db: Session = Dep
                     "latest_activity": None,
                     "trend": [],
                     "flag": False,
-                    "linked_since": link.created_at.isoformat(),
+                    "linked_since": link.created_at.isoformat() if link.created_at else None,
                 }
             )
             continue
@@ -110,7 +109,8 @@ def get_patients(clinician: User = Depends(require_clinician), db: Session = Dep
         latest = sessions[0]
 
         trend = [
-            {"date": s.created_at.strftime("%d %b"), "risk": s.risk_score} for s in reversed(sessions[:5])
+            {"date": s.created_at.strftime("%d %b") if s.created_at else None, "risk": s.risk_score}
+            for s in reversed(sessions[:5])
         ]
 
         flag = False
@@ -133,11 +133,11 @@ def get_patients(clinician: User = Depends(require_clinician), db: Session = Dep
                 "latest_knee_si": latest.knee_si,
                 "trend": trend,
                 "flag": flag,
-                "linked_since": link.created_at.isoformat(),
+                "linked_since": link.created_at.isoformat() if link.created_at else None,
             }
         )
 
-    result.sort(key=lambda x: (not x["flag"], x["name"]))
+    result.sort(key=lambda x: (not x["flag"], str(x["name"])))
     return result
 
 
@@ -157,10 +157,12 @@ def get_patient_sessions(
         raise HTTPException(status_code=403, detail="Patient not in your list")
 
     patient = db.query(User).filter(User.id == patient_id).first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
     sessions = (
         db.query(GaitSession)
         .filter(GaitSession.user_id == patient_id)
-        .order_by(desc(GaitSession.created_at))
+        .order_by(GaitSession.created_at.desc())
         .all()
     )
 
@@ -175,7 +177,7 @@ def get_patient_sessions(
                 "knee_si": s.knee_si,
                 "hip_si": s.hip_si,
                 "cadence": s.cadence,
-                "created_at": s.created_at.isoformat(),
+                "created_at": s.created_at.isoformat() if s.created_at else None,
             }
             for s in sessions
         ],
