@@ -1,0 +1,2281 @@
+FFFFFF.....FFF.FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF.FFFF [ 98%]
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________________ test_unauthenticated_gets_401[/sessions/{sid}] ________________
+
+client = <starlette.testclient.TestClient object at 0x1077d84d0>
+world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': '<test-token-redacted>', ...}
+path = '/sessions/{sid}'
+
+    @pytest.mark.parametrize("path", ["/sessions/{sid}", "/report/{sid}"])
+    def test_unauthenticated_gets_401(client, world, path):
+>       assert client.get(path.format(sid=world["sid"])).status_code == 401
+E       AssertionError: assert 200 == 401
+E        +  where 200 = <Response [200 OK]>.status_code
+E        +    where <Response [200 OK]> = get('/sessions/e3cac435-1f54-4d4e-b756-1c486d4656ca')
+E        +      where get = <starlette.testclient.TestClient object at 0x1077d84d0>.get
+E        +      and   '/sessions/e3cac435-1f54-4d4e-b756-1c486d4656ca' = <built-in method format of str object at 0x106b70b70>(sid='e3cac435-1f54-4d4e-b756-1c486d4656ca')
+E        +        where <built-in method format of str object at 0x106b70b70> = '/sessions/{sid}'.format
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_access_control.py:26: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+PASSWORD RECEIVED: correct-horse-battery
+LENGTH: 21
+PASSWORD RECEIVED: correct-horse-battery
+LENGTH: 21
+PASSWORD RECEIVED: correct-horse-battery
+LENGTH: 21
+PASSWORD RECEIVED: correct-horse-battery
+LENGTH: 21
+------------------------------ Captured log setup ------------------------------
+WARNING  matplotlib.style.core:core.py:213 In /Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/matplotlib/mpl-data/stylelib/classic.mplstyle: 'parseString' deprecated - use 'parse_string'
+WARNING  matplotlib.style.core:core.py:213 In /Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/matplotlib/mpl-data/stylelib/classic.mplstyle: 'resetCache' deprecated - use 'reset_cache'
+WARNING  matplotlib.style.core:core.py:213 In /Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/matplotlib/mpl-data/stylelib/classic.mplstyle: 'parseString' deprecated - use 'parse_string'
+WARNING  matplotlib.style.core:core.py:213 In /Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/matplotlib/mpl-data/stylelib/classic.mplstyle: 'resetCache' deprecated - use 'reset_cache'
+WARNING  matplotlib.style.core:core.py:213 In /Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/matplotlib/mpl-data/stylelib/classic.mplstyle: 'parseString' deprecated - use 'parse_string'
+WARNING  matplotlib.style.core:core.py:213 In /Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/matplotlib/mpl-data/stylelib/classic.mplstyle: 'resetCache' deprecated - use 'reset_cache'
+WARNING  matplotlib.style.core:core.py:213 In /Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/matplotlib/mpl-data/stylelib/classic.mplstyle: 'parseString' deprecated - use 'parse_string'
+WARNING  matplotlib.style.core:core.py:213 In /Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/matplotlib/mpl-data/stylelib/classic.mplstyle: 'resetCache' deprecated - use 'reset_cache'
+_________________ test_unauthenticated_gets_401[/report/{sid}] _________________
+
+client = <starlette.testclient.TestClient object at 0x1077d84d0>
+world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': '<test-token-redacted>', ...}
+path = '/report/{sid}'
+
+    @pytest.mark.parametrize("path", ["/sessions/{sid}", "/report/{sid}"])
+    def test_unauthenticated_gets_401(client, world, path):
+>       assert client.get(path.format(sid=world["sid"])).status_code == 401
+E       AssertionError: assert 200 == 401
+E        +  where 200 = <Response [200 OK]>.status_code
+E        +    where <Response [200 OK]> = get('/report/e3cac435-1f54-4d4e-b756-1c486d4656ca')
+E        +      where get = <starlette.testclient.TestClient object at 0x1077d84d0>.get
+E        +      and   '/report/e3cac435-1f54-4d4e-b756-1c486d4656ca' = <built-in method format of str object at 0x106b70bb0>(sid='e3cac435-1f54-4d4e-b756-1c486d4656ca')
+E        +        where <built-in method format of str object at 0x106b70bb0> = '/report/{sid}'.format
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_access_control.py:26: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Report saved: outputs/e3cac435-1f54-4d4e-b756-1c486d4656ca/gaitscan_report.pdf
+______________ test_other_users_cannot_read[eve-/sessions/{sid}] _______________
+
+client = <starlette.testclient.TestClient object at 0x1077d84d0>
+world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': '<test-token-redacted>', ...}
+path = '/sessions/{sid}', who = 'eve'
+
+    @pytest.mark.parametrize("path", ["/sessions/{sid}", "/report/{sid}"])
+    @pytest.mark.parametrize("who", ["eve", "carol"])
+    def test_other_users_cannot_read(client, world, path, who):
+        r = client.get(path.format(sid=world["sid"]), headers=auth(world[who]))
+>       assert r.status_code == 404        # not 403: don't confirm the ID exists
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert 200 == 404
+E        +  where 200 = <Response [200 OK]>.status_code
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_access_control.py:33: AssertionError
+_______________ test_other_users_cannot_read[eve-/report/{sid}] ________________
+
+client = <starlette.testclient.TestClient object at 0x1077d84d0>
+world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': '<test-token-redacted>', ...}
+path = '/report/{sid}', who = 'eve'
+
+    @pytest.mark.parametrize("path", ["/sessions/{sid}", "/report/{sid}"])
+    @pytest.mark.parametrize("who", ["eve", "carol"])
+    def test_other_users_cannot_read(client, world, path, who):
+        r = client.get(path.format(sid=world["sid"]), headers=auth(world[who]))
+>       assert r.status_code == 404        # not 403: don't confirm the ID exists
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert 200 == 404
+E        +  where 200 = <Response [200 OK]>.status_code
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_access_control.py:33: AssertionError
+_____________ test_other_users_cannot_read[carol-/sessions/{sid}] ______________
+
+client = <starlette.testclient.TestClient object at 0x1077d84d0>
+world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': '<test-token-redacted>', ...}
+path = '/sessions/{sid}', who = 'carol'
+
+    @pytest.mark.parametrize("path", ["/sessions/{sid}", "/report/{sid}"])
+    @pytest.mark.parametrize("who", ["eve", "carol"])
+    def test_other_users_cannot_read(client, world, path, who):
+        r = client.get(path.format(sid=world["sid"]), headers=auth(world[who]))
+>       assert r.status_code == 404        # not 403: don't confirm the ID exists
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert 200 == 404
+E        +  where 200 = <Response [200 OK]>.status_code
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_access_control.py:33: AssertionError
+______________ test_other_users_cannot_read[carol-/report/{sid}] _______________
+
+client = <starlette.testclient.TestClient object at 0x1077d84d0>
+world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': '<test-token-redacted>', ...}
+path = '/report/{sid}', who = 'carol'
+
+    @pytest.mark.parametrize("path", ["/sessions/{sid}", "/report/{sid}"])
+    @pytest.mark.parametrize("who", ["eve", "carol"])
+    def test_other_users_cannot_read(client, world, path, who):
+        r = client.get(path.format(sid=world["sid"]), headers=auth(world[who]))
+>       assert r.status_code == 404        # not 403: don't confirm the ID exists
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert 200 == 404
+E        +  where 200 = <Response [200 OK]>.status_code
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_access_control.py:33: AssertionError
+______________________ test_debug_links_endpoint_removed _______________________
+
+client = <starlette.testclient.TestClient object at 0x1077d84d0>
+world = {'sid': 'e3cac435-1f54-4d4e-b756-1c486d4656ca', 'alice': '<test-token-redacted>', ...}
+
+    def test_debug_links_endpoint_removed(client, world):
+>       assert client.get("/debug/links", headers=auth(world["bob"])).status_code == 404
+E       AssertionError: assert 200 == 404
+E        +  where 200 = <Response [200 OK]>.status_code
+E        +    where <Response [200 OK]> = get('/debug/links', headers={'Authorization': 'Bearer <test-token-redacted>'})
+E        +      where get = <starlette.testclient.TestClient object at 0x1077d84d0>.get
+E        +      and   {'Authorization': 'Bearer <test-token-redacted>'} = auth('<test-token-redacted>')
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_access_control.py:51: AssertionError
+___________________ test_cors_allows_only_configured_origins ___________________
+
+client = <starlette.testclient.TestClient object at 0x1077d84d0>
+
+    def test_cors_allows_only_configured_origins(client):
+        ok = client.options("/status", headers={"Origin": "http://localhost:3000",
+                                                 "Access-Control-Request-Method": "GET"})
+>       assert ok.headers.get("access-control-allow-origin") == "http://localhost:3000"
+E       AssertionError: assert '*' == 'http://localhost:3000'
+E         
+E         - http://localhost:3000
+E         + *
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_access_control.py:57: AssertionError
+__________________ test_tokens_are_signed_with_the_env_secret __________________
+
+signing_input = b'<test-token-redacted>'
+header = {'alg': 'HS256', 'typ': 'JWT'}
+signature = b'5\x13\x97S9\xac`\x8f\xa1\x9d\xb4\xd6\xdcx\xba\xde\x19\xc7\xb2\xb6\xad\xcc\x1b\x9f,o%\xe2\xbe;\x9e5'
+key = 'suEnkePdN8d2iwAuRiphY_uuNEz7Poi6gy9d8LI-tmkbpM3qJEBaA-7A3xYgDmU3'
+algorithms = ['HS256']
+
+    def _verify_signature(signing_input, header, signature, key="", algorithms=None):
+    
+        alg = header.get("alg")
+        if not alg:
+            raise JWSError("No algorithm was specified in the JWS header.")
+    
+        if algorithms is not None and alg not in algorithms:
+            raise JWSError("The specified alg value is not allowed")
+    
+        keys = _get_keys(key)
+        try:
+            if not _sig_matches_keys(keys, signing_input, signature, alg):
+>               raise JWSSignatureError()
+E               jose.exceptions.JWSSignatureError
+
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/jose/jws.py:262: JWSSignatureError
+
+During handling of the above exception, another exception occurred:
+
+token = '<test-token-redacted>'
+key = 'suEnkePdN8d2iwAuRiphY_uuNEz7Poi6gy9d8LI-tmkbpM3qJEBaA-7A3xYgDmU3'
+algorithms = ['HS256'], options = None, audience = None, issuer = None
+subject = None, access_token = None
+
+    def decode(token, key, algorithms=None, options=None, audience=None, issuer=None, subject=None, access_token=None):
+        """Verifies a JWT string's signature and validates reserved claims.
+    
+        Args:
+            token (str): A signed JWS to be verified.
+            key (str or dict): A key to attempt to verify the payload with. Can be
+                individual JWK or JWK set.
+            algorithms (str or list): Valid algorithms that should be used to verify the JWS.
+            audience (str): The intended audience of the token.  If the "aud" claim is
+                included in the claim set, then the audience must be included and must equal
+                the provided claim.
+            issuer (str or iterable): Acceptable value(s) for the issuer of the token.
+                If the "iss" claim is included in the claim set, then the issuer must be
+                given and the claim in the token must be among the acceptable values.
+            subject (str): The subject of the token.  If the "sub" claim is
+                included in the claim set, then the subject must be included and must equal
+                the provided claim.
+            access_token (str): An access token string. If the "at_hash" claim is included in the
+                claim set, then the access_token must be included, and it must match
+                the "at_hash" claim.
+            options (dict): A dictionary of options for skipping validation steps.
+    
+                defaults = {
+                    'verify_signature': True,
+                    'verify_aud': True,
+                    'verify_iat': True,
+                    'verify_exp': True,
+                    'verify_nbf': True,
+                    'verify_iss': True,
+                    'verify_sub': True,
+                    'verify_jti': True,
+                    'verify_at_hash': True,
+                    'require_aud': False,
+                    'require_iat': False,
+                    'require_exp': False,
+                    'require_nbf': False,
+                    'require_iss': False,
+                    'require_sub': False,
+                    'require_jti': False,
+                    'require_at_hash': False,
+                    'leeway': 0,
+                }
+    
+        Returns:
+            dict: The dict representation of the claims set, assuming the signature is valid
+                and all requested data validation passes.
+    
+        Raises:
+            JWTError: If the signature is invalid in any way.
+            ExpiredSignatureError: If the signature has expired.
+            JWTClaimsError: If any claim is invalid in any way.
+    
+        Examples:
+    
+            >>> payload = '<test-token-redacted>'
+            >>> jwt.decode(payload, 'secret', algorithms='HS256')
+    
+        """
+    
+        defaults = {
+            "verify_signature": True,
+            "verify_aud": True,
+            "verify_iat": True,
+            "verify_exp": True,
+            "verify_nbf": True,
+            "verify_iss": True,
+            "verify_sub": True,
+            "verify_jti": True,
+            "verify_at_hash": True,
+            "require_aud": False,
+            "require_iat": False,
+            "require_exp": False,
+            "require_nbf": False,
+            "require_iss": False,
+            "require_sub": False,
+            "require_jti": False,
+            "require_at_hash": False,
+            "leeway": 0,
+        }
+    
+        if options:
+            defaults.update(options)
+    
+        verify_signature = defaults.get("verify_signature", True)
+    
+        try:
+>           payload = jws.verify(token, key, algorithms, verify=verify_signature)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/jose/jwt.py:142: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/jose/jws.py:73: in verify
+    _verify_signature(signing_input, header, signature, key, algorithms)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+signing_input = b'<test-token-redacted>'
+header = {'alg': 'HS256', 'typ': 'JWT'}
+signature = b'5\x13\x97S9\xac`\x8f\xa1\x9d\xb4\xd6\xdcx\xba\xde\x19\xc7\xb2\xb6\xad\xcc\x1b\x9f,o%\xe2\xbe;\x9e5'
+key = 'suEnkePdN8d2iwAuRiphY_uuNEz7Poi6gy9d8LI-tmkbpM3qJEBaA-7A3xYgDmU3'
+algorithms = ['HS256']
+
+    def _verify_signature(signing_input, header, signature, key="", algorithms=None):
+    
+        alg = header.get("alg")
+        if not alg:
+            raise JWSError("No algorithm was specified in the JWS header.")
+    
+        if algorithms is not None and alg not in algorithms:
+            raise JWSError("The specified alg value is not allowed")
+    
+        keys = _get_keys(key)
+        try:
+            if not _sig_matches_keys(keys, signing_input, signature, alg):
+                raise JWSSignatureError()
+        except JWSSignatureError:
+>           raise JWSError("Signature verification failed.")
+E           jose.exceptions.JWSError: Signature verification failed.
+
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/jose/jws.py:264: JWSError
+
+During handling of the above exception, another exception occurred:
+
+client = <starlette.testclient.TestClient object at 0x1077d84d0>
+
+    def test_tokens_are_signed_with_the_env_secret(client):
+        email, token = register(client)
+>       claims = jwt.decode(token, os.environ["JWT_SECRET"], algorithms=["HS256"])
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_auth.py:12: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+token = '<test-token-redacted>'
+key = 'suEnkePdN8d2iwAuRiphY_uuNEz7Poi6gy9d8LI-tmkbpM3qJEBaA-7A3xYgDmU3'
+algorithms = ['HS256'], options = None, audience = None, issuer = None
+subject = None, access_token = None
+
+    def decode(token, key, algorithms=None, options=None, audience=None, issuer=None, subject=None, access_token=None):
+        """Verifies a JWT string's signature and validates reserved claims.
+    
+        Args:
+            token (str): A signed JWS to be verified.
+            key (str or dict): A key to attempt to verify the payload with. Can be
+                individual JWK or JWK set.
+            algorithms (str or list): Valid algorithms that should be used to verify the JWS.
+            audience (str): The intended audience of the token.  If the "aud" claim is
+                included in the claim set, then the audience must be included and must equal
+                the provided claim.
+            issuer (str or iterable): Acceptable value(s) for the issuer of the token.
+                If the "iss" claim is included in the claim set, then the issuer must be
+                given and the claim in the token must be among the acceptable values.
+            subject (str): The subject of the token.  If the "sub" claim is
+                included in the claim set, then the subject must be included and must equal
+                the provided claim.
+            access_token (str): An access token string. If the "at_hash" claim is included in the
+                claim set, then the access_token must be included, and it must match
+                the "at_hash" claim.
+            options (dict): A dictionary of options for skipping validation steps.
+    
+                defaults = {
+                    'verify_signature': True,
+                    'verify_aud': True,
+                    'verify_iat': True,
+                    'verify_exp': True,
+                    'verify_nbf': True,
+                    'verify_iss': True,
+                    'verify_sub': True,
+                    'verify_jti': True,
+                    'verify_at_hash': True,
+                    'require_aud': False,
+                    'require_iat': False,
+                    'require_exp': False,
+                    'require_nbf': False,
+                    'require_iss': False,
+                    'require_sub': False,
+                    'require_jti': False,
+                    'require_at_hash': False,
+                    'leeway': 0,
+                }
+    
+        Returns:
+            dict: The dict representation of the claims set, assuming the signature is valid
+                and all requested data validation passes.
+    
+        Raises:
+            JWTError: If the signature is invalid in any way.
+            ExpiredSignatureError: If the signature has expired.
+            JWTClaimsError: If any claim is invalid in any way.
+    
+        Examples:
+    
+            >>> payload = '<test-token-redacted>'
+            >>> jwt.decode(payload, 'secret', algorithms='HS256')
+    
+        """
+    
+        defaults = {
+            "verify_signature": True,
+            "verify_aud": True,
+            "verify_iat": True,
+            "verify_exp": True,
+            "verify_nbf": True,
+            "verify_iss": True,
+            "verify_sub": True,
+            "verify_jti": True,
+            "verify_at_hash": True,
+            "require_aud": False,
+            "require_iat": False,
+            "require_exp": False,
+            "require_nbf": False,
+            "require_iss": False,
+            "require_sub": False,
+            "require_jti": False,
+            "require_at_hash": False,
+            "leeway": 0,
+        }
+    
+        if options:
+            defaults.update(options)
+    
+        verify_signature = defaults.get("verify_signature", True)
+    
+        try:
+            payload = jws.verify(token, key, algorithms, verify=verify_signature)
+        except JWSError as e:
+>           raise JWTError(e)
+E           jose.exceptions.JWTError: Signature verification failed.
+
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/jose/jwt.py:144: JWTError
+----------------------------- Captured stdout call -----------------------------
+PASSWORD RECEIVED: correct-horse-battery
+LENGTH: 21
+__________________ test_register_cannot_self_assign_clinician __________________
+
+client = <starlette.testclient.TestClient object at 0x1077d84d0>
+
+    def test_register_cannot_self_assign_clinician(client):
+        r = client.post("/auth/register", json={"email": "wannabe@example.com", "password": PASSWORD,
+                                                "role": "clinician"})
+        assert r.status_code == 201
+>       assert r.json()["role"] == "patient"
+E       AssertionError: assert 'clinician' == 'patient'
+E         
+E         - patient
+E         + clinician
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_auth.py:26: AssertionError
+----------------------------- Captured stdout call -----------------------------
+PASSWORD RECEIVED: correct-horse-battery
+LENGTH: 21
+________________________ test_password_is_never_printed ________________________
+
+client = <starlette.testclient.TestClient object at 0x1077d84d0>
+capsys = <_pytest.capture.CaptureFixture object at 0x144552910>
+
+    def test_password_is_never_printed(client, capsys):
+        register(client, password="very-distinctive-password-123")
+        out = capsys.readouterr()
+>       assert "very-distinctive-password-123" not in out.out + out.err
+E       AssertionError: assert 'very-distin...password-123' not in 'PASSWORD RE...LENGTH: 29\n'
+E         
+E         'very-distinctive-password-123' is contained here:
+E           PASSWORD RECEIVED: very-distinctive-password-123
+E           LENGTH: 29
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_auth.py:34: AssertionError
+__________________ test_access_token_lifetime_at_most_one_day __________________
+
+signing_input = b'<test-token-redacted>'
+header = {'alg': 'HS256', 'typ': 'JWT'}
+signature = b'\x94\xca7\xa8\x93D\xbc\xa3TX\xba\xc6Ti\x97.gX\xbd}\x05\xfe\x9e\x83\xd4\x00\xc7z\x99\xd1I\x8b'
+key = 'suEnkePdN8d2iwAuRiphY_uuNEz7Poi6gy9d8LI-tmkbpM3qJEBaA-7A3xYgDmU3'
+algorithms = ['HS256']
+
+    def _verify_signature(signing_input, header, signature, key="", algorithms=None):
+    
+        alg = header.get("alg")
+        if not alg:
+            raise JWSError("No algorithm was specified in the JWS header.")
+    
+        if algorithms is not None and alg not in algorithms:
+            raise JWSError("The specified alg value is not allowed")
+    
+        keys = _get_keys(key)
+        try:
+            if not _sig_matches_keys(keys, signing_input, signature, alg):
+>               raise JWSSignatureError()
+E               jose.exceptions.JWSSignatureError
+
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/jose/jws.py:262: JWSSignatureError
+
+During handling of the above exception, another exception occurred:
+
+token = '<test-token-redacted>'
+key = 'suEnkePdN8d2iwAuRiphY_uuNEz7Poi6gy9d8LI-tmkbpM3qJEBaA-7A3xYgDmU3'
+algorithms = ['HS256'], options = None, audience = None, issuer = None
+subject = None, access_token = None
+
+    def decode(token, key, algorithms=None, options=None, audience=None, issuer=None, subject=None, access_token=None):
+        """Verifies a JWT string's signature and validates reserved claims.
+    
+        Args:
+            token (str): A signed JWS to be verified.
+            key (str or dict): A key to attempt to verify the payload with. Can be
+                individual JWK or JWK set.
+            algorithms (str or list): Valid algorithms that should be used to verify the JWS.
+            audience (str): The intended audience of the token.  If the "aud" claim is
+                included in the claim set, then the audience must be included and must equal
+                the provided claim.
+            issuer (str or iterable): Acceptable value(s) for the issuer of the token.
+                If the "iss" claim is included in the claim set, then the issuer must be
+                given and the claim in the token must be among the acceptable values.
+            subject (str): The subject of the token.  If the "sub" claim is
+                included in the claim set, then the subject must be included and must equal
+                the provided claim.
+            access_token (str): An access token string. If the "at_hash" claim is included in the
+                claim set, then the access_token must be included, and it must match
+                the "at_hash" claim.
+            options (dict): A dictionary of options for skipping validation steps.
+    
+                defaults = {
+                    'verify_signature': True,
+                    'verify_aud': True,
+                    'verify_iat': True,
+                    'verify_exp': True,
+                    'verify_nbf': True,
+                    'verify_iss': True,
+                    'verify_sub': True,
+                    'verify_jti': True,
+                    'verify_at_hash': True,
+                    'require_aud': False,
+                    'require_iat': False,
+                    'require_exp': False,
+                    'require_nbf': False,
+                    'require_iss': False,
+                    'require_sub': False,
+                    'require_jti': False,
+                    'require_at_hash': False,
+                    'leeway': 0,
+                }
+    
+        Returns:
+            dict: The dict representation of the claims set, assuming the signature is valid
+                and all requested data validation passes.
+    
+        Raises:
+            JWTError: If the signature is invalid in any way.
+            ExpiredSignatureError: If the signature has expired.
+            JWTClaimsError: If any claim is invalid in any way.
+    
+        Examples:
+    
+            >>> payload = '<test-token-redacted>'
+            >>> jwt.decode(payload, 'secret', algorithms='HS256')
+    
+        """
+    
+        defaults = {
+            "verify_signature": True,
+            "verify_aud": True,
+            "verify_iat": True,
+            "verify_exp": True,
+            "verify_nbf": True,
+            "verify_iss": True,
+            "verify_sub": True,
+            "verify_jti": True,
+            "verify_at_hash": True,
+            "require_aud": False,
+            "require_iat": False,
+            "require_exp": False,
+            "require_nbf": False,
+            "require_iss": False,
+            "require_sub": False,
+            "require_jti": False,
+            "require_at_hash": False,
+            "leeway": 0,
+        }
+    
+        if options:
+            defaults.update(options)
+    
+        verify_signature = defaults.get("verify_signature", True)
+    
+        try:
+>           payload = jws.verify(token, key, algorithms, verify=verify_signature)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/jose/jwt.py:142: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/jose/jws.py:73: in verify
+    _verify_signature(signing_input, header, signature, key, algorithms)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+signing_input = b'<test-token-redacted>'
+header = {'alg': 'HS256', 'typ': 'JWT'}
+signature = b'\x94\xca7\xa8\x93D\xbc\xa3TX\xba\xc6Ti\x97.gX\xbd}\x05\xfe\x9e\x83\xd4\x00\xc7z\x99\xd1I\x8b'
+key = 'suEnkePdN8d2iwAuRiphY_uuNEz7Poi6gy9d8LI-tmkbpM3qJEBaA-7A3xYgDmU3'
+algorithms = ['HS256']
+
+    def _verify_signature(signing_input, header, signature, key="", algorithms=None):
+    
+        alg = header.get("alg")
+        if not alg:
+            raise JWSError("No algorithm was specified in the JWS header.")
+    
+        if algorithms is not None and alg not in algorithms:
+            raise JWSError("The specified alg value is not allowed")
+    
+        keys = _get_keys(key)
+        try:
+            if not _sig_matches_keys(keys, signing_input, signature, alg):
+                raise JWSSignatureError()
+        except JWSSignatureError:
+>           raise JWSError("Signature verification failed.")
+E           jose.exceptions.JWSError: Signature verification failed.
+
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/jose/jws.py:264: JWSError
+
+During handling of the above exception, another exception occurred:
+
+client = <starlette.testclient.TestClient object at 0x1077d84d0>
+
+    def test_access_token_lifetime_at_most_one_day(client):
+        _, token = register(client)
+>       claims = jwt.decode(token, os.environ["JWT_SECRET"], algorithms=["HS256"])
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_auth.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+token = '<test-token-redacted>'
+key = 'suEnkePdN8d2iwAuRiphY_uuNEz7Poi6gy9d8LI-tmkbpM3qJEBaA-7A3xYgDmU3'
+algorithms = ['HS256'], options = None, audience = None, issuer = None
+subject = None, access_token = None
+
+    def decode(token, key, algorithms=None, options=None, audience=None, issuer=None, subject=None, access_token=None):
+        """Verifies a JWT string's signature and validates reserved claims.
+    
+        Args:
+            token (str): A signed JWS to be verified.
+            key (str or dict): A key to attempt to verify the payload with. Can be
+                individual JWK or JWK set.
+            algorithms (str or list): Valid algorithms that should be used to verify the JWS.
+            audience (str): The intended audience of the token.  If the "aud" claim is
+                included in the claim set, then the audience must be included and must equal
+                the provided claim.
+            issuer (str or iterable): Acceptable value(s) for the issuer of the token.
+                If the "iss" claim is included in the claim set, then the issuer must be
+                given and the claim in the token must be among the acceptable values.
+            subject (str): The subject of the token.  If the "sub" claim is
+                included in the claim set, then the subject must be included and must equal
+                the provided claim.
+            access_token (str): An access token string. If the "at_hash" claim is included in the
+                claim set, then the access_token must be included, and it must match
+                the "at_hash" claim.
+            options (dict): A dictionary of options for skipping validation steps.
+    
+                defaults = {
+                    'verify_signature': True,
+                    'verify_aud': True,
+                    'verify_iat': True,
+                    'verify_exp': True,
+                    'verify_nbf': True,
+                    'verify_iss': True,
+                    'verify_sub': True,
+                    'verify_jti': True,
+                    'verify_at_hash': True,
+                    'require_aud': False,
+                    'require_iat': False,
+                    'require_exp': False,
+                    'require_nbf': False,
+                    'require_iss': False,
+                    'require_sub': False,
+                    'require_jti': False,
+                    'require_at_hash': False,
+                    'leeway': 0,
+                }
+    
+        Returns:
+            dict: The dict representation of the claims set, assuming the signature is valid
+                and all requested data validation passes.
+    
+        Raises:
+            JWTError: If the signature is invalid in any way.
+            ExpiredSignatureError: If the signature has expired.
+            JWTClaimsError: If any claim is invalid in any way.
+    
+        Examples:
+    
+            >>> payload = '<test-token-redacted>'
+            >>> jwt.decode(payload, 'secret', algorithms='HS256')
+    
+        """
+    
+        defaults = {
+            "verify_signature": True,
+            "verify_aud": True,
+            "verify_iat": True,
+            "verify_exp": True,
+            "verify_nbf": True,
+            "verify_iss": True,
+            "verify_sub": True,
+            "verify_jti": True,
+            "verify_at_hash": True,
+            "require_aud": False,
+            "require_iat": False,
+            "require_exp": False,
+            "require_nbf": False,
+            "require_iss": False,
+            "require_sub": False,
+            "require_jti": False,
+            "require_at_hash": False,
+            "leeway": 0,
+        }
+    
+        if options:
+            defaults.update(options)
+    
+        verify_signature = defaults.get("verify_signature", True)
+    
+        try:
+            payload = jws.verify(token, key, algorithms, verify=verify_signature)
+        except JWSError as e:
+>           raise JWTError(e)
+E           jose.exceptions.JWTError: Signature verification failed.
+
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/jose/jwt.py:144: JWTError
+----------------------------- Captured stdout call -----------------------------
+PASSWORD RECEIVED: correct-horse-battery
+LENGTH: 21
+_____________________ test_production_requires_jwt_secret ______________________
+
+    def test_production_requires_jwt_secret():
+        env = {k: v for k, v in PROD.items() if k != "JWT_SECRET"}
+        with pytest.raises(RuntimeError, match="JWT_SECRET"):
+>           load(env)
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+env = {'ENV': 'production', 'CORS_ORIGINS': 'https://app.example.com', 'DATABASE_URL': 'sqlite:///./x.db'}
+
+    def load(env):
+>       from src.core.config import load_settings
+E       ModuleNotFoundError: No module named 'src.core.config'
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:17: ModuleNotFoundError
+____________ test_production_rejects_placeholder_or_short_secret[] _____________
+
+weak = ''
+
+    @pytest.mark.parametrize("weak", ["", "your_jwt_secret_here", "change-me", "short-secret-under-32-chars"])
+    def test_production_rejects_placeholder_or_short_secret(weak):
+        with pytest.raises(RuntimeError, match="JWT_SECRET"):
+>           load({**PROD, "JWT_SECRET": weak})
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:30: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+env = {'ENV': 'production', 'JWT_SECRET': '', 'CORS_ORIGINS': 'https://app.example.com', 'DATABASE_URL': 'sqlite:///./x.db'}
+
+    def load(env):
+>       from src.core.config import load_settings
+E       ModuleNotFoundError: No module named 'src.core.config'
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:17: ModuleNotFoundError
+__ test_production_rejects_placeholder_or_short_secret[your_jwt_secret_here] ___
+
+weak = 'your_jwt_secret_here'
+
+    @pytest.mark.parametrize("weak", ["", "your_jwt_secret_here", "change-me", "short-secret-under-32-chars"])
+    def test_production_rejects_placeholder_or_short_secret(weak):
+        with pytest.raises(RuntimeError, match="JWT_SECRET"):
+>           load({**PROD, "JWT_SECRET": weak})
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:30: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+env = {'ENV': 'production', 'JWT_SECRET': 'your_jwt_secret_here', 'CORS_ORIGINS': 'https://app.example.com', 'DATABASE_URL': 'sqlite:///./x.db'}
+
+    def load(env):
+>       from src.core.config import load_settings
+E       ModuleNotFoundError: No module named 'src.core.config'
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:17: ModuleNotFoundError
+________ test_production_rejects_placeholder_or_short_secret[change-me] ________
+
+weak = 'change-me'
+
+    @pytest.mark.parametrize("weak", ["", "your_jwt_secret_here", "change-me", "short-secret-under-32-chars"])
+    def test_production_rejects_placeholder_or_short_secret(weak):
+        with pytest.raises(RuntimeError, match="JWT_SECRET"):
+>           load({**PROD, "JWT_SECRET": weak})
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:30: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+env = {'ENV': 'production', 'JWT_SECRET': 'change-me', 'CORS_ORIGINS': 'https://app.example.com', 'DATABASE_URL': 'sqlite:///./x.db'}
+
+    def load(env):
+>       from src.core.config import load_settings
+E       ModuleNotFoundError: No module named 'src.core.config'
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:17: ModuleNotFoundError
+_ test_production_rejects_placeholder_or_short_secret[short-secret-under-32-chars] _
+
+weak = 'short-secret-under-32-chars'
+
+    @pytest.mark.parametrize("weak", ["", "your_jwt_secret_here", "change-me", "short-secret-under-32-chars"])
+    def test_production_rejects_placeholder_or_short_secret(weak):
+        with pytest.raises(RuntimeError, match="JWT_SECRET"):
+>           load({**PROD, "JWT_SECRET": weak})
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:30: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+env = {'ENV': 'production', 'JWT_SECRET': 'short-secret-under-32-chars', 'CORS_ORIGINS': 'https://app.example.com', 'DATABASE_URL': 'sqlite:///./x.db'}
+
+    def load(env):
+>       from src.core.config import load_settings
+E       ModuleNotFoundError: No module named 'src.core.config'
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:17: ModuleNotFoundError
+_________________ test_error_message_never_echoes_secret_value _________________
+
+    def test_error_message_never_echoes_secret_value():
+        weak = "a-weak-but-distinctive-value"
+        with pytest.raises(RuntimeError) as e:
+>           load({**PROD, "JWT_SECRET": weak})
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:36: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+env = {'ENV': 'production', 'JWT_SECRET': 'a-weak-but-distinctive-value', 'CORS_ORIGINS': 'https://app.example.com', 'DATABASE_URL': 'sqlite:///./x.db'}
+
+    def load(env):
+>       from src.core.config import load_settings
+E       ModuleNotFoundError: No module named 'src.core.config'
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:17: ModuleNotFoundError
+____________________ test_production_requires_cors_origins _____________________
+
+    def test_production_requires_cors_origins():
+        env = {k: v for k, v in PROD.items() if k != "CORS_ORIGINS"}
+        with pytest.raises(RuntimeError, match="CORS_ORIGINS"):
+>           load(env)
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+env = {'ENV': 'production', 'JWT_SECRET': 'H3nP3MwjRccgmhuo-CoTQTfzompYqtrDGjCbrGzmTLvkn7e2KL-21qnyXpUZVkHG', 'DATABASE_URL': 'sqlite:///./x.db'}
+
+    def load(env):
+>       from src.core.config import load_settings
+E       ModuleNotFoundError: No module named 'src.core.config'
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:17: ModuleNotFoundError
+_________________ test_env_defaults_to_production_fail_closed __________________
+
+    def test_env_defaults_to_production_fail_closed():
+        with pytest.raises(RuntimeError):
+>           load({})
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:48: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+env = {}
+
+    def load(env):
+>       from src.core.config import load_settings
+E       ModuleNotFoundError: No module named 'src.core.config'
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:17: ModuleNotFoundError
+_____________________ test_dev_generates_ephemeral_secret ______________________
+
+    def test_dev_generates_ephemeral_secret():
+>       s = load({"ENV": "dev"})
+            ^^^^^^^^^^^^^^^^^^^^
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:52: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+env = {'ENV': 'dev'}
+
+    def load(env):
+>       from src.core.config import load_settings
+E       ModuleNotFoundError: No module named 'src.core.config'
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:17: ModuleNotFoundError
+________________________ test_production_settings_parse ________________________
+
+    def test_production_settings_parse():
+>       s = load({**PROD, "CORS_ORIGINS": "https://a.example.com, https://b.example.com"})
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:59: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+env = {'ENV': 'production', 'JWT_SECRET': 'H3nP3MwjRccgmhuo-CoTQTfzompYqtrDGjCbrGzmTLvkn7e2KL-21qnyXpUZVkHG', 'CORS_ORIGINS': 'https://a.example.com, https://b.example.com', 'DATABASE_URL': 'sqlite:///./x.db'}
+
+    def load(env):
+>       from src.core.config import load_settings
+E       ModuleNotFoundError: No module named 'src.core.config'
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:17: ModuleNotFoundError
+____________ test_app_refuses_to_start_in_production_without_secret ____________
+
+tmp_path = PosixPath('/private/var/folders/gz/pyzsgdzn7354r47cnrbtxcr80000gn/T/pytest-of-kanveermadan/pytest-77/test_app_refuses_to_start_in_p0')
+
+    def test_app_refuses_to_start_in_production_without_secret(tmp_path):
+        r = _import_app({"ENV": "production", "CORS_ORIGINS": "https://a.example.com",
+                         "DATABASE_URL": f"sqlite:///{tmp_path}/x.db"})
+>       assert r.returncode != 0
+E       AssertionError: assert 0 != 0
+E        +  where 0 = CompletedProcess(args=['/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/bin/python', '-c', 'from src.api.main import app; print(app.docs_url, app.openapi_url)'], returncode=0, stdout='/docs /openapi.json\n', stderr='').returncode
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:77: AssertionError
+_______________________ test_docs_disabled_in_production _______________________
+
+tmp_path = PosixPath('/private/var/folders/gz/pyzsgdzn7354r47cnrbtxcr80000gn/T/pytest-of-kanveermadan/pytest-77/test_docs_disabled_in_producti0')
+
+    def test_docs_disabled_in_production(tmp_path):
+        r = _import_app({**PROD, "DATABASE_URL": f"sqlite:///{tmp_path}/x.db"})
+        assert r.returncode == 0, r.stderr[-800:]
+>       assert r.stdout.strip().splitlines()[-1] == "None None"
+E       AssertionError: assert '/docs /openapi.json' == 'None None'
+E         
+E         - None None
+E         + /docs /openapi.json
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_config.py:84: AssertionError
+______________ test_no_banned_wording_in_backend_string_literals _______________
+
+    def test_no_banned_wording_in_backend_string_literals():
+        hits = []
+        for p in sorted(pathlib.Path(ROOT, "src").rglob("*.py")):
+            rel = p.relative_to(ROOT).as_posix()
+            if rel in ALLOWED_FILES:
+                continue
+            for line, s in string_literals(p):
+                if BANNED.search(s):
+                    hits.append(f"{rel}:{line}: {s[:80]!r}")
+>       assert not hits, "\n".join(hits)
+E       AssertionError: src/core/activity_classifier.py:47: 'Limping'
+E         src/core/activity_classifier.py:51: '%) detected alongside irregular step timing. One leg appears to be compensating '
+E         src/core/exercise_prescription.py:209: 'limp'
+E         src/core/exercise_prescription.py:10: 'Limping'
+E         src/core/exercise_prescription.py:18: 'limp'
+E         src/core/exercise_prescription.py:20: 'Limping'
+E         src/core/exercise_prescription.py:30: 'Limping'
+E         src/core/exercise_prescription.py:48: 'limp'
+E         src/core/exercise_prescription.py:50: 'Limping'
+E         src/core/exercise_prescription.py:78: 'limp'
+E         src/core/exercise_prescription.py:80: 'Limping'
+E         src/core/exercise_prescription.py:100: 'Limping'
+E         src/core/exercise_prescription.py:110: 'Limping'
+E         src/core/exercise_prescription.py:170: 'Limping'
+E         src/core/exercise_prescription.py:178: 'limp'
+E         src/core/exercise_prescription.py:180: 'Limping'
+E         src/core/exercise_prescription.py:188: 'limp'
+E         src/core/exercise_prescription.py:190: 'Limping'
+E         src/core/exercise_prescription.py:209: 'limp'
+E         src/core/exercise_prescription.py:210: 'limp'
+E         src/core/exercise_prescription.py:221: 'Limping'
+E         src/core/exercise_prescription.py:272: 'recreational or competitive runner focused on performance and injury prevention'
+E         src/core/exercise_prescription.py:222: 'limp'
+E         src/core/report_generator.py:29: 'Running efficiency, injury prevention, and stride optimisation.'
+E         src/core/report_generator.py:50: 'Adjusted thresholds prioritising fall risk and safe movement.'
+E         src/core/report_generator.py:126: 'Serious Abnormality'
+E         src/core/report_generator.py:381: 'Prescribed Exercises'
+E         src/core/report_generator.py:178: '<b>Risk Score</b><br/><font size="26" color="'
+E         src/core/risk_scoring.py:69: '\n    Activity-aware and mode-aware risk scoring with plain English explanations.'
+E         src/core/risk_scoring.py:63: 'Adjusted for older adults — prioritises fall risk and stability over performance'
+E         src/core/risk_scoring.py:274: 'Your gait looks healthy. No concerns found.'
+E         src/core/risk_scoring.py:13: 'Limping'
+E         src/core/risk_scoring.py:29: 'Limping'
+E         src/core/risk_scoring.py:45: 'Limping'
+E         src/core/risk_scoring.py:61: 'Limping'
+E         src/core/risk_scoring.py:199: 'Limping'
+E         src/core/risk_scoring.py:249: 'Limping'
+E         src/core/risk_scoring.py:278: 'A few small things worth keeping an eye on, but nothing serious.'
+E         src/core/risk_scoring.py:10: 'A healthy walking cadence is 80–120 steps/min.'
+E         src/core/risk_scoring.py:11: 'A healthy brisk walking cadence is 120–140 steps/min.'
+E         src/core/risk_scoring.py:13: 'Cadence varies when limping.'
+E         src/core/risk_scoring.py:26: 'A healthy walking cadence is 80–120 steps/min.'
+E         src/core/risk_scoring.py:29: 'Cadence varies when limping.'
+E         src/core/risk_scoring.py:45: 'Cadence varies when limping.'
+E         src/core/risk_scoring.py:59: 'A healthy brisk-walking cadence is 100–130 steps/min.'
+E         src/core/risk_scoring.py:61: 'Cadence varies when limping.'
+E         src/core/risk_scoring.py:282: 'Some gait issues detected. Worth seeing a physiotherapist, especially if you exp'
+E         src/core/risk_scoring.py:146: '%). This can indicate hip weakness or tightness on one side, and often contribut'
+E         src/core/risk_scoring.py:203: 'Affected Side'
+E         src/core/risk_scoring.py:286: 'Clear gait abnormalities detected. Physiotherapy is recommended.'
+E         src/core/risk_scoring.py:289: 'Serious abnormality'
+E         src/core/risk_scoring.py:290: 'Serious gait issues detected. Please consult a doctor or physiotherapist soon.'
+E         src/core/risk_scoring.py:111: '% difference. This means one knee is doing significantly more work than the othe'
+E         src/core/risk_scoring.py:126: '%). Worth monitoring — if you notice knee pain on one side, this could be the ca'
+E         src/core/risk_scoring.py:185: " mode). This 'shuffling' pattern wastes energy and increases injury risk — espec"
+E         src/core/risk_scoring.py:207: ' side shows reduced movement range, suggesting it is the affected leg. The oppos'
+E         src/core/risk_scoring.py:224: " mode). This 'stiff-legged' pattern puts extra stress on your joints and increas"
+E       assert not ["src/core/activity_classifier.py:47: 'Limping'", "src/core/activity_classifier.py:51: '%) detected alongside irregula...10: 'Limping'", "src/core/exercise_prescription.py:18: 'limp'", "src/core/exercise_prescription.py:20: 'Limping'", ...]
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:38: AssertionError
+______________ test_scoring_output_is_clean[1.0-Walking-Clinical] ______________
+
+mode = 'Clinical', activity = 'Walking', knee_scale_R = 1.0
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(0.3), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....ced efficiency and more impact on your joints per step.'}], 'recommendations': [], 'risk_label': 'Minor findings', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['Your step rate is lower than ideal for Clinical mode (54.2 steps/min). A healthy walking cadence is 80–120 steps/min...ficiency and more impact on your joints per step.', 'A few small things worth keeping an eye on, but nothing serious.']
+E       assert not ['Your step rate is lower than ideal for Clinical mode (54.2 steps/min). A healthy walking cadence is 80–120 steps/min...ficiency and more impact on your joints per step.', 'A few small things worth keeping an eye on, but nothing serious.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+_______________ test_scoring_output_is_clean[1.0-Walking-Runner] _______________
+
+mode = 'Runner', activity = 'Walking', knee_scale_R = 1.0
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(0.3), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....ced efficiency and more impact on your joints per step.'}], 'recommendations': [], 'risk_label': 'Minor findings', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['Your step rate is lower than ideal for Runner mode (54.2 steps/min). A healthy walking cadence is 80–120 steps/min. ...ficiency and more impact on your joints per step.', 'A few small things worth keeping an eye on, but nothing serious.']
+E       assert not ['Your step rate is lower than ideal for Runner mode (54.2 steps/min). A healthy walking cadence is 80–120 steps/min. ...ficiency and more impact on your joints per step.', 'A few small things worth keeping an eye on, but nothing serious.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+______________ test_scoring_output_is_clean[1.0-Walking-Athlete] _______________
+
+mode = 'Athlete', activity = 'Walking', knee_scale_R = 1.0
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(0.3), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....ced efficiency and more impact on your joints per step.'}], 'recommendations': [], 'risk_label': 'Minor findings', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['A few small things worth keeping an eye on, but nothing serious.']
+E       assert not ['A few small things worth keeping an eye on, but nothing serious.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+______________ test_scoring_output_is_clean[1.0-Walking-Elderly] _______________
+
+mode = 'Elderly', activity = 'Walking', knee_scale_R = 1.0
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(0.3), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....ced efficiency and more impact on your joints per step.'}], 'recommendations': [], 'risk_label': 'Minor findings', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['A few small things worth keeping an eye on, but nothing serious.', 'Adjusted for older adults — prioritises fall risk and stability over performance.']
+E       assert not ['A few small things worth keeping an eye on, but nothing serious.', 'Adjusted for older adults — prioritises fall risk and stability over performance.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+___________ test_scoring_output_is_clean[1.0-Brisk Walking-Clinical] ___________
+
+mode = 'Clinical', activity = 'Brisk Walking', knee_scale_R = 1.0
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(0.3), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....ced efficiency and more impact on your joints per step.'}], 'recommendations': [], 'risk_label': 'Minor findings', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['Your step rate is lower than ideal for Clinical mode (54.2 steps/min). A healthy brisk walking cadence is 120–140 st...ficiency and more impact on your joints per step.', 'A few small things worth keeping an eye on, but nothing serious.']
+E       assert not ['Your step rate is lower than ideal for Clinical mode (54.2 steps/min). A healthy brisk walking cadence is 120–140 st...ficiency and more impact on your joints per step.', 'A few small things worth keeping an eye on, but nothing serious.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+____________ test_scoring_output_is_clean[1.0-Brisk Walking-Runner] ____________
+
+mode = 'Runner', activity = 'Brisk Walking', knee_scale_R = 1.0
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(0.3), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....ced efficiency and more impact on your joints per step.'}], 'recommendations': [], 'risk_label': 'Minor findings', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['A few small things worth keeping an eye on, but nothing serious.']
+E       assert not ['A few small things worth keeping an eye on, but nothing serious.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+___________ test_scoring_output_is_clean[1.0-Brisk Walking-Athlete] ____________
+
+mode = 'Athlete', activity = 'Brisk Walking', knee_scale_R = 1.0
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(0.3), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....ced efficiency and more impact on your joints per step.'}], 'recommendations': [], 'risk_label': 'Minor findings', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['A few small things worth keeping an eye on, but nothing serious.']
+E       assert not ['A few small things worth keeping an eye on, but nothing serious.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+___________ test_scoring_output_is_clean[1.0-Brisk Walking-Elderly] ____________
+
+mode = 'Elderly', activity = 'Brisk Walking', knee_scale_R = 1.0
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(0.3), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....ced efficiency and more impact on your joints per step.'}], 'recommendations': [], 'risk_label': 'Minor findings', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['Your step rate is lower than ideal for Elderly mode (54.2 steps/min). A healthy brisk-walking cadence is 100–130 ste... an eye on, but nothing serious.', 'Adjusted for older adults — prioritises fall risk and stability over performance.']
+E       assert not ['Your step rate is lower than ideal for Elderly mode (54.2 steps/min). A healthy brisk-walking cadence is 100–130 ste... an eye on, but nothing serious.', 'Adjusted for older adults — prioritises fall risk and stability over performance.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+______________ test_scoring_output_is_clean[1.0-Running-Clinical] ______________
+
+mode = 'Clinical', activity = 'Running', knee_scale_R = 1.0
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(0.3), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....tep.'}], 'recommendations': ['High knees drills to improve running knee drive'], 'risk_label': 'Moderate concern', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ["Your knee isn't bending enough while running (target: >70° for Clinical mode). This 'shuffling' pattern wastes energ...lints and knee pain.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+E       assert not ["Your knee isn't bending enough while running (target: >70° for Clinical mode). This 'shuffling' pattern wastes energ...lints and knee pain.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+_______________ test_scoring_output_is_clean[1.0-Running-Runner] _______________
+
+mode = 'Runner', activity = 'Running', knee_scale_R = 1.0
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(0.3), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....tep.'}], 'recommendations': ['High knees drills to improve running knee drive'], 'risk_label': 'Moderate concern', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ["Your knee isn't bending enough while running (target: >80° for Runner mode). This 'shuffling' pattern wastes energy ...lints and knee pain.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+E       assert not ["Your knee isn't bending enough while running (target: >80° for Runner mode). This 'shuffling' pattern wastes energy ...lints and knee pain.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+______________ test_scoring_output_is_clean[1.0-Running-Athlete] _______________
+
+mode = 'Athlete', activity = 'Running', knee_scale_R = 1.0
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(0.3), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....tep.'}], 'recommendations': ['High knees drills to improve running knee drive'], 'risk_label': 'Moderate concern', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ["Your knee isn't bending enough while running (target: >85° for Athlete mode). This 'shuffling' pattern wastes energy...lints and knee pain.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+E       assert not ["Your knee isn't bending enough while running (target: >85° for Athlete mode). This 'shuffling' pattern wastes energy...lints and knee pain.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+______________ test_scoring_output_is_clean[1.0-Running-Elderly] _______________
+
+mode = 'Elderly', activity = 'Running', knee_scale_R = 1.0
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(0.3), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....ced efficiency and more impact on your joints per step.'}], 'recommendations': [], 'risk_label': 'Minor findings', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['A few small things worth keeping an eye on, but nothing serious.', 'Adjusted for older adults — prioritises fall risk and stability over performance.']
+E       assert not ['A few small things worth keeping an eye on, but nothing serious.', 'Adjusted for older adults — prioritises fall risk and stability over performance.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+________ test_scoring_output_is_clean[1.0-Asymmetric Walking-Clinical] _________
+
+mode = 'Clinical', activity = 'Asymmetric Walking', knee_scale_R = 1.0
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(0.3), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....ced efficiency and more impact on your joints per step.'}], 'recommendations': [], 'risk_label': 'Minor findings', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['A few small things worth keeping an eye on, but nothing serious.']
+E       assert not ['A few small things worth keeping an eye on, but nothing serious.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+_________ test_scoring_output_is_clean[1.0-Asymmetric Walking-Runner] __________
+
+mode = 'Runner', activity = 'Asymmetric Walking', knee_scale_R = 1.0
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(0.3), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....ced efficiency and more impact on your joints per step.'}], 'recommendations': [], 'risk_label': 'Minor findings', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['A few small things worth keeping an eye on, but nothing serious.']
+E       assert not ['A few small things worth keeping an eye on, but nothing serious.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+_________ test_scoring_output_is_clean[1.0-Asymmetric Walking-Athlete] _________
+
+mode = 'Athlete', activity = 'Asymmetric Walking', knee_scale_R = 1.0
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(0.3), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....ced efficiency and more impact on your joints per step.'}], 'recommendations': [], 'risk_label': 'Minor findings', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['A few small things worth keeping an eye on, but nothing serious.']
+E       assert not ['A few small things worth keeping an eye on, but nothing serious.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+_________ test_scoring_output_is_clean[1.0-Asymmetric Walking-Elderly] _________
+
+mode = 'Elderly', activity = 'Asymmetric Walking', knee_scale_R = 1.0
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(0.3), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....ced efficiency and more impact on your joints per step.'}], 'recommendations': [], 'risk_label': 'Minor findings', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['A few small things worth keeping an eye on, but nothing serious.', 'Adjusted for older adults — prioritises fall risk and stability over performance.']
+E       assert not ['A few small things worth keeping an eye on, but nothing serious.', 'Adjusted for older adults — prioritises fall risk and stability over performance.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+______________ test_scoring_output_is_clean[0.3-Walking-Clinical] ______________
+
+mode = 'Clinical', activity = 'Walking', knee_scale_R = 0.3
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(9.7), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np.....'}], 'recommendations': ['Knee mobility exercises to improve walking pattern'], 'risk_label': 'Moderate concern', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ["Your knees are not bending enough during walking (target: >45° for Clinical mode). This 'stiff-legged' pattern puts ...our joints per step.', 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+E       assert not ["Your knees are not bending enough during walking (target: >45° for Clinical mode). This 'stiff-legged' pattern puts ...our joints per step.', 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+_______________ test_scoring_output_is_clean[0.3-Walking-Runner] _______________
+
+mode = 'Runner', activity = 'Walking', knee_scale_R = 0.3
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(9.7), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np.....'}], 'recommendations': ['Knee mobility exercises to improve walking pattern'], 'risk_label': 'Moderate concern', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['Mild difference between your left and right knee movement (10%). Worth monitoring — if you notice knee pain on one s...our joints per step.', 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+E       assert not ['Mild difference between your left and right knee movement (10%). Worth monitoring — if you notice knee pain on one s...our joints per step.', 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+______________ test_scoring_output_is_clean[0.3-Walking-Athlete] _______________
+
+mode = 'Athlete', activity = 'Walking', knee_scale_R = 0.3
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(9.7), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np.....'}], 'recommendations': ['Knee mobility exercises to improve walking pattern'], 'risk_label': 'Moderate concern', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['Mild difference between your left and right knee movement (10%). Worth monitoring — if you notice knee pain on one s... on uneven surfaces.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+E       assert not ['Mild difference between your left and right knee movement (10%). Worth monitoring — if you notice knee pain on one s... on uneven surfaces.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+______________ test_scoring_output_is_clean[0.3-Walking-Elderly] _______________
+
+mode = 'Elderly', activity = 'Walking', knee_scale_R = 0.3
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(9.7), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np.....'}], 'recommendations': ['Knee mobility exercises to improve walking pattern'], 'risk_label': 'Moderate concern', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ["Your knees are not bending enough during walking (target: >35° for Elderly mode). This 'stiff-legged' pattern puts e...pecially if you experience pain.', 'Adjusted for older adults — prioritises fall risk and stability over performance.']
+E       assert not ["Your knees are not bending enough during walking (target: >35° for Elderly mode). This 'stiff-legged' pattern puts e...pecially if you experience pain.', 'Adjusted for older adults — prioritises fall risk and stability over performance.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+___________ test_scoring_output_is_clean[0.3-Brisk Walking-Clinical] ___________
+
+mode = 'Clinical', activity = 'Brisk Walking', knee_scale_R = 0.3
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(9.7), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np.....'}], 'recommendations': ['Knee mobility exercises to improve walking pattern'], 'risk_label': 'Moderate concern', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ["Your knees are not bending enough during walking (target: >45° for Clinical mode). This 'stiff-legged' pattern puts ...our joints per step.', 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+E       assert not ["Your knees are not bending enough during walking (target: >45° for Clinical mode). This 'stiff-legged' pattern puts ...our joints per step.', 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+____________ test_scoring_output_is_clean[0.3-Brisk Walking-Runner] ____________
+
+mode = 'Runner', activity = 'Brisk Walking', knee_scale_R = 0.3
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(9.7), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np.....'}], 'recommendations': ['Knee mobility exercises to improve walking pattern'], 'risk_label': 'Moderate concern', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['Mild difference between your left and right knee movement (10%). Worth monitoring — if you notice knee pain on one s... on uneven surfaces.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+E       assert not ['Mild difference between your left and right knee movement (10%). Worth monitoring — if you notice knee pain on one s... on uneven surfaces.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+___________ test_scoring_output_is_clean[0.3-Brisk Walking-Athlete] ____________
+
+mode = 'Athlete', activity = 'Brisk Walking', knee_scale_R = 0.3
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(9.7), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np.....'}], 'recommendations': ['Knee mobility exercises to improve walking pattern'], 'risk_label': 'Moderate concern', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['Mild difference between your left and right knee movement (10%). Worth monitoring — if you notice knee pain on one s... on uneven surfaces.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+E       assert not ['Mild difference between your left and right knee movement (10%). Worth monitoring — if you notice knee pain on one s... on uneven surfaces.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+___________ test_scoring_output_is_clean[0.3-Brisk Walking-Elderly] ____________
+
+mode = 'Elderly', activity = 'Brisk Walking', knee_scale_R = 0.3
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(9.7), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np.....'}], 'recommendations': ['Knee mobility exercises to improve walking pattern'], 'risk_label': 'Moderate concern', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ["Your knees are not bending enough during walking (target: >35° for Elderly mode). This 'stiff-legged' pattern puts e...pecially if you experience pain.', 'Adjusted for older adults — prioritises fall risk and stability over performance.']
+E       assert not ["Your knees are not bending enough during walking (target: >35° for Elderly mode). This 'stiff-legged' pattern puts e...pecially if you experience pain.', 'Adjusted for older adults — prioritises fall risk and stability over performance.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+______________ test_scoring_output_is_clean[0.3-Running-Clinical] ______________
+
+mode = 'Clinical', activity = 'Running', knee_scale_R = 0.3
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(9.7), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....tep.'}], 'recommendations': ['High knees drills to improve running knee drive'], 'risk_label': 'Moderate concern', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ["Your knee isn't bending enough while running (target: >70° for Clinical mode). This 'shuffling' pattern wastes energ...lints and knee pain.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+E       assert not ["Your knee isn't bending enough while running (target: >70° for Clinical mode). This 'shuffling' pattern wastes energ...lints and knee pain.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+_______________ test_scoring_output_is_clean[0.3-Running-Runner] _______________
+
+mode = 'Runner', activity = 'Running', knee_scale_R = 0.3
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(9.7), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....tep.'}], 'recommendations': ['High knees drills to improve running knee drive'], 'risk_label': 'Moderate concern', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['Mild difference between your left and right knee movement (10%). Worth monitoring — if you notice knee pain on one s...lints and knee pain.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+E       assert not ['Mild difference between your left and right knee movement (10%). Worth monitoring — if you notice knee pain on one s...lints and knee pain.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+______________ test_scoring_output_is_clean[0.3-Running-Athlete] _______________
+
+mode = 'Athlete', activity = 'Running', knee_scale_R = 0.3
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(9.7), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....tep.'}], 'recommendations': ['High knees drills to improve running knee drive'], 'risk_label': 'Moderate concern', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['Mild difference between your left and right knee movement (10%). Worth monitoring — if you notice knee pain on one s...lints and knee pain.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+E       assert not ['Mild difference between your left and right knee movement (10%). Worth monitoring — if you notice knee pain on one s...lints and knee pain.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+______________ test_scoring_output_is_clean[0.3-Running-Elderly] _______________
+
+mode = 'Elderly', activity = 'Running', knee_scale_R = 0.3
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(9.7), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np....tep.'}], 'recommendations': ['High knees drills to improve running knee drive'], 'risk_label': 'Moderate concern', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ["Your knee isn't bending enough while running (target: >60° for Elderly mode). This 'shuffling' pattern wastes energy...pecially if you experience pain.', 'Adjusted for older adults — prioritises fall risk and stability over performance.']
+E       assert not ["Your knee isn't bending enough while running (target: >60° for Elderly mode). This 'shuffling' pattern wastes energy...pecially if you experience pain.', 'Adjusted for older adults — prioritises fall risk and stability over performance.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+________ test_scoring_output_is_clean[0.3-Asymmetric Walking-Clinical] _________
+
+mode = 'Clinical', activity = 'Asymmetric Walking', knee_scale_R = 0.3
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(9.7), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np.....'}], 'recommendations': ['Knee mobility exercises to improve walking pattern'], 'risk_label': 'Moderate concern', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ["Your knees are not bending enough during walking (target: >45° for Clinical mode). This 'stiff-legged' pattern puts ... on uneven surfaces.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+E       assert not ["Your knees are not bending enough during walking (target: >45° for Clinical mode). This 'stiff-legged' pattern puts ... on uneven surfaces.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+_________ test_scoring_output_is_clean[0.3-Asymmetric Walking-Runner] __________
+
+mode = 'Runner', activity = 'Asymmetric Walking', knee_scale_R = 0.3
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(9.7), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np.....'}], 'recommendations': ['Knee mobility exercises to improve walking pattern'], 'risk_label': 'Moderate concern', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['Mild difference between your left and right knee movement (10%). Worth monitoring — if you notice knee pain on one s... on uneven surfaces.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+E       assert not ['Mild difference between your left and right knee movement (10%). Worth monitoring — if you notice knee pain on one s... on uneven surfaces.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+_________ test_scoring_output_is_clean[0.3-Asymmetric Walking-Athlete] _________
+
+mode = 'Athlete', activity = 'Asymmetric Walking', knee_scale_R = 0.3
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(9.7), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np.....'}], 'recommendations': ['Knee mobility exercises to improve walking pattern'], 'risk_label': 'Moderate concern', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['Mild difference between your left and right knee movement (10%). Worth monitoring — if you notice knee pain on one s... on uneven surfaces.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+E       assert not ['Mild difference between your left and right knee movement (10%). Worth monitoring — if you notice knee pain on one s... on uneven surfaces.", 'Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+_________ test_scoring_output_is_clean[0.3-Asymmetric Walking-Elderly] _________
+
+mode = 'Elderly', activity = 'Asymmetric Walking', knee_scale_R = 0.3
+
+    @pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
+    @pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
+    @pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
+    def test_scoring_output_is_clean(mode, activity, knee_scale_R):
+        from src.core.calculate_angles import add_all_angles
+        from src.core.risk_scoring import calculate_risk_scores
+        df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
+>       assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'scores': {'knee_symmetry_index': np.float64(9.7), 'hip_symmetry_index': np.float64(0.0), 'knee_flexion_range_L': np.....'}], 'recommendations': ['Knee mobility exercises to improve walking pattern'], 'risk_label': 'Moderate concern', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ["Your knees are not bending enough during walking (target: >35° for Elderly mode). This 'stiff-legged' pattern puts e...pecially if you experience pain.', 'Adjusted for older adults — prioritises fall risk and stability over performance.']
+E       assert not ["Your knees are not bending enough during walking (target: >35° for Elderly mode). This 'stiff-legged' pattern puts e...pecially if you experience pain.', 'Adjusted for older adults — prioritises fall risk and stability over performance.']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+____________ test_analyze_response_is_clean_and_carries_disclaimer _____________
+
+client = <starlette.testclient.TestClient object at 0x1077d84d0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x144514510>
+
+    def test_analyze_response_is_clean_and_carries_disclaimer(client, monkeypatch):
+        import src.api.main as m
+        monkeypatch.setattr(m, "extract_landmarks", lambda p: synthetic_landmarks(knee_scale_R=0.3))
+        _, t = register(client)
+        r = client.post("/analyze", headers=auth(t), files={"video": ("w.mp4", b"x" * 64, "video/mp4")})
+        assert r.status_code == 200, r.text
+>       assert_clean(r.json())
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:73: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'job_id': 'ee86e9f7', 'status': 'success', 'mode': 'Clinical', 'mode_description': 'Standard clinical assessment thresholds.', ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.', "Your knees are not ... This 'stiff-legged' pattern puts extra stress on your joints and increases fall risk, especially on uneven surfaces."]
+E       assert not ['Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain.', "Your knees are not ... This 'stiff-legged' pattern puts extra stress on your joints and increases fall risk, especially on uneven surfaces."]
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+PASSWORD RECEIVED: correct-horse-battery
+LENGTH: 21
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+  Saved: outputs/ee86e9f7/knee_angles.png
+  Saved: outputs/ee86e9f7/hip_angles.png
+  Saved: outputs/ee86e9f7/ankle_trajectory.png
+  Saved: outputs/ee86e9f7/symmetry_summary.png
+
+  All 4 plots saved to outputs/ee86e9f7/
+  Report saved: outputs/ee86e9f7/gaitscan_report.pdf
+______________ test_legacy_rows_are_served_without_legacy_wording ______________
+
+client = <starlette.testclient.TestClient object at 0x1077d84d0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1444d8690>
+
+    def test_legacy_rows_are_served_without_legacy_wording(client, monkeypatch):
+        alice, alice_t = register(client)
+        bob, _ = register(client)
+        promote_to_clinician(bob)
+        link(bob, alice)
+        bob_t = client.post("/auth/login", json={"email": bob, "password": PASSWORD}).json()["access_token"]
+        sid = seed_session(alice, legacy_text=True)
+    
+>       assert_clean(client.get(f"/sessions/{sid}", headers=auth(alice_t)).json())
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:85: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = {'id': '928399d6-1b0a-4780-ba1a-866d0644e60b', 'patient_name': 'Test Patient', 'activity': 'Limping', 'confidence': 70, ...}
+
+    def assert_clean(obj):
+        bad = [s for s in all_strings(obj) if BANNED.search(s)]
+>       assert not bad, bad
+E       AssertionError: ['Limping', 'Serious abnormality', 'Serious gait issues detected. Please consult a doctor or physiotherapist soon.', 'which can cause long-term joint damage and pain.', 'Reduces your injury risk & keeps L<R balance']
+E       assert not ['Limping', 'Serious abnormality', 'Serious gait issues detected. Please consult a doctor or physiotherapist soon.', 'which can cause long-term joint damage and pain.', 'Reduces your injury risk & keeps L<R balance']
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_language.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+PASSWORD RECEIVED: correct-horse-battery
+LENGTH: 21
+PASSWORD RECEIVED: correct-horse-battery
+LENGTH: 21
+_______________ test_pdf_survives_markup_characters_in_any_text ________________
+
+self = <reportlab.platypus.paraparser.ParaParser object at 0x160e10710>
+text = '<para><b>1. Bridge <1></b> <font size="8" color="#64748b">a&b</font><br/><font size="9" color="#378ADD"><b>Why for you:</b> Keeps your L<R imbalance in check</font><br/><font size="9" color="#374151"><b>How:</b> Hold <3 s></font></para>'
+style = <ParagraphStyle 'ex'>
+
+    def parse(self, text, style):
+        "attempt replacement for parse"
+        self._setup_for_parse(style)
+        text = asUnicode(text)
+        if not(len(text)>=6 and text[0]=='<' and _re_para.match(text)):
+            text = u"<para>"+text+u"</para>"
+        try:
+>           self.feed(text)
+
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py:3215: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.11/3.11.15_1/Frameworks/Python.framework/Versions/3.11/lib/python3.11/html/parser.py:149: in feed
+    self.goahead(0)
+/opt/homebrew/Cellar/python@3.11/3.11.15_1/Frameworks/Python.framework/Versions/3.11/lib/python3.11/html/parser.py:233: in goahead
+    k = self.parse_endtag(i)
+        ^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.11/3.11.15_1/Frameworks/Python.framework/Versions/3.11/lib/python3.11/html/parser.py:492: in parse_endtag
+    self.handle_endtag(tag)
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py:3251: in handle_endtag
+    end()
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py:2909: in end_para
+    self._pop('para')
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <reportlab.platypus.paraparser.ParaParser object at 0x160e10710>
+tag = 'para'
+
+    def _pop(self,tag):
+        frag = self._stack.pop()
+        if tag==frag.__tag__: return frag
+>       raise ValueError('Parse error: saw </%s> instead of expected </%s>' % (tag,frag.__tag__))
+E       ValueError: Parse error: saw </para> instead of expected </font>
+
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py:3065: ValueError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/private/var/folders/gz/pyzsgdzn7354r47cnrbtxcr80000gn/T/pytest-of-kanveermadan/pytest-77/test_pdf_survives_markup_chara0')
+
+    def test_pdf_survives_markup_characters_in_any_text(tmp_path):
+        from src.core.report_generator import generate_pdf_report
+        data = dict(BASE, exercises=[{"name": "Bridge <1>", "muscle": "a&b", "difficulty": "Easy",
+                                      "instructions": "Hold <3 s>", "why": "Keeps your L<R imbalance in check"}])
+        out = tmp_path / "r.pdf"
+>       generate_pdf_report(data, output_path=str(out), plots_dir=str(tmp_path))
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_report.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/kanveermadan/Desktop/gaitscan/src/core/report_generator.py:395: in generate_pdf_report
+    Paragraph(
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/reportlab/platypus/paragraph.py:1809: in __init__
+    self._setup(text, style, bulletText or getattr(style,'bulletText',None), frags, cleanBlockQuotedText)
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/reportlab/platypus/paragraph.py:1830: in _setup
+    style, frags, bulletTextFrags = _parser.parse(text,style)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py:3217: in parse
+    annotateException('\nparagraph text %s caused exception' % ascii(text))
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/reportlab/lib/utils.py:1176: in annotateException
+    rl_reraise(t,t(sep.join((_ for _ in (msg,str(v),postMsg) if _))),b)
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/reportlab/lib/utils.py:138: in rl_reraise
+    raise v.with_traceback(b)
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py:3215: in parse
+    self.feed(text)
+/opt/homebrew/Cellar/python@3.11/3.11.15_1/Frameworks/Python.framework/Versions/3.11/lib/python3.11/html/parser.py:149: in feed
+    self.goahead(0)
+/opt/homebrew/Cellar/python@3.11/3.11.15_1/Frameworks/Python.framework/Versions/3.11/lib/python3.11/html/parser.py:233: in goahead
+    k = self.parse_endtag(i)
+        ^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.11/3.11.15_1/Frameworks/Python.framework/Versions/3.11/lib/python3.11/html/parser.py:492: in parse_endtag
+    self.handle_endtag(tag)
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py:3251: in handle_endtag
+    end()
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py:2909: in end_para
+    self._pop('para')
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <reportlab.platypus.paraparser.ParaParser object at 0x160e10710>
+tag = 'para'
+
+    def _pop(self,tag):
+        frag = self._stack.pop()
+        if tag==frag.__tag__: return frag
+>       raise ValueError('Parse error: saw </%s> instead of expected </%s>' % (tag,frag.__tag__))
+E       ValueError: 
+E       paragraph text '<para><b>1. Bridge <1></b> <font size="8" color="#64748b">a&b</font><br/><font size="9" color="#378ADD"><b>Why for you:</b> Keeps your L<R imbalance in check</font><br/><font size="9" color="#374151"><b>How:</b> Hold <3 s></font></para>' caused exception Parse error: saw </para> instead of expected </font>
+
+/Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py:3065: ValueError
+_______________ test_plotting_module_selects_agg_backend_itself ________________
+
+    def test_plotting_module_selects_agg_backend_itself():
+        env = {k: v for k, v in os.environ.items() if k != "MPLBACKEND"}
+        r = subprocess.run([sys.executable, "-c",
+                            "import src.utils.visualise, matplotlib; print(matplotlib.get_backend())"],
+                           cwd=ROOT, env=env, capture_output=True, text=True, timeout=120)
+        assert r.returncode == 0, r.stderr[-500:]
+>       assert r.stdout.strip().lower() == "agg"
+E       AssertionError: assert 'macosx' == 'agg'
+E         
+E         - agg
+E         + macosx
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_report.py:34: AssertionError
+______________________ test_uppercase_extension_accepted _______________________
+
+client = <starlette.testclient.TestClient object at 0x1077d84d0>
+token = '<test-token-redacted>'
+fake_pipeline = None
+
+    def test_uppercase_extension_accepted(client, token, fake_pipeline):
+        r = client.post("/analyze", headers=auth(token), files={"video": ("IMG_0001.MOV", b"x" * 64, "video/quicktime")})
+>       assert r.status_code == 200, r.text
+E       AssertionError: {"detail":"Only .mp4, .mov, .avi files accepted"}
+E       assert 400 == 200
+E        +  where 400 = <Response [400 Bad Request]>.status_code
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_upload.py:34: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+PASSWORD RECEIVED: correct-horse-battery
+LENGTH: 21
+________ test_success_uses_full_uuid_and_keeps_no_raw_or_landmark_files ________
+
+client = <starlette.testclient.TestClient object at 0x1077d84d0>
+token = '<test-token-redacted>'
+fake_pipeline = None
+
+    def test_success_uses_full_uuid_and_keeps_no_raw_or_landmark_files(client, token, fake_pipeline):
+        before = set(leftovers())
+        r = client.post("/analyze", headers=auth(token), files={"video": ("walk.mp4", b"x" * 64, "video/mp4")})
+        assert r.status_code == 200, r.text
+>       assert len(r.json()["job_id"]) == 36
+E       AssertionError: assert 8 == 36
+E        +  where 8 = len('3ea14ff1')
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_upload.py:41: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+PASSWORD RECEIVED: correct-horse-battery
+LENGTH: 21
+----------------------------- Captured stdout call -----------------------------
+  Calculating joint angles...
+  Done: 5 angles calculated for 300 frames
+  Saved: outputs/3ea14ff1/knee_angles.png
+  Saved: outputs/3ea14ff1/hip_angles.png
+  Saved: outputs/3ea14ff1/ankle_trajectory.png
+  Saved: outputs/3ea14ff1/symmetry_summary.png
+
+  All 4 plots saved to outputs/3ea14ff1/
+  Report saved: outputs/3ea14ff1/gaitscan_report.pdf
+_____ test_unreadable_video_is_422_without_internal_detail_and_is_deleted ______
+
+client = <starlette.testclient.TestClient object at 0x1077d84d0>
+token = '<test-token-redacted>'
+
+    def test_unreadable_video_is_422_without_internal_detail_and_is_deleted(client, token):
+        before = set(leftovers())
+        r = client.post("/analyze", headers=auth(token),
+                        files={"video": ("evil.mp4", b"#!/bin/sh\necho not a video\n" * 50, "video/mp4")})
+>       assert r.status_code == 422
+E       assert 500 == 422
+E        +  where 500 = <Response [500 Internal Server Error]>.status_code
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_upload.py:49: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+PASSWORD RECEIVED: correct-horse-battery
+LENGTH: 21
+----------------------------- Captured stderr call -----------------------------
+[mov,mp4,m4a,3gp,3g2,mj2 @ 0x15ebccd30] moov atom not found
+OpenCV: Couldn't read video stream from file "data/raw/c8d58ba7.mp4"
+_____________ test_unexpected_error_is_generic_500_with_reference ______________
+
+client = <starlette.testclient.TestClient object at 0x1077d84d0>
+token = '<test-token-redacted>'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x14451ead0>
+
+    def test_unexpected_error_is_generic_500_with_reference(client, token, monkeypatch):
+        import src.api.main as m
+    
+        def boom(path):
+            raise RuntimeError("internal detail /srv/app/secret-path")
+        monkeypatch.setattr(m, "extract_landmarks", boom)
+        before = set(leftovers())
+        r = client.post("/analyze", headers=auth(token), files={"video": ("walk.mp4", b"x" * 64, "video/mp4")})
+        assert r.status_code == 500
+>       assert "secret-path" not in r.text and "internal detail" not in r.text
+E       assert ('secret-path' not in '{"detail":"...ecret-path"}'
+E         
+E         'secret-path' is contained here:
+E            /srv/app/secret-path"})
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_upload.py:64: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+PASSWORD RECEIVED: correct-horse-battery
+LENGTH: 21
+____________________________ test_upload_size_limit ____________________________
+
+client = <starlette.testclient.TestClient object at 0x1077d84d0>
+token = '<test-token-redacted>'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x144572310>
+
+    def test_upload_size_limit(client, token, monkeypatch):
+        import src.api.main as m
+>       monkeypatch.setattr(m.settings, "max_upload_bytes", 1000)
+                            ^^^^^^^^^^
+E       AttributeError: module 'src.api.main' has no attribute 'settings'
+
+/Users/kanveermadan/Desktop/gaitscan/tests/test_upload.py:71: AttributeError
+---------------------------- Captured stdout setup -----------------------------
+PASSWORD RECEIVED: correct-horse-battery
+LENGTH: 21
+=============================== warnings summary ===============================
+tests/test_access_control.py::test_unauthenticated_gets_401[/sessions/{sid}]
+  /Users/kanveermadan/Desktop/gaitscan/src/core/database.py:17: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+tests/test_access_control.py::test_unauthenticated_gets_401[/sessions/{sid}]
+  /Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+tests/test_access_control.py::test_unauthenticated_gets_401[/sessions/{sid}]
+tests/test_access_control.py::test_unauthenticated_gets_401[/sessions/{sid}]
+tests/test_access_control.py::test_unauthenticated_gets_401[/sessions/{sid}]
+tests/test_access_control.py::test_unauthenticated_gets_401[/sessions/{sid}]
+tests/test_access_control.py::test_unauthenticated_gets_401[/sessions/{sid}]
+tests/test_access_control.py::test_unauthenticated_gets_401[/sessions/{sid}]
+  /Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/matplotlib/_fontconfig_pattern.py:88: PyparsingDeprecationWarning: 'parseString' deprecated - use 'parse_string'
+    parse = parser.parseString(pattern)
+
+tests/test_access_control.py::test_unauthenticated_gets_401[/sessions/{sid}]
+tests/test_access_control.py::test_unauthenticated_gets_401[/sessions/{sid}]
+tests/test_access_control.py::test_unauthenticated_gets_401[/sessions/{sid}]
+tests/test_access_control.py::test_unauthenticated_gets_401[/sessions/{sid}]
+tests/test_access_control.py::test_unauthenticated_gets_401[/sessions/{sid}]
+tests/test_access_control.py::test_unauthenticated_gets_401[/sessions/{sid}]
+  /Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/matplotlib/_fontconfig_pattern.py:92: PyparsingDeprecationWarning: 'resetCache' deprecated - use 'reset_cache'
+    parser.resetCache()
+
+tests/test_access_control.py::test_unauthenticated_gets_401[/sessions/{sid}]
+  /Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/matplotlib/_mathtext.py:45: PyparsingDeprecationWarning: 'enablePackrat' deprecated - use 'enable_packrat'
+    ParserElement.enablePackrat()
+
+tests/test_access_control.py::test_unauthenticated_gets_401[/sessions/{sid}]
+  /Users/kanveermadan/Desktop/gaitscan/src/api/main.py:40: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+tests/test_access_control.py::test_unauthenticated_gets_401[/sessions/{sid}]
+  /Users/kanveermadan/Desktop/gaitscan/_audit/.venv/lib/python3.11/site-packages/fastapi/applications.py:4495: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    return self.router.on_event(event_type)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_access_control.py::test_unauthenticated_gets_401[/sessions/{sid}]
+FAILED tests/test_access_control.py::test_unauthenticated_gets_401[/report/{sid}]
+FAILED tests/test_access_control.py::test_other_users_cannot_read[eve-/sessions/{sid}]
+FAILED tests/test_access_control.py::test_other_users_cannot_read[eve-/report/{sid}]
+FAILED tests/test_access_control.py::test_other_users_cannot_read[carol-/sessions/{sid}]
+FAILED tests/test_access_control.py::test_other_users_cannot_read[carol-/report/{sid}]
+FAILED tests/test_access_control.py::test_debug_links_endpoint_removed - Asse...
+FAILED tests/test_access_control.py::test_cors_allows_only_configured_origins
+FAILED tests/test_auth.py::test_tokens_are_signed_with_the_env_secret - jose....
+FAILED tests/test_auth.py::test_register_cannot_self_assign_clinician - Asser...
+FAILED tests/test_auth.py::test_password_is_never_printed - AssertionError: a...
+FAILED tests/test_auth.py::test_access_token_lifetime_at_most_one_day - jose....
+FAILED tests/test_config.py::test_production_requires_jwt_secret - ModuleNotF...
+FAILED tests/test_config.py::test_production_rejects_placeholder_or_short_secret[]
+FAILED tests/test_config.py::test_production_rejects_placeholder_or_short_secret[your_jwt_secret_here]
+FAILED tests/test_config.py::test_production_rejects_placeholder_or_short_secret[change-me]
+FAILED tests/test_config.py::test_production_rejects_placeholder_or_short_secret[short-secret-under-32-chars]
+FAILED tests/test_config.py::test_error_message_never_echoes_secret_value - M...
+FAILED tests/test_config.py::test_production_requires_cors_origins - ModuleNo...
+FAILED tests/test_config.py::test_env_defaults_to_production_fail_closed - Mo...
+FAILED tests/test_config.py::test_dev_generates_ephemeral_secret - ModuleNotF...
+FAILED tests/test_config.py::test_production_settings_parse - ModuleNotFoundE...
+FAILED tests/test_config.py::test_app_refuses_to_start_in_production_without_secret
+FAILED tests/test_config.py::test_docs_disabled_in_production - AssertionErro...
+FAILED tests/test_language.py::test_no_banned_wording_in_backend_string_literals
+FAILED tests/test_language.py::test_scoring_output_is_clean[1.0-Walking-Clinical]
+FAILED tests/test_language.py::test_scoring_output_is_clean[1.0-Walking-Runner]
+FAILED tests/test_language.py::test_scoring_output_is_clean[1.0-Walking-Athlete]
+FAILED tests/test_language.py::test_scoring_output_is_clean[1.0-Walking-Elderly]
+FAILED tests/test_language.py::test_scoring_output_is_clean[1.0-Brisk Walking-Clinical]
+FAILED tests/test_language.py::test_scoring_output_is_clean[1.0-Brisk Walking-Runner]
+FAILED tests/test_language.py::test_scoring_output_is_clean[1.0-Brisk Walking-Athlete]
+FAILED tests/test_language.py::test_scoring_output_is_clean[1.0-Brisk Walking-Elderly]
+FAILED tests/test_language.py::test_scoring_output_is_clean[1.0-Running-Clinical]
+FAILED tests/test_language.py::test_scoring_output_is_clean[1.0-Running-Runner]
+FAILED tests/test_language.py::test_scoring_output_is_clean[1.0-Running-Athlete]
+FAILED tests/test_language.py::test_scoring_output_is_clean[1.0-Running-Elderly]
+FAILED tests/test_language.py::test_scoring_output_is_clean[1.0-Asymmetric Walking-Clinical]
+FAILED tests/test_language.py::test_scoring_output_is_clean[1.0-Asymmetric Walking-Runner]
+FAILED tests/test_language.py::test_scoring_output_is_clean[1.0-Asymmetric Walking-Athlete]
+FAILED tests/test_language.py::test_scoring_output_is_clean[1.0-Asymmetric Walking-Elderly]
+FAILED tests/test_language.py::test_scoring_output_is_clean[0.3-Walking-Clinical]
+FAILED tests/test_language.py::test_scoring_output_is_clean[0.3-Walking-Runner]
+FAILED tests/test_language.py::test_scoring_output_is_clean[0.3-Walking-Athlete]
+FAILED tests/test_language.py::test_scoring_output_is_clean[0.3-Walking-Elderly]
+FAILED tests/test_language.py::test_scoring_output_is_clean[0.3-Brisk Walking-Clinical]
+FAILED tests/test_language.py::test_scoring_output_is_clean[0.3-Brisk Walking-Runner]
+FAILED tests/test_language.py::test_scoring_output_is_clean[0.3-Brisk Walking-Athlete]
+FAILED tests/test_language.py::test_scoring_output_is_clean[0.3-Brisk Walking-Elderly]
+FAILED tests/test_language.py::test_scoring_output_is_clean[0.3-Running-Clinical]
+FAILED tests/test_language.py::test_scoring_output_is_clean[0.3-Running-Runner]
+FAILED tests/test_language.py::test_scoring_output_is_clean[0.3-Running-Athlete]
+FAILED tests/test_language.py::test_scoring_output_is_clean[0.3-Running-Elderly]
+FAILED tests/test_language.py::test_scoring_output_is_clean[0.3-Asymmetric Walking-Clinical]
+FAILED tests/test_language.py::test_scoring_output_is_clean[0.3-Asymmetric Walking-Runner]
+FAILED tests/test_language.py::test_scoring_output_is_clean[0.3-Asymmetric Walking-Athlete]
+FAILED tests/test_language.py::test_scoring_output_is_clean[0.3-Asymmetric Walking-Elderly]
+FAILED tests/test_language.py::test_analyze_response_is_clean_and_carries_disclaimer
+FAILED tests/test_language.py::test_legacy_rows_are_served_without_legacy_wording
+FAILED tests/test_report.py::test_pdf_survives_markup_characters_in_any_text
+FAILED tests/test_report.py::test_plotting_module_selects_agg_backend_itself
+FAILED tests/test_upload.py::test_uppercase_extension_accepted - AssertionErr...
+FAILED tests/test_upload.py::test_success_uses_full_uuid_and_keeps_no_raw_or_landmark_files
+FAILED tests/test_upload.py::test_unreadable_video_is_422_without_internal_detail_and_is_deleted
+FAILED tests/test_upload.py::test_unexpected_error_is_generic_500_with_reference
+FAILED tests/test_upload.py::test_upload_size_limit - AttributeError: module ...
+66 failed, 7 passed, 17 warnings in 9.64s

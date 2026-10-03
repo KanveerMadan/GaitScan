@@ -1,5 +1,7 @@
+import matplotlib
+
+matplotlib.use("Agg")  # headless, thread-safe backend; must be set before pyplot is imported
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import pandas as pd
 import os
 

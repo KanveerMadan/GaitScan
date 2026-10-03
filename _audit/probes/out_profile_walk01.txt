@@ -1,0 +1,71 @@
+  Video loaded: 505 frames at 30.0 fps
+  Done: landmarks extracted from 488/505 frames
+  Calculating joint angles...
+  Done: 5 angles calculated for 488 frames
+Groq API error: The api_key client option must be set either by passing api_key to the client or by setting the GROQ_API_KEY environment variable
+  Saved: outputs/profile/knee_angles.png
+  Saved: outputs/profile/hip_angles.png
+  Saved: outputs/profile/ankle_trajectory.png
+  Saved: outputs/profile/symmetry_summary.png
+
+  All 4 plots saved to outputs/profile/
+  Report saved: outputs/profile/r.pdf
+{
+ "frames_with_pose": 488,
+ "timings_s": {
+  "imports": 0.927,
+  "decode+mediapipe": 6.838,
+  "angles": 0.028,
+  "classify": 2.944,
+  "risk_scoring": 0.0,
+  "exercises(no GROQ key)": 0.0,
+  "plots": 1.005,
+  "pdf": 0.235
+ },
+ "total_s": 11.98,
+ "baseline_rss_mb": 19,
+ "peak_rss_mb": 339,
+ "activity": {
+  "activity": "Walking",
+  "icon": "\ud83d\udeb6",
+  "confidence": 76,
+  "description": "Normal step rate (107.1 steps/min) and knee movement (88.6\u00b0). This is consistent with regular walking.",
+  "metrics": {
+   "cadence": 107.1,
+   "knee_flexion_range": 88.6,
+   "asymmetry_index": 1.1,
+   "cadence_irregularity": 50.4
+  }
+ },
+ "scores": {
+  "knee_symmetry_index": 1.1,
+  "hip_symmetry_index": 0.8,
+  "knee_flexion_range_L": 81.5,
+  "knee_flexion_range_R": 95.7,
+  "cadence": 107.1,
+  "overall_risk_score": 0
+ },
+ "risk_label": "No issues detected",
+ "findings": [
+  [
+   "Knee Symmetry",
+   "1.1%",
+   "good"
+  ],
+  [
+   "Hip Symmetry",
+   "0.8%",
+   "good"
+  ],
+  [
+   "Knee Flexion",
+   "L: 81.5\u00b0 R: 95.7\u00b0",
+   "good"
+  ],
+  [
+   "Cadence",
+   "107.1 steps/min",
+   "good"
+  ]
+ ]
+}

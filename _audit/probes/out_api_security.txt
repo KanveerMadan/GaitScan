@@ -1,0 +1,16 @@
+PASSWORD RECEIVED: correct horse
+PASSWORD RECEIVED: pw
+FAIL  | register_self_assign_clinician_with_1char_password | 201 role=clinician
+FAIL  | plaintext_password_logged | ['PASSWORD RECEIVED: a', 'LENGTH: 1']
+FAIL  | email_enumeration_via_register | 409 {'detail': 'Email already registered'}
+FAIL  | GET /sessions/{id} without auth returns another user's health data | 200 patient_name=Alice Patient findings=4
+FAIL  | GET /report/{id} without auth returns PDF | 200 application/pdf 617221 bytes
+FAIL  | forged JWT with committed secret impersonates any email | {'id': 2, 'email': 'alice@x.io', 'role': 'patient', 'full_name': 'Alice Patient'}
+FAIL  | forged JWT reads victim session list | 200 n=1
+FAIL  | /debug/links exposes other clinicians' links | [{'clinician_id': 3, 'patient_id': 2}]
+FAIL  | access token lifetime > 1 day | 365 days
+FAIL  | non-video bytes accepted to disk (extension-only check) | left on disk: ['data/raw/f06d39d0.mp4']
+FAIL  | internal error text returned to client | 500 {"detail":"Analysis failed: Cannot open video: data/raw/f06d39d0.mp4"}
+FAIL  | regenerated PDF reports wrong mode (Runner -> Clinical) | 'Runner' in pdf=False; 'Clinical Mode' in pdf=True; charts in pdf=False
+FAIL  | patient name absent from PDF | 'Alice' in pdf=False
+FAIL  | no login rate limiting (30 bad attempts) | status codes: [401]

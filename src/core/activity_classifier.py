@@ -44,13 +44,12 @@ def classify_activity(df):
 
     
     if asymmetry > 15 and cadence_irregularity > 25:
-        activity = "Limping"
-        icon = "🦿"
+        activity = "Asymmetric Walking"
+        icon = "🚶"
         confidence = min(95, int(50 + asymmetry + cadence_irregularity / 2))
         description = (
-            f"Significant left-right asymmetry ({asymmetry:.1f}%) detected alongside "
-            f"irregular step timing. One leg appears to be compensating for the other. "
-            f"This pattern is consistent with a limp."
+            f"Left and right knee motion differed by {asymmetry:.1f}% and step timing "
+            f"was irregular in this recording."
         )
 
     

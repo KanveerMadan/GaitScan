@@ -1,0 +1,30 @@
+=== mirror
+frames 489 | total 9.14 s | mp 6.861 s | peakRSS 415 MB
+activity Brisk Walking 61 {'cadence': 132.1, 'knee_flexion_range': 96.6, 'asymmetry_index': 1.2, 'cadence_irregularity': 52.3}
+scores {'knee_symmetry_index': 1.2, 'hip_symmetry_index': 0.0, 'knee_flexion_range_L': 92.4, 'knee_flexion_range_R': 100.8, 'cadence': 132.1, 'overall_risk_score': 0} | No issues detected
+flags []
+=== dark
+frames 412 | total 7.89 s | mp 6.443 s | peakRSS 444 MB
+activity Walking 73 {'cadence': 92.9, 'knee_flexion_range': 88.7, 'asymmetry_index': 0.1, 'cadence_irregularity': 38.5}
+scores {'knee_symmetry_index': 0.1, 'hip_symmetry_index': 0.5, 'knee_flexion_range_L': 89.6, 'knee_flexion_range_R': 87.8, 'cadence': 92.9, 'overall_risk_score': 0} | No issues detected
+flags []
+=== occluded_feet
+frames 475 | total 8.23 s | mp 6.773 s | peakRSS 434 MB
+activity Running 95 {'cadence': 164.3, 'knee_flexion_range': 138.5, 'asymmetry_index': 1.8, 'cadence_irregularity': 41.2}
+scores {'knee_symmetry_index': 1.8, 'hip_symmetry_index': 0.4, 'knee_flexion_range_L': 136.8, 'knee_flexion_range_R': 140.2, 'cadence': 164.3, 'overall_risk_score': 0} | No issues detected
+flags []
+=== two_people
+frames 485 | total 8.57 s | mp 7.112 s | peakRSS 448 MB
+activity Walking 71 {'cadence': 85.7, 'knee_flexion_range': 178.9, 'asymmetry_index': 0.0, 'cadence_irregularity': 40.0}
+scores {'knee_symmetry_index': 0.0, 'hip_symmetry_index': 0.4, 'knee_flexion_range_L': 179.8, 'knee_flexion_range_R': 178.0, 'cadence': 85.7, 'overall_risk_score': 0} | No issues detected
+flags []
+=== rotated90
+frames 496 | total 8.29 s | mp 6.809 s | peakRSS 412 MB
+activity Walking 77 {'cadence': 110.7, 'knee_flexion_range': 99.9, 'asymmetry_index': 1.0, 'cadence_irregularity': 58.9}
+scores {'knee_symmetry_index': 1.0, 'hip_symmetry_index': 0.9, 'knee_flexion_range_L': 106.2, 'knee_flexion_range_R': 93.5, 'cadence': 110.7, 'overall_risk_score': 0} | No issues detected
+flags []
+=== long_1080p_60s
+frames 1749 | total 29.61 s | mp 27.81 s | peakRSS 516 MB
+activity Brisk Walking 56 {'cadence': 122.1, 'knee_flexion_range': 87.6, 'asymmetry_index': 1.0, 'cadence_irregularity': 42.5}
+scores {'knee_symmetry_index': 1.0, 'hip_symmetry_index': 1.2, 'knee_flexion_range_L': 80.1, 'knee_flexion_range_R': 95.1, 'cadence': 122.1, 'overall_risk_score': 0} | No issues detected
+flags []

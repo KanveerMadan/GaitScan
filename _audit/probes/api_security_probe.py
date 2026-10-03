@@ -1,0 +1,123 @@
+"""In-process API probe against a throwaway SQLite DB.
+Run from a directory containing a `src/` checkout (e.g. _audit/sandbox/before or /after).
+Every check prints PASS (secure) / FAIL (vulnerable) with the observed evidence.
+
+v2 (Phase 0): runs unchanged against both the pre-Phase-0 code and the fixed code.
+Changes vs v1: env is configured before import; the clinician is promoted through the
+DB (self-assignment no longer exists); PDF-content checks fetch as the owner; the
+error-leak check looks for internal details instead of treating every 500 as a leak;
+adds a CORS-wildcard check.
+"""
+import os, sys, io, contextlib, glob, re, secrets, shutil, subprocess, time
+os.environ.update({"DATABASE_URL": "sqlite:///./probe.db", "ENV": "dev", "MPLBACKEND": "Agg",
+                   "JWT_SECRET": secrets.token_urlsafe(48), "CORS_ORIGINS": "http://localhost:3000"})
+os.environ.pop("GROQ_API_KEY", None)
+if os.path.exists("probe.db"):
+    os.remove("probe.db")
+sys.path.insert(0, os.getcwd())
+from fastapi.testclient import TestClient
+from jose import jwt
+from src.api.main import app
+from src.core.database import SessionLocal
+from src.models.user import User
+
+VIDEO = sys.argv[1]
+c = TestClient(app, raise_server_exceptions=False)
+c.__enter__()  # run startup -> init_db
+res = {}
+def check(name, vulnerable, evidence):
+    res[name] = ("FAIL" if vulnerable else "PASS", evidence)
+def H(tok):
+    return {"Authorization": f"Bearer {tok}"}
+def promote(email):
+    db = SessionLocal(); u = db.query(User).filter(User.email == email).first(); u.role = "clinician"; db.commit(); db.close()
+
+# 1. Self-assigned clinician role + trivial password + plaintext password in logs   [F03 F04 F12]
+buf = io.StringIO()
+with contextlib.redirect_stdout(buf):
+    r = c.post("/auth/register", json={"email": "mallory@x.io", "password": "a", "role": "clinician"})
+check("F03 register_self_assign_clinician_with_1char_password", r.status_code == 201 and r.json()["role"] == "clinician",
+      f"{r.status_code} role={r.json().get('role')}")
+check("F04 plaintext_password_logged", "PASSWORD RECEIVED: a" in buf.getvalue(), buf.getvalue().strip().splitlines()[:2])
+mallory = r.json()["access_token"]
+
+# 2. Account enumeration   [F12]
+r = c.post("/auth/register", json={"email": "mallory@x.io", "password": "zzzzzzzz"})
+check("F12 email_enumeration_via_register", r.status_code == 409, f"{r.status_code} {r.json()}")
+
+# 3. Victim patient uploads a real analysis
+r = c.post("/auth/register", json={"email": "alice@x.io", "password": "correct horse", "full_name": "Alice Patient"})
+alice = r.json()["access_token"]
+with open(VIDEO, "rb") as f:
+    r = c.post("/analyze", headers=H(alice),
+               files={"video": ("walk.mp4", f, "video/mp4")}, data={"mode": "Runner", "patient_name": "Alice Patient"})
+job = r.json().get("job_id")
+res["_alice_analyze"] = (r.status_code, {"job_id_len": len(job or ""), "summary": r.json().get("risk_label")})
+
+# 4. IDOR: no token at all   [F02]
+r = c.get(f"/sessions/{job}")
+check("F02 GET /sessions/{id} without auth returns another user's health data", r.status_code == 200,
+      f"{r.status_code} patient_name={r.json().get('patient_name')} findings={len(r.json().get('findings', []))}")
+r = c.get(f"/report/{job}")
+check("F02 GET /report/{id} without auth returns PDF", r.status_code == 200 and r.content[:4] == b"%PDF",
+      f"{r.status_code} {r.headers.get('content-type')} {len(r.content)} bytes")
+
+# 5. Forged JWT using the secret that was committed in src/core/auth.py   [F01]
+#    Read from git history at runtime so the value is never stored in this file.
+_old = subprocess.run(["git", "show", "38c8db3:src/core/auth.py"], capture_output=True, text=True,
+                      cwd=os.path.dirname(os.path.abspath(__file__))).stdout
+LEAKED_SECRET = re.search(r'SECRET_KEY = "([^"]+)"', _old).group(1)
+forged = jwt.encode({"sub": "alice@x.io", "role": "patient", "exp": 4102444800}, LEAKED_SECRET, algorithm="HS256")
+r = c.get("/auth/me", headers=H(forged))
+check("F01 forged JWT with committed secret impersonates any email", r.status_code == 200, r.json())
+r = c.get("/sessions", headers=H(forged))
+check("F01 forged JWT reads victim session list", r.status_code == 200 and len(r.json()) > 0,
+      f"{r.status_code} n={len(r.json()) if r.status_code == 200 else '-'}")
+
+# 6. /debug/links leaks every clinician's patient graph   [F03]
+c.post("/auth/register", json={"email": "drbob@x.io", "password": "pw"})
+promote("drbob@x.io")
+bob = c.post("/auth/login", json={"email": "drbob@x.io", "password": "pw"}).json()["access_token"]
+code = c.post("/clinician/invite", headers=H(bob)).json()["code"]
+c.post("/patient/join", headers=H(alice), json={"code": code})
+r = c.get("/debug/links", headers=H(mallory))
+check("F03 /debug/links exposes other clinicians' links", r.status_code == 200 and len(r.json()) > 0, r.json())
+
+# 7. Token lifetime   [F08]
+claims = jwt.get_unverified_claims(alice)
+check("F08 access token lifetime > 1 day", claims["exp"] - time.time() > 86400, f"{(claims['exp']-time.time())/86400:.1f} days")
+
+# 8. Upload: non-video content left on disk; internal detail leaked   [F06 F07 F09]
+before = set(glob.glob("data/raw/*"))
+r = c.post("/analyze", headers=H(alice),
+           files={"video": ("evil.mp4", b"#!/bin/sh\necho not a video\n" * 100, "text/plain")})
+after = set(glob.glob("data/raw/*"))
+check("F06/F07 non-video bytes left on disk", len(after - before) > 0, f"left on disk: {sorted(after - before)}")
+check("F09 internal error detail returned to client",
+      any(x in r.text for x in ("data/raw", "Cannot open", "Traceback", "Errno")), f"{r.status_code} {r.text[:160]}")
+r = c.post("/analyze", headers=H(alice), files={"video": ("EVIL.MP4", b"x", "video/mp4")})
+res["_uppercase_extension"] = (r.status_code, r.text[:80])
+
+# 9. CORS wildcard   [F08]
+r = c.get("/status", headers={"Origin": "https://evil.example"})
+check("F08 CORS allows arbitrary origins", r.headers.get("access-control-allow-origin") in ("*", "https://evil.example"),
+      f"access-control-allow-origin={r.headers.get('access-control-allow-origin')}")
+
+# 10. PDF regeneration (Render disk is ephemeral -> regeneration is the normal path after a deploy)   [F15 F40]
+shutil.rmtree(f"outputs/{job}", ignore_errors=True)
+r = c.get(f"/report/{job}", headers=H(alice))
+from pypdf import PdfReader
+txt = "".join(p.extract_text() for p in PdfReader(io.BytesIO(r.content)).pages)
+check("F15 regenerated PDF reports wrong mode (Runner -> Clinical)", "Runner" not in txt and "Clinical" in txt,
+      f"'Runner' in pdf={('Runner' in txt)}; 'Clinical Mode' in pdf={('Clinical Mode' in txt)}")
+check("F40 patient name absent from PDF", "Alice" not in txt, f"'Alice' in pdf={'Alice' in txt}")
+
+# 11. Rate limiting on login   [F10]
+codes = [c.post("/auth/login", json={"email": "alice@x.io", "password": f"guess{i}"}).status_code for i in range(30)]
+check("F10 no login rate limiting (30 bad attempts)", 429 not in codes, f"status codes: {sorted(set(codes))}")
+
+for k, v in res.items():
+    print(f"{v[0]:5} | {k} | {v[1]}")
+n_fail = sum(1 for k, v in res.items() if not k.startswith("_") and v[0] == "FAIL")
+n = sum(1 for k in res if not k.startswith("_"))
+print(f"SUMMARY: {n - n_fail}/{n} PASS, {n_fail}/{n} FAIL")

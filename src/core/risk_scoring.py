@@ -7,12 +7,12 @@ MODE_CONFIGS = {
         "knee_flex_walk":  45,   
         "knee_flex_run":   70,   
         "cadence_ranges": {
-            "Walking":       (80,  120, "A healthy walking cadence is 80–120 steps/min."),
-            "Brisk Walking": (120, 140, "A healthy brisk walking cadence is 120–140 steps/min."),
-            "Running":       (160, 200, "An efficient running cadence is 160–180 steps/min."),
-            "Limping":       (0,   200, "Cadence varies when limping."),
+            "Walking":       (80,  120, "Reference walking cadence: 80–120 steps/min."),
+            "Brisk Walking": (120, 140, "Reference brisk-walking cadence: 120–140 steps/min."),
+            "Running":       (160, 200, "Reference running cadence: 160–180 steps/min."),
+            "Asymmetric Walking": (0, 200, "No cadence reference is applied to asymmetric walking."),
         },
-        "description": "Standard clinical assessment thresholds."
+        "description": "General reference thresholds (not clinically validated)."
     },
     "Runner": {
         
@@ -23,12 +23,12 @@ MODE_CONFIGS = {
         "knee_flex_walk":  50,
         "knee_flex_run":   80,   
         "cadence_ranges": {
-            "Walking":       (80,  120, "A healthy walking cadence is 80–120 steps/min."),
-            "Brisk Walking": (150, 170, "Elite brisk-walking cadence is 150–170 steps/min."),
-            "Running":       (170, 200, "Optimal running cadence is 170–180+ steps/min."),
-            "Limping":       (0,   200, "Cadence varies when limping."),
+            "Walking":       (80,  120, "Reference walking cadence: 80–120 steps/min."),
+            "Brisk Walking": (150, 170, "Reference brisk-walking cadence for runners: 150–170 steps/min."),
+            "Running":       (170, 200, "Reference running cadence for runners: 170–180+ steps/min."),
+            "Asymmetric Walking": (0, 200, "No cadence reference is applied to asymmetric walking."),
         },
-        "description": "Optimised for runners — tighter symmetry and higher cadence targets."
+        "description": "Tighter symmetry and higher cadence reference ranges for runners (not clinically validated)."
     },
     "Athlete": {
         
@@ -39,12 +39,12 @@ MODE_CONFIGS = {
         "knee_flex_walk":  55,
         "knee_flex_run":   85,
         "cadence_ranges": {
-            "Walking":       (90,  120, "Athletes should maintain 90–120 steps/min at walking pace."),
-            "Brisk Walking": (155, 175, "Athletic brisk-walking target is 155–175 steps/min."),
-            "Running":       (175, 210, "High-performance running cadence is 175–200+ steps/min."),
-            "Limping":       (0,   200, "Cadence varies when limping."),
+            "Walking":       (90,  120, "Reference walking cadence for athletes: 90–120 steps/min."),
+            "Brisk Walking": (155, 175, "Reference brisk-walking cadence for athletes: 155–175 steps/min."),
+            "Running":       (175, 210, "Reference running cadence for athletes: 175–200+ steps/min."),
+            "Asymmetric Walking": (0, 200, "No cadence reference is applied to asymmetric walking."),
         },
-        "description": "High-performance mode — flags even minor asymmetries for peak optimisation."
+        "description": "Strictest reference ranges (not clinically validated)."
     },
     "Elderly": {
         
@@ -55,32 +55,57 @@ MODE_CONFIGS = {
         "knee_flex_walk":  35,   
         "knee_flex_run":   60,
         "cadence_ranges": {
-            "Walking":       (60,  100, "A safe walking cadence for older adults is 60–100 steps/min."),
-            "Brisk Walking": (100, 130, "A healthy brisk-walking cadence is 100–130 steps/min."),
-            "Running":       (140, 180, "A comfortable running cadence is 140–170 steps/min."),
-            "Limping":       (0,   200, "Cadence varies when limping."),
+            "Walking":       (60,  100, "Reference walking cadence for older adults: 60–100 steps/min."),
+            "Brisk Walking": (100, 130, "Reference brisk-walking cadence for older adults: 100–130 steps/min."),
+            "Running":       (140, 180, "Reference running cadence for older adults: 140–170 steps/min."),
+            "Asymmetric Walking": (0, 200, "No cadence reference is applied to asymmetric walking."),
         },
-        "description": "Adjusted for older adults — prioritises fall risk and stability over performance."
+        "description": "Wider reference ranges intended for older adults (not clinically validated)."
     },
 }
 
 
+DISCLAIMER = (
+    "GaitScan is an experimental measurement tool, not a medical device. "
+    "It does not diagnose conditions or predict outcomes, and its measurements "
+    "have not been clinically validated. A qualified clinician should interpret them."
+)
+
+
+def summary_for_score(score):
+    """Neutral (label, meaning, colour) for a stored deviation score.
+
+    The score only counts how many measurements fell outside the reference
+    ranges below. It is not a risk estimate (see ADR-005; removed in Phase 2).
+    """
+    if not score:
+        return ("Within reference ranges",
+                "All measurements in this recording fell within the reference ranges used. "
+                "This is not a health assessment.",
+                "green")
+    if score <= 25:
+        return ("Minor deviations",
+                "One or two measurements were near or outside the reference ranges used. "
+                "A clinician can interpret this in context.",
+                "green")
+    if score <= 50:
+        return ("Several deviations",
+                "Some measurements were outside the reference ranges used. "
+                "A clinician can interpret these in context.",
+                "amber")
+    return ("Many deviations",
+            "Many measurements were outside the reference ranges used. "
+            "Consider reviewing this recording with a physiotherapist.",
+            "amber")
+
+
 def calculate_risk_scores(df, activity="Walking", mode="Clinical"):
     """
-    Activity-aware and mode-aware risk scoring with plain English explanations.
+    Compare whole-clip gait measurements against the reference ranges of `mode`.
 
-    Mode changes the thresholds at which findings are flagged:
-      Clinical  — standard physiotherapy thresholds (default)
-      Runner    — tighter symmetry, higher cadence targets
-      Athlete   — strictest thresholds for peak performance
-      Elderly   — more lenient, focused on fall risk and stability
-
-    Score 0-100 where:
-      0     = No issues. Your gait looks healthy.
-      1-25  = Minor findings. Worth monitoring.
-      26-50 = Moderate concern. Consider a physiotherapist.
-      51-75 = Significant issues. Physiotherapy recommended.
-      76-100= Serious abnormality. Please consult a doctor.
+    Returns per-metric findings (status good / mild / flagged = within / near /
+    outside the reference range) and a summary. The additive deviation score is
+    kept only for backwards compatibility and is not shown to users.
     """
 
     cfg = MODE_CONFIGS.get(mode, MODE_CONFIGS["Clinical"])
@@ -108,11 +133,8 @@ def calculate_risk_scores(df, activity="Walking", mode="Clinical"):
             "value": f"{knee_si:.1f}%",
             "status": "flagged",
             "plain_english": (
-                f"Your left and right knees are moving very differently — "
-                f"a {knee_si:.0f}% difference. This means one knee is doing "
-                f"significantly more work than the other, which can cause "
-                f"long-term joint damage and pain."
-                + (f" (Threshold for {mode} mode: {cfg['knee_si_flag']}%)" if mode != "Clinical" else "")
+                f"Left and right knee motion differed by {knee_si:.0f}% in this recording "
+                f"(reference for {mode} mode: under {cfg['knee_si_flag']}%)."
             )
         })
         recommendations.append("Single-leg strengthening exercises to balance both sides")
@@ -123,9 +145,8 @@ def calculate_risk_scores(df, activity="Walking", mode="Clinical"):
             "value": f"{knee_si:.1f}%",
             "status": "mild",
             "plain_english": (
-                f"Mild difference between your left and right knee movement "
-                f"({knee_si:.0f}%). Worth monitoring — if you notice "
-                f"knee pain on one side, this could be the cause."
+                f"Left and right knee motion differed by {knee_si:.0f}% in this recording, "
+                f"near the edge of the {mode} reference (under {cfg['knee_si_mild']}%)."
             )
         })
     else:
@@ -133,7 +154,7 @@ def calculate_risk_scores(df, activity="Walking", mode="Clinical"):
             "metric": "Knee Symmetry",
             "value": f"{knee_si:.1f}%",
             "status": "good",
-            "plain_english": "Both knees are moving very similarly. Good left-right balance."
+            "plain_english": "Left and right knee motion were similar in this recording."
         })
 
     if hip_si > cfg["hip_si_flag"]:
@@ -143,9 +164,8 @@ def calculate_risk_scores(df, activity="Walking", mode="Clinical"):
             "value": f"{hip_si:.1f}%",
             "status": "flagged",
             "plain_english": (
-                f"Significant difference between left and right hip movement "
-                f"({hip_si:.0f}%). This can indicate hip weakness or tightness "
-                f"on one side, and often contributes to lower back pain over time."
+                f"Left and right hip motion differed by {hip_si:.0f}% in this recording "
+                f"(reference for {mode} mode: under {cfg['hip_si_flag']}%)."
             )
         })
         recommendations.append("Hip mobility and strengthening exercises")
@@ -155,14 +175,17 @@ def calculate_risk_scores(df, activity="Walking", mode="Clinical"):
             "metric": "Hip Symmetry",
             "value": f"{hip_si:.1f}%",
             "status": "mild",
-            "plain_english": f"Slight hip asymmetry detected ({hip_si:.0f}%). Within acceptable range but worth monitoring."
+            "plain_english": (
+                f"Left and right hip motion differed by {hip_si:.0f}% in this recording, "
+                f"near the edge of the {mode} reference (under {cfg['hip_si_mild']}%)."
+            )
         })
     else:
         findings.append({
             "metric": "Hip Symmetry",
             "value": f"{hip_si:.1f}%",
             "status": "good",
-            "plain_english": "Both hips are moving evenly. No asymmetry detected."
+            "plain_english": "Left and right hip motion were similar in this recording."
         })
 
     knee_min_L = df["knee_L"].min()
@@ -182,35 +205,32 @@ def calculate_risk_scores(df, activity="Walking", mode="Clinical"):
                 "value": f"L: {knee_flexion_L}° R: {knee_flexion_R}°",
                 "status": "flagged",
                 "plain_english": (
-                    f"Your knee isn't bending enough while running (target: >{thresh}° for {mode} mode). "
-                    f"This 'shuffling' pattern wastes energy and increases "
-                    f"injury risk — especially shin splints and knee pain."
+                    f"Peak knee bend while running was below the {thresh}° reference "
+                    f"for {mode} mode."
                 )
             })
-            recommendations.append("High knees drills to improve running knee drive")
+            recommendations.append("High-knees drills to practise running knee drive")
         else:
             findings.append({
                 "metric": "Knee Drive",
                 "value": f"L: {knee_flexion_L}° R: {knee_flexion_R}°",
                 "status": "good",
-                "plain_english": "Good knee drive detected. Your running form looks efficient."
+                "plain_english": "Peak knee bend while running was within the reference range."
             })
 
-    elif activity == "Limping":
+    elif activity == "Asymmetric Walking":
         risk += 25
-        worse_side = "left" if knee_flexion_L < knee_flexion_R else "right"
+        less_moving = "left" if knee_flexion_L < knee_flexion_R else "right"
         findings.append({
-            "metric": "Affected Side",
-            "value": worse_side.capitalize(),
+            "metric": "Less-moving Side",
+            "value": less_moving.capitalize(),
             "status": "flagged",
             "plain_english": (
-                f"Your {worse_side} side shows reduced movement range, "
-                f"suggesting it is the affected leg. The opposite leg is "
-                f"likely compensating, which can cause secondary pain over time."
+                f"The {less_moving} knee showed less range of motion than the other "
+                f"side in this recording."
             )
         })
-        recommendations.append("Consult a physiotherapist to identify the underlying cause")
-        recommendations.append("Avoid high-impact activities until assessed")
+        recommendations.append("Review this recording with a physiotherapist")
 
     else:
         thresh = cfg["knee_flex_walk"]
@@ -221,18 +241,17 @@ def calculate_risk_scores(df, activity="Walking", mode="Clinical"):
                 "value": f"L: {knee_flexion_L}° R: {knee_flexion_R}°",
                 "status": "flagged",
                 "plain_english": (
-                    f"Your knees are not bending enough during walking (target: >{thresh}° for {mode} mode). "
-                    f"This 'stiff-legged' pattern puts extra stress on your "
-                    f"joints and increases fall risk, especially on uneven surfaces."
+                    f"Peak knee bend while walking was below the {thresh}° reference "
+                    f"for {mode} mode."
                 )
             })
-            recommendations.append("Knee mobility exercises to improve walking pattern")
+            recommendations.append("Knee mobility exercises")
         else:
             findings.append({
                 "metric": "Knee Flexion",
                 "value": f"L: {knee_flexion_L}° R: {knee_flexion_R}°",
                 "status": "good",
-                "plain_english": "Your knees are bending well during each step. Good range of motion detected."
+                "plain_english": "Peak knee bend while walking was within the reference range."
             })
 
     duration    = df["time_s"].max()
@@ -246,16 +265,14 @@ def calculate_risk_scores(df, activity="Walking", mode="Clinical"):
 
     low, high, cadence_note = cfg["cadence_ranges"].get(activity, (80, 120, ""))
 
-    if cadence < low and activity != "Limping":
+    if cadence < low and activity != "Asymmetric Walking":
         risk += 10
         findings.append({
             "metric": "Cadence",
             "value": f"{cadence} steps/min",
             "status": "mild",
             "plain_english": (
-                f"Your step rate is lower than ideal for {mode} mode ({cadence} steps/min). "
-                f"{cadence_note} A slower cadence can mean reduced efficiency "
-                f"and more impact on your joints per step."
+                f"Step rate was {cadence} steps/min, below the {mode} reference. {cadence_note}"
             )
         })
     else:
@@ -263,32 +280,12 @@ def calculate_risk_scores(df, activity="Walking", mode="Clinical"):
             "metric": "Cadence",
             "value": f"{cadence} steps/min",
             "status": "good",
-            "plain_english": f"Your step rate looks good ({cadence} steps/min). {cadence_note}"
+            "plain_english": f"Step rate was {cadence} steps/min. {cadence_note}"
         })
 
     risk = min(risk, 100)
     scores["overall_risk_score"] = risk
-
-    if risk == 0:
-        risk_label   = "No issues detected"
-        risk_meaning = "Your gait looks healthy. No concerns found."
-        risk_color   = "green"
-    elif risk <= 25:
-        risk_label   = "Minor findings"
-        risk_meaning = "A few small things worth keeping an eye on, but nothing serious."
-        risk_color   = "green"
-    elif risk <= 50:
-        risk_label   = "Moderate concern"
-        risk_meaning = "Some gait issues detected. Worth seeing a physiotherapist, especially if you experience pain."
-        risk_color   = "amber"
-    elif risk <= 75:
-        risk_label   = "Significant issues"
-        risk_meaning = "Clear gait abnormalities detected. Physiotherapy is recommended."
-        risk_color   = "red"
-    else:
-        risk_label   = "Serious abnormality"
-        risk_meaning = "Serious gait issues detected. Please consult a doctor or physiotherapist soon."
-        risk_color   = "red"
+    risk_label, risk_meaning, risk_color = summary_for_score(risk)
 
     return {
         "scores":          scores,

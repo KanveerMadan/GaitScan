@@ -2,16 +2,20 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Form
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session as DBSession
-import shutil, os, uuid
-from src.core.database import Base, engine
+import logging
+import os
+import shutil
+import uuid
 
+from src.core.config import settings
 from src.core.database import get_db, init_db
 from src.core.models import Session as SessionModel, Finding, Exercise
 from src.models.user import User
 from src.core.auth import get_current_user
-from src.core.extract_landmarks import extract_landmarks
+from src.core.extract_landmarks import VideoReadError, extract_landmarks
 from src.core.calculate_angles import add_all_angles
-from src.core.risk_scoring import calculate_risk_scores
+from src.core import legacy_display as display
+from src.core.risk_scoring import DISCLAIMER, calculate_risk_scores
 from src.core.report_generator import generate_pdf_report
 from src.utils.visualise import generate_plots
 from src.core.exercise_prescription import get_exercise_prescription
@@ -21,20 +25,30 @@ from src.api.clinician_router import router as clinician_router
 from src.models.clinician_patient import ClinicianInvite, ClinicianPatient
 
 VALID_MODES = {"Clinical", "Runner", "Athlete", "Elderly"}
+VIDEO_EXTENSIONS = (".mp4", ".mov", ".avi")
 
-app = FastAPI(title="GaitScan API", version="2.1.0")
+log = logging.getLogger("gaitscan")
+
+# Interactive docs and the OpenAPI schema are only exposed in dev.
+_docs = settings.docs_enabled
+app = FastAPI(
+    title="GaitScan API",
+    version="2.1.0",
+    docs_url="/docs" if _docs else None,
+    redoc_url="/redoc" if _docs else None,
+    openapi_url="/openapi.json" if _docs else None,
+)
 app.include_router(auth_router)
 app.include_router(clinician_router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=settings.cors_origins,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 os.makedirs("data/raw", exist_ok=True)
-os.makedirs("data/processed", exist_ok=True)
 os.makedirs("outputs", exist_ok=True)
 
 @app.on_event("startup")
@@ -57,28 +71,30 @@ async def analyze(
     current_user: User = Depends(get_current_user),
     db: DBSession = Depends(get_db)
 ):
-    if not video.filename.endswith((".mp4", ".mov", ".avi")):
+    ext = os.path.splitext((video.filename or "").lower())[1]
+    if ext not in VIDEO_EXTENSIONS:
         raise HTTPException(400, "Only .mp4, .mov, .avi files accepted")
 
-    
     if mode not in VALID_MODES:
         mode = "Clinical"
 
-    job_id = str(uuid.uuid4())[:8]
-    video_path = f"data/raw/{job_id}.mp4"
+    job_id = str(uuid.uuid4())
+    video_path = f"data/raw/{job_id}{ext}"
     output_dir = f"outputs/{job_id}"
-    os.makedirs(output_dir, exist_ok=True)
-
-    with open(video_path, "wb") as f:
-        shutil.copyfileobj(video.file, f)
+    succeeded = False
 
     try:
-        df = extract_landmarks(video_path)
+        save_upload(video.file, video_path, settings.max_upload_bytes)
+        os.makedirs(output_dir, exist_ok=True)
+        try:
+            df = extract_landmarks(video_path)
+        except VideoReadError:
+            raise HTTPException(422, "We couldn't read this file as a video. "
+                                     "Please upload an .mp4, .mov or .avi recording.")
         if len(df) < 10:
             raise HTTPException(400, "Could not detect a person in the video.")
 
         df = add_all_angles(df)
-        df.to_csv(f"data/processed/{job_id}_angles.csv", index=False)
 
         activity_result = classify_activity(df)
 
@@ -99,7 +115,6 @@ async def analyze(
         generate_plots(df, output_dir=output_dir)
         pdf_path = f"{output_dir}/gaitscan_report.pdf"
         generate_pdf_report(results, output_path=pdf_path, plots_dir=output_dir)
-        os.remove(video_path)
 
         s = results["scores"]
         session_row = SessionModel(
@@ -140,11 +155,12 @@ async def analyze(
             ))
 
         db.commit()
+        succeeded = True
 
         return JSONResponse({
             "job_id":            job_id,
             "status":            "success",
-            "mode":              mode,                          # ← returned to frontend
+            "mode":              mode,
             "mode_description":  results.get("mode_description", ""),
             "activity":          results["activity"],
             "risk_label":        results["risk_label"],
@@ -154,40 +170,61 @@ async def analyze(
             "findings":          results["findings"],
             "recommendations":   results["recommendations"],
             "exercises":         results["exercises"],
-            "report_url":        f"/report/{job_id}"
+            "report_url":        f"/report/{job_id}",
+            "disclaimer":        DISCLAIMER,
         })
 
     except HTTPException:
         raise
-    except Exception as e:
-        raise HTTPException(500, f"Analysis failed: {str(e)}")
+    except Exception:
+        ref = uuid.uuid4().hex[:12]
+        log.exception("analysis failed ref=%s job=%s", ref, job_id)
+        raise HTTPException(500, f"Analysis failed due to an internal error. Reference: {ref}")
+    finally:
+        # The raw video is never kept, whatever happened; partial outputs are dropped on failure.
+        if os.path.exists(video_path):
+            os.remove(video_path)
+        if not succeeded:
+            shutil.rmtree(output_dir, ignore_errors=True)
+
+
+def save_upload(src, dest: str, limit: int) -> None:
+    """Stream the upload to disk, aborting with 413 once it exceeds `limit` bytes."""
+    written = 0
+    with open(dest, "wb") as f:
+        while chunk := src.read(1024 * 1024):
+            written += len(chunk)
+            if written > limit:
+                raise HTTPException(413, f"Video is larger than {limit // (1024 * 1024)} MB.")
+            f.write(chunk)
+
+
+def get_visible_session(db: DBSession, user: User, session_id: str) -> SessionModel:
+    """Return the session if `user` owns it or is a clinician linked to its owner.
+    Anything else is a 404, so callers can't probe which IDs exist."""
+    s = db.query(SessionModel).filter(SessionModel.id == session_id).first()
+    if s is not None and s.user_id is not None:
+        if s.user_id == user.id:
+            return s
+        if user.role == "clinician" and db.query(ClinicianPatient).filter(
+            ClinicianPatient.clinician_id == user.id,
+            ClinicianPatient.patient_id == s.user_id,
+        ).first():
+            return s
+    raise HTTPException(404, "Session not found")
 
 
 @app.get("/report/{job_id}")
-def get_report(job_id: str, db: DBSession = Depends(get_db)):
-    pdf_path = f"outputs/{job_id}/gaitscan_report.pdf"
+def get_report(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+    db: DBSession = Depends(get_db),
+):
+    s = get_visible_session(db, current_user, job_id)
+    pdf_path = f"outputs/{s.id}/gaitscan_report.pdf"
     if os.path.exists(pdf_path):
         return FileResponse(pdf_path, media_type="application/pdf",
                             filename="gaitscan_report.pdf")
-
-    s = db.query(SessionModel).filter(SessionModel.id == job_id).first()
-    if not s:
-        raise HTTPException(404, "Report not found")
-
-    findings = [{
-        "metric":        f.metric,
-        "value":         f.value,
-        "status":        f.status,
-        "plain_english": f.plain_english
-    } for f in s.findings]
-
-    exercises = [{
-        "name":         ex.name,
-        "muscle":       ex.muscle,
-        "difficulty":   ex.difficulty,
-        "instructions": ex.instructions,
-        "why":          ex.why
-    } for ex in s.exercises]
 
     results = {
         "scores": {
@@ -198,23 +235,20 @@ def get_report(job_id: str, db: DBSession = Depends(get_db)):
             "knee_flexion_range_R": s.knee_flex_R,
             "cadence":             s.cadence,
         },
-        "findings":        findings,
+        "findings":        [display.finding(f) for f in s.findings],
         "recommendations": [],
-        "risk_label":      s.risk_label,
-        "risk_meaning":    s.risk_meaning,
-        "risk_color":      s.risk_color,
+        **display.summary(s.risk_score),
         "activity": {
-            "activity":    s.activity,
+            "activity":    display.activity(s.activity),
             "confidence":  s.confidence,
             "icon":        "🚶",
-            "description": f"Detected activity: {s.activity}"
+            "description": f"Detected activity: {display.activity(s.activity)}"
         },
-        "exercises": exercises
+        "exercises": [display.exercise(ex) for ex in s.exercises],
     }
 
-    output_dir = f"outputs/{job_id}"
+    output_dir = f"outputs/{s.id}"
     os.makedirs(output_dir, exist_ok=True)
-    pdf_path = f"{output_dir}/gaitscan_report.pdf"
     generate_pdf_report(results, output_path=pdf_path, plots_dir=output_dir)
 
     return FileResponse(pdf_path, media_type="application/pdf",
@@ -229,55 +263,36 @@ def list_sessions(
     sessions = db.query(SessionModel)\
         .filter(SessionModel.user_id == current_user.id)\
         .order_by(SessionModel.created_at.desc()).all()
-
-    return [{
-        "id":           s.id,
-        "patient_name": s.patient_name,
-        "activity":     s.activity,
-        "confidence":   s.confidence,
-        "risk_score":   s.risk_score,
-        "risk_label":   s.risk_label,
-        "risk_color":   s.risk_color,
-        "cadence":      s.cadence,
-        "knee_si":      s.knee_si,
-        "hip_si":       s.hip_si,
-        "knee_flex_L":  s.knee_flex_L,
-        "knee_flex_R":  s.knee_flex_R,
-        "created_at":   s.created_at.isoformat(),
-    } for s in sessions]
+    return [session_summary(s) for s in sessions]
 
 
-@app.get("/sessions/{session_id}")
-def get_session(session_id: str, db: DBSession = Depends(get_db)):
-    s = db.query(SessionModel).filter(SessionModel.id == session_id).first()
-    if not s:
-        raise HTTPException(404, "Session not found")
+def session_summary(s: SessionModel) -> dict:
     return {
         "id":           s.id,
         "patient_name": s.patient_name,
-        "activity":     s.activity,
+        "activity":     display.activity(s.activity),
         "confidence":   s.confidence,
         "risk_score":   s.risk_score,
-        "risk_label":   s.risk_label,
-        "risk_color":   s.risk_color,
-        "risk_meaning": s.risk_meaning,
+        **display.summary(s.risk_score),
         "cadence":      s.cadence,
         "knee_si":      s.knee_si,
         "hip_si":       s.hip_si,
         "knee_flex_L":  s.knee_flex_L,
         "knee_flex_R":  s.knee_flex_R,
         "created_at":   s.created_at.isoformat(),
-        "findings": [{
-            "metric":        f.metric,
-            "value":         f.value,
-            "status":        f.status,
-            "plain_english": f.plain_english
-        } for f in s.findings],
-        "exercises": [{
-            "name":         ex.name,
-            "muscle":       ex.muscle,
-            "difficulty":   ex.difficulty,
-            "instructions": ex.instructions,
-            "why":          ex.why
-        } for ex in s.exercises]
+    }
+
+
+@app.get("/sessions/{session_id}")
+def get_session(
+    session_id: str,
+    current_user: User = Depends(get_current_user),
+    db: DBSession = Depends(get_db),
+):
+    s = get_visible_session(db, current_user, session_id)
+    return {
+        **session_summary(s),
+        "findings":   [display.finding(f) for f in s.findings],
+        "exercises":  [display.exercise(ex) for ex in s.exercises],
+        "disclaimer": DISCLAIMER,
     }

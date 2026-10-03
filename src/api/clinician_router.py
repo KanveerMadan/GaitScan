@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 from collections import defaultdict
 
+from src.core import legacy_display as display
 from src.core.auth import get_current_user, require_clinician
 from src.core.database import get_db
 from src.models.user import User
@@ -133,8 +134,8 @@ def get_patients(
             "email": patient.email,
             "session_count": len(sessions),
             "latest_risk": latest.risk_score,
-            "latest_risk_color": latest.risk_color,
-            "latest_activity": latest.activity,
+            "latest_risk_color": display.summary(latest.risk_score)["risk_color"],
+            "latest_activity": display.activity(latest.activity),
             "latest_knee_si": latest.knee_si,
             "trend": trend,
             "flag": flag,
@@ -175,10 +176,9 @@ def get_patient_sessions(
         "sessions": [
             {
                 "id": s.id,
-                "activity": s.activity,
+                "activity": display.activity(s.activity),
                 "risk_score": s.risk_score,
-                "risk_label": s.risk_label,
-                "risk_color": s.risk_color,
+                **display.summary(s.risk_score),
                 "knee_si": s.knee_si,
                 "hip_si": s.hip_si,
                 "cadence": s.cadence,
@@ -187,10 +187,3 @@ def get_patient_sessions(
             for s in sessions
         ]
     }
-@router.get("/debug/links")
-def debug_links(
-    clinician: User = Depends(require_clinician),
-    db: Session = Depends(get_db)
-):
-    links = db.query(ClinicianPatient).all()
-    return [{"clinician_id": l.clinician_id, "patient_id": l.patient_id} for l in links]

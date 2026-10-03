@@ -1,0 +1,40 @@
+===== before
+PASSWORD RECEIVED: correct horse
+PASSWORD RECEIVED: pw
+FAIL  | F03 register_self_assign_clinician_with_1char_password | 201 role=clinician
+FAIL  | F04 plaintext_password_logged | ['PASSWORD RECEIVED: a', 'LENGTH: 1']
+FAIL  | F12 email_enumeration_via_register | 409 {'detail': 'Email already registered'}
+  200 | _alice_analyze | {'job_id_len': 8, 'summary': 'No issues detected'}
+FAIL  | F02 GET /sessions/{id} without auth returns another user's health data | 200 patient_name=Alice Patient findings=4
+FAIL  | F02 GET /report/{id} without auth returns PDF | 200 application/pdf 617220 bytes
+FAIL  | F01 forged JWT with committed secret impersonates any email | {'id': 2, 'email': 'alice@x.io', 'role': 'patient', 'full_name': 'Alice Patient'}
+FAIL  | F01 forged JWT reads victim session list | 200 n=1
+FAIL  | F03 /debug/links exposes other clinicians' links | [{'clinician_id': 3, 'patient_id': 2}]
+FAIL  | F08 access token lifetime > 1 day | 365.0 days
+FAIL  | F06/F07 non-video bytes left on disk | left on disk: ['data/raw/4710569a.mp4']
+FAIL  | F09 internal error detail returned to client | 500 {"detail":"Analysis failed: Cannot open video: data/raw/4710569a.mp4"}
+  400 | _uppercase_extension | {"detail":"Only .mp4, .mov, .avi files accepted"}
+FAIL  | F08 CORS allows arbitrary origins | access-control-allow-origin=*
+FAIL  | F15 regenerated PDF reports wrong mode (Runner -> Clinical) | 'Runner' in pdf=False; 'Clinical Mode' in pdf=True
+FAIL  | F40 patient name absent from PDF | 'Alice' in pdf=False
+FAIL  | F10 no login rate limiting (30 bad attempts) | status codes: [401]
+SUMMARY: 0/15 PASS, 15/15 FAIL
+===== after
+PASS  | F03 register_self_assign_clinician_with_1char_password | 201 role=patient
+PASS  | F04 plaintext_password_logged | []
+FAIL  | F12 email_enumeration_via_register | 409 {'detail': 'Email already registered'}
+  200 | _alice_analyze | {'job_id_len': 36, 'summary': 'Within reference ranges'}
+PASS  | F02 GET /sessions/{id} without auth returns another user's health data | 401 patient_name=None findings=0
+PASS  | F02 GET /report/{id} without auth returns PDF | 401 application/json 30 bytes
+PASS  | F01 forged JWT with committed secret impersonates any email | {'detail': 'Invalid or expired token'}
+PASS  | F01 forged JWT reads victim session list | 401 n=-
+PASS  | F03 /debug/links exposes other clinicians' links | {'detail': 'Not Found'}
+PASS  | F08 access token lifetime > 1 day | 0.5 days
+PASS  | F06/F07 non-video bytes left on disk | left on disk: []
+PASS  | F09 internal error detail returned to client | 422 {"detail":"We couldn't read this file as a video. Please upload an .mp4, .mov or .avi recording."}
+  422 | _uppercase_extension | {"detail":"We couldn't read this file as a video. Please upload an .mp4, .mov or
+PASS  | F08 CORS allows arbitrary origins | access-control-allow-origin=None
+FAIL  | F15 regenerated PDF reports wrong mode (Runner -> Clinical) | 'Runner' in pdf=False; 'Clinical Mode' in pdf=True
+FAIL  | F40 patient name absent from PDF | 'Alice' in pdf=False
+FAIL  | F10 no login rate limiting (30 bad attempts) | status codes: [401]
+SUMMARY: 11/15 PASS, 4/15 FAIL
