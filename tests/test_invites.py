@@ -34,3 +34,21 @@ def test_invite_join_flow_links_patient_once(client):
     assert client.post("/patient/join", headers=auth(other_t), json={"code": code}).status_code == 404
     names = [p["email"] for p in client.get("/clinician/patients", headers=auth(doc_t)).json()]
     assert len(names) == 1
+
+
+def test_patient_sessions_for_missing_patient_is_404_not_500(client):
+    """A clinician link whose patient row is gone must not crash the endpoint."""
+    from conftest import PASSWORD, auth, promote_to_clinician, register
+
+    from app.db.database import SessionLocal
+    from app.db.models import ClinicianPatient, User
+
+    doc, _ = register(client)
+    promote_to_clinician(doc)
+    doc_t = client.post("/auth/login", json={"email": doc, "password": PASSWORD}).json()["access_token"]
+    with SessionLocal() as db:
+        doc_id = db.query(User).filter(User.email == doc).one().id
+        db.add(ClinicianPatient(clinician_id=doc_id, patient_id=999_999))
+        db.commit()
+    r = client.get("/clinician/patients/999999/sessions", headers=auth(doc_t))
+    assert r.status_code == 404
