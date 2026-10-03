@@ -258,11 +258,10 @@ Wait 5 minutes between runs, since the window has to expire.
 - Node is 22.17. Some new tools want ≥ 22.22 (jsdom 30), so I pinned jsdom 29. Upgrading Node to the
   current 22.x LTS lets Dependabot move it.
 
-**10. Clean-up I left for you.**
-- A Postgres container is running locally: `docker rm -f gaitscan-pg-test`. I stopped the API test
-  container.
-- The `gaitscan-api:phase1` image can be deleted.
-- Docker Desktop was started for this run.
+**10. Clean-up.** I removed my test containers and sandbox worktrees. Left on this machine:
+- the `gaitscan-api:phase1` image (`docker rmi gaitscan-api:phase1`);
+- the `postgres:16-alpine` image;
+- Docker Desktop, which I started for this run.
 
 ## Deviations from plan
 
