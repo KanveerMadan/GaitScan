@@ -1,6 +1,6 @@
 # ADR-002: Async analysis via a Postgres-backed job table + one worker process
 
-**Status:** Proposed · **Date:** 2026-09-27
+**Status:** Superseded by REBUILD_PLAN_V3.md (2026-10-03): no job queue; a FastAPI background task + status polling in Phase 4 · **Date:** 2026-09-27
 
 ## Context
 `/analyze` runs a CPU-bound pipeline inside `async def`, blocking the event loop: a 28.7 s health-check stall was measured (F13). Peak RSS is 339–516 MB (F14) on 512 MB instances. Volume is expected to be tens to low hundreds of analyses per day. The budget is a student's.

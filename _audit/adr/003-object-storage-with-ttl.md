@@ -1,6 +1,6 @@
 # ADR-003: Object storage with signed URLs and lifecycle deletion; Postgres for metadata
 
-**Status:** Proposed · **Date:** 2026-09-27
+**Status:** Superseded by REBUILD_PLAN_V3.md (2026-10-03): no object storage; video is a temp file deleted right after analysis · **Date:** 2026-09-27
 
 ## Context
 Videos, landmark CSVs, PNGs and PDFs live on Render's ephemeral disk (F15). They are deleted only by accident (redeploy) or never (failed runs, F06). The PDF regeneration path loses mode and charts. The data is biometric and health-adjacent.

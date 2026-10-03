@@ -1,6 +1,6 @@
 # ADR-008: Frontend — Vite + TypeScript + React Router + TanStack Query + generated API client
 
-**Status:** Proposed · **Date:** 2026-09-27
+**Status:** Accepted, amended by REBUILD_PLAN_V3.md (2026-10-03): user/session routes, polling for the Phase 4 analysis status · **Date:** 2026-09-27
 
 ## Context
 The frontend is one 1,102-line `App.js` on Create React App (deprecated, 48 npm advisories). It has inline styles, a hardcoded API URL, no router (results are not linkable), swallowed errors shown as empty states, the plaintext password in `localStorage`, and no responsive layout or accessibility (F05, F39).

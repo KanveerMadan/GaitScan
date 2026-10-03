@@ -1,6 +1,6 @@
 # ADR-004: Clinic-scoped multi-tenancy; patients are records, not accounts
 
-**Status:** Proposed · **Date:** 2026-09-27
+**Status:** Superseded by REBUILD_PLAN_V3.md (2026-10-03): no clinic multi-tenancy; existing accounts and auth hardening stay · **Date:** 2026-09-27
 
 ## Context
 Users choose their own role (F03). There is no organisation entity. Patients must self-register and upload themselves, while clinicians cannot upload. The JWT secret is public (F01), tokens last 365 days, and endpoints lack ownership checks (F02).

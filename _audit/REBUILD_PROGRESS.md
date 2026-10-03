@@ -1,19 +1,25 @@
 # GaitScan Rebuild — Progress
 
-Source of truth for which phase is next. Plan: [REBUILD_PLAN.md](REBUILD_PLAN.md). Reports: [phase-reports/](phase-reports/).
+Source of truth for which phase is next. Plan of record: [REBUILD_PLAN_V3.md](REBUILD_PLAN_V3.md) (adopted 2026-10-03; supersedes [REBUILD_PLAN.md](REBUILD_PLAN.md) and [REBUILD_PLAN_V2_PROPOSAL.md](REBUILD_PLAN_V2_PROPOSAL.md)). Reports: [phase-reports/](phase-reports/).
 
-| Phase | Status |
+| Phase (V3) | Status |
 |---|---|
-| 0 — Stop the bleeding | done |
-| 1 — Foundations | done (local; deploy + CI-on-PR are human actions) |
-| 2 — Measurement core v2 | todo |
-| 3 — Async jobs + object storage | todo |
-| 4 — Tenancy, auth, consent, deletion | todo |
-| 5 — Validation harness | todo |
-| 6 — Product & report | todo |
+| 0 — Stop the bleeding | done (merged to `main` via PR #1 in both repos; not deployed) |
+| 1 — Foundations | done (pushed; not merged; not deployed; Render auto-deploy off) |
+| 2 — Measurement correctness | in progress |
+| 3 — Honest results | todo |
+| 4 — Usability | todo |
+| 5 — Privacy & close-out | todo |
+
+Phase numbering changed on 2026-10-03. V1 Phases 0–1 keep their numbers and history below. V1 Phases 2–6 were replaced:
+- V1 Phase 2 (measurement core v2) → V3 Phase 2;
+- V1 Phase 5 (validation) → V3 Phase 3 (public OpenCap lab data, no participant study);
+- V1 Phases 3 and 6 (async jobs, product) → V3 Phase 4 (FastAPI background task, no queue or object storage);
+- V1 Phase 4 (tenancy, consent) → V3 Phase 5 (consent, deletion, export; no tenancy).
 
 ## Phase 0 — Stop the bleeding
 - Status: **done** (2026-09-27) · report: [phase-reports/PHASE_0.md](phase-reports/PHASE_0.md)
+- Update 2026-10-03: pushed and merged into `main` in both repos (PR #1); not deployed.
 - Branches (not pushed): backend `rebuild/phase-0-stop-the-bleeding` from `origin/main` 38c8db3; frontend `rebuild/phase-0-stop-the-bleeding` from `origin/main` be64af4
 - Findings closed: F01, F02, F03, F04, F05, F08, F09, F19, F20, F36. Partial: F06 (raw video always deleted, no skeleton CSV, LLM off by default; consent/retention are Phase 4), F07 (case-insensitive ext + size cap; content sniffing/duration are Phase 3), F18 (stubs deleted, .gitignore fixed; history rewrite is a human action).
 - Still open, by plan: F10 and F12 (Phase 4), F15 (Phase 3), F40 (Phase 6).
@@ -47,6 +53,7 @@ Source of truth for which phase is next. Plan: [REBUILD_PLAN.md](REBUILD_PLAN.md
 
 ## Phase 1 — Foundations
 - Status: **done locally** (2026-10-03) · report: [phase-reports/PHASE_1.md](phase-reports/PHASE_1.md)
+- Update 2026-10-03: both branches pushed to origin; not merged into `main`; not deployed (Render auto-deploy turned off by the owner).
 - Scope amended 2026-09-27 (owner request): + F10 login rate limiting, + F12 email enumeration (mitigation; full closure needs Phase 4 invite/email flow), + F15 mode persisted for PDF regeneration, + password minimum length 10 on registration and password change only (legacy short passwords still log in). See REBUILD_PLAN D6 Phase 1 task 11.
 - Branches (**not pushed**; both GitHub repos are public, see PHASE_1 human action 1): backend `rebuild/phase-1-foundations`, frontend `rebuild/phase-1-foundations`, both stacked on the unmerged `rebuild/phase-0-stop-the-bleeding` (re-checked 2026-10-03: not in `origin/main`).
 - Blocked on human: CI green on a PR (needs push), Render deploying the Docker image, Render X-Forwarded-For verification (TRUSTED_PROXY_HOPS=2).
@@ -87,19 +94,18 @@ Source of truth for which phase is next. Plan: [REBUILD_PLAN.md](REBUILD_PLAN.md
   - `c922f19` ci: lint, typecheck, test, build and npm audit; pre-commit hooks; Dependabot
   - `427daa6` docs: README for the Vite setup, not-a-medical-device notice, accurate features
   - `4fc629e` fix(build): require VITE_API_BASE_URL only for vite build, not preview
-- Next: Phase 2 — Measurement core v2 (can start before the deploy; it doesn't depend on it). First task there: upgrade mediapipe and remove the two protobuf ignores from backend CI.
+- Next (written under V1): Phase 2 — Measurement core v2. Superseded by V3 Phase 2 (same first task: upgrade mediapipe and remove the two protobuf ignores from backend CI).
 
-## Phase 2 — Measurement core v2
+## Phase 2 — Measurement correctness
+- Status: **in progress** (started 2026-10-03)
+- Branches: backend and frontend `rebuild/phase-2-measurement`, **stacked on `rebuild/phase-1-foundations`** (Phase 1 is not merged into `origin/main`; checked with `git fetch` on 2026-10-03).
+- Starting state: backend 116 passed, 1 skipped; audit spec 7 failed / 11 passed; frontend 18 passed.
+
+## Phase 3 — Honest results
 - Status: todo
 
-## Phase 3 — Async jobs + object storage
+## Phase 4 — Usability
 - Status: todo
 
-## Phase 4 — Tenancy, auth, consent, deletion
-- Status: todo
-
-## Phase 5 — Validation harness
-- Status: todo
-
-## Phase 6 — Product & report
+## Phase 5 — Privacy & close-out
 - Status: todo

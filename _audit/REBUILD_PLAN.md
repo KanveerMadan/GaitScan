@@ -1,3 +1,5 @@
+> **Superseded by [REBUILD_PLAN_V3.md](REBUILD_PLAN_V3.md) (2026-10-03).** Kept for history; V3 is the plan of record.
+
 # GaitScan — Incremental Rebuild Plan
 
 Companion to [`GAITSCAN_AUDIT.md`](GAITSCAN_AUDIT.md). Finding IDs (F01…) refer to the audit's findings table.

@@ -1,3 +1,5 @@
+> **Superseded by [REBUILD_PLAN_V3.md](REBUILD_PLAN_V3.md) (2026-10-03).** Kept for history; V3 is the plan of record.
+
 # GaitScan — Rebuild Plan V2 (proposal)
 
 **Status:** proposal, not adopted. `REBUILD_PLAN.md` is unchanged and remains the plan of record until you accept this.

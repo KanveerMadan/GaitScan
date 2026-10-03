@@ -1,6 +1,6 @@
 # ADR-007: Consent, retention and deletion as first-class features; no LLM on health data by default
 
-**Status:** Proposed · **Date:** 2026-09-27
+**Status:** Accepted, amended by REBUILD_PLAN_V3.md (2026-10-03): user-level consent, deletion and export in Phase 5; no R2/org consent; LLM removed · **Date:** 2026-09-27
 
 ## Context
 There is no consent, no retention policy and no deletion. Biometric skeletons are persisted forever, videos are left on disk after failures, and findings are sent to Groq without disclosure (F06). The target market is Indian clinics and academies (DPDP Act 2023; minors at sports academies).
