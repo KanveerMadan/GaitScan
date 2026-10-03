@@ -77,3 +77,15 @@ def test_exception_tracebacks_are_redacted(client, capfd, monkeypatch):
     err = capfd.readouterr().err
     assert "Traceback" in err  # the traceback is logged server-side...
     assert "bob@example.com" not in err  # ...but redacted
+
+
+def test_database_errors_do_not_carry_bound_parameters():
+    """SQLAlchemy puts bound values (e.g. password hashes) in exception text, which reaches logs/Sentry."""
+    import pytest
+    import sqlalchemy as sa
+
+    from app.db.database import engine
+
+    with pytest.raises(sa.exc.DBAPIError) as e, engine.connect() as conn:
+        conn.execute(sa.text("INSERT INTO no_such_table (x) VALUES (:x)"), {"x": "$2b$12$hash-like-value"})
+    assert "hash-like-value" not in str(e.value)
