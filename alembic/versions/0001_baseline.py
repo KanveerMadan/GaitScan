@@ -8,6 +8,10 @@ Idempotent on purpose: the production database already has these tables
 (created by create_all, with no alembic_version). Each table is created only if
 it is missing, so `alembic upgrade head` adopts an existing database and builds
 a fresh one with the same code path.
+
+create_all never altered existing tables, so an adopted database can hold an older
+shape. `_reconcile_legacy_drift` fixes the two the model history allows (see
+tests/legacy_schema.py); tests/test_migrations.py checks the result matches.
 """
 from collections.abc import Sequence
 
@@ -116,6 +120,25 @@ def upgrade() -> None:
             sa.ForeignKeyConstraint(["session_id"], ["sessions.id"]),
             sa.PrimaryKeyConstraint("id"),
         )
+
+
+    _reconcile_legacy_drift()
+
+
+def _reconcile_legacy_drift() -> None:
+    bind = op.get_bind()
+    insp = sa.inspect(bind)
+    # sessions created before 2026-04-15 (5c18025) have no user_id.
+    if "user_id" not in {c["name"] for c in insp.get_columns("sessions")}:
+        with op.batch_alter_table("sessions") as batch_op:
+            batch_op.add_column(sa.Column("user_id", sa.Integer(), nullable=True))
+            batch_op.create_foreign_key("fk_sessions_user_id_users", "users", ["user_id"], ["id"])
+    # users created 2026-04-15..20 (a93b308..a5d0a91) on Postgres have a native enum role.
+    if bind.dialect.name == "postgresql":
+        role = next(c for c in insp.get_columns("users") if c["name"] == "role")
+        if isinstance(role["type"], sa.Enum):
+            op.execute("ALTER TABLE users ALTER COLUMN role TYPE VARCHAR USING role::text")
+            op.execute(f"DROP TYPE IF EXISTS {role['type'].name}")
 
 
 def downgrade() -> None:
