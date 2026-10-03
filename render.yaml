@@ -1,0 +1,27 @@
+# Render Blueprint (web service only for now; the worker arrives in Phase 3, ADR-002).
+# Secrets use `sync: false`: Render asks for them on first apply and never reads them from git.
+# No `databases:` block on purpose: point DATABASE_URL at the existing Postgres
+# (see _audit/phase-reports/PHASE_1.md, "Human actions required").
+services:
+  - type: web
+    name: gaitscan-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    # The image runs `alembic upgrade head` before uvicorn (Dockerfile CMD).
+    healthCheckPath: /healthz
+    envVars:
+      - key: ENV
+        value: production
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      # Cloudflare + Render proxy both append to X-Forwarded-For (app/core/ratelimit.py).
+      - key: TRUSTED_PROXY_HOPS
+        value: "2"
+      - key: SENTRY_DSN
+        sync: false
+      - key: ENABLE_LLM_EXPLANATIONS
+        value: "false"
