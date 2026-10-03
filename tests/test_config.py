@@ -127,3 +127,20 @@ def test_docs_disabled_in_production(tmp_path):
     r = _import_app({**PROD, "DATABASE_URL": f"sqlite:///{tmp_path}/x.db"})
     assert r.returncode == 0, r.stderr[-800:]
     assert r.stdout.strip().splitlines()[-1] == "None None"
+
+
+def test_postgres_url_driver_is_installed():
+    """Render's DATABASE_URL is postgresql://...; SQLAlchemy must find the driver it maps to."""
+    import sqlalchemy as sa
+
+    from app.core.config import load_settings
+
+    url = load_settings(
+        {
+            "ENV": "production",
+            "JWT_SECRET": "x" * 40,
+            "CORS_ORIGINS": "https://a.example",
+            "DATABASE_URL": "postgres://u:p@db.internal:5432/gaitscan",
+        }
+    ).database_url
+    sa.create_engine(url).dispose()  # imports the DBAPI; does not connect
