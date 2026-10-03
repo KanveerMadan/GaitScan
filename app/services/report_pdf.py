@@ -1,3 +1,4 @@
+import logging
 import os
 from datetime import datetime
 from xml.sax.saxutils import escape
@@ -10,6 +11,8 @@ from reportlab.lib.units import cm
 from reportlab.platypus import HRFlowable, Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from gaitcore.legacy import DISCLAIMER, summary_for_score
+
+log = logging.getLogger(__name__)
 
 # ─────────────────────────────────────────────────────────────
 # MODE CONFIG
@@ -587,5 +590,5 @@ def generate_pdf_report(scores_dict, output_path="outputs/gaitscan_report.pdf", 
     elements.append(Paragraph(esc(DISCLAIMER), footer))
 
     doc.build(elements)
-    print(f"  Report saved: {output_path}")
+    log.info(f"Report saved: {output_path}")
     return output_path

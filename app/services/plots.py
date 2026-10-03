@@ -1,9 +1,12 @@
 import matplotlib
 
 matplotlib.use("Agg")  # headless, thread-safe backend; must be set before pyplot is imported
+import logging
 import os
 
 import matplotlib.pyplot as plt
+
+log = logging.getLogger(__name__)
 
 
 def generate_plots(df, output_dir="outputs"):
@@ -25,7 +28,7 @@ def generate_plots(df, output_dir="outputs"):
     plt.tight_layout()
     plt.savefig(f"{output_dir}/knee_angles.png", dpi=150)
     plt.close()
-    print(f"  Saved: {output_dir}/knee_angles.png")
+    log.info(f"Saved: {output_dir}/knee_angles.png")
 
     # 2. Hip angles over time
     fig, ax = plt.subplots(figsize=(12, 4))
@@ -39,7 +42,7 @@ def generate_plots(df, output_dir="outputs"):
     plt.tight_layout()
     plt.savefig(f"{output_dir}/hip_angles.png", dpi=150)
     plt.close()
-    print(f"  Saved: {output_dir}/hip_angles.png")
+    log.info(f"Saved: {output_dir}/hip_angles.png")
 
     # 3. Ankle trajectory — proves the cyclic walking pattern
     fig, ax = plt.subplots(figsize=(10, 4))
@@ -52,7 +55,7 @@ def generate_plots(df, output_dir="outputs"):
     plt.tight_layout()
     plt.savefig(f"{output_dir}/ankle_trajectory.png", dpi=150)
     plt.close()
-    print(f"  Saved: {output_dir}/ankle_trajectory.png")
+    log.info(f"Saved: {output_dir}/ankle_trajectory.png")
 
     # 4. Symmetry summary bar chart
     metrics = ["Knee avg", "Knee min", "Hip avg", "Hip min"]
@@ -71,6 +74,6 @@ def generate_plots(df, output_dir="outputs"):
     plt.tight_layout()
     plt.savefig(f"{output_dir}/symmetry_summary.png", dpi=150)
     plt.close()
-    print(f"  Saved: {output_dir}/symmetry_summary.png")
+    log.info(f"Saved: {output_dir}/symmetry_summary.png")
 
-    print(f"\n  All 4 plots saved to {output_dir}/")
+    log.info(f"All 4 plots saved to {output_dir}/")

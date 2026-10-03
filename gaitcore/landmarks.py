@@ -1,6 +1,10 @@
+import logging
+
 import cv2
 import mediapipe as mp  # type: ignore[import-untyped]  # mediapipe 0.10.9 ships no stubs or py.typed
 import pandas as pd
+
+log = logging.getLogger(__name__)
 
 mp_pose = mp.solutions.pose
 
@@ -18,7 +22,7 @@ def extract_landmarks(video_path: str) -> pd.DataFrame:
 
     fps = cap.get(cv2.CAP_PROP_FPS)
     total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    print(f"  Video loaded: {total} frames at {fps:.1f} fps")
+    log.info(f"Video loaded: {total} frames at {fps:.1f} fps")
 
     with mp_pose.Pose(min_detection_confidence=0.5) as pose:
         idx = 0
@@ -42,5 +46,5 @@ def extract_landmarks(video_path: str) -> pd.DataFrame:
             idx += 1
 
     cap.release()
-    print(f"  Done: landmarks extracted from {len(rows)}/{total} frames")
+    log.info(f"Done: landmarks extracted from {len(rows)}/{total} frames")
     return pd.DataFrame(rows)

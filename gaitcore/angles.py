@@ -1,5 +1,9 @@
+import logging
+
 import numpy as np
 import pandas as pd
+
+log = logging.getLogger(__name__)
 
 Point = tuple[float, float]
 
@@ -41,12 +45,12 @@ def shoulder_tilt(row: "pd.Series[float]") -> float:
 
 
 def add_all_angles(df: pd.DataFrame) -> pd.DataFrame:
-    print("  Calculating joint angles...")
+    log.info("Calculating joint angles...")
     df = df.copy()
     df["knee_L"] = df.apply(knee_angle_L, axis=1)
     df["knee_R"] = df.apply(knee_angle_R, axis=1)
     df["hip_L"] = df.apply(hip_angle_L, axis=1)
     df["hip_R"] = df.apply(hip_angle_R, axis=1)
     df["shoulder_tilt"] = df.apply(shoulder_tilt, axis=1)
-    print(f"  Done: 5 angles calculated for {len(df)} frames")
+    log.info(f"Done: 5 angles calculated for {len(df)} frames")
     return df
