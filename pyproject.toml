@@ -18,7 +18,8 @@ dependencies = [
     # data
     "sqlalchemy>=2.0.43",
     "alembic>=1.16",
-    "psycopg2-binary>=2.9.10",
+    # SQLAlchemy 2.1 maps postgresql:// to psycopg 3
+    "psycopg[binary]>=3.2",
     # analysis (gaitcore)
     "mediapipe==0.10.9",
     "protobuf>=3.20.3,<4",
