@@ -1,5 +1,7 @@
+from collections.abc import Iterator
+
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from app.core.config import settings
 
@@ -9,10 +11,13 @@ engine = create_engine(
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
 
 
-def get_db():
+class Base(DeclarativeBase):
+    pass
+
+
+def get_db() -> Iterator[Session]:
     db = SessionLocal()
     try:
         yield db
