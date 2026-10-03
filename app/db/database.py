@@ -7,6 +7,7 @@ from app.core.config import settings
 
 engine = create_engine(
     settings.database_url,
+    hide_parameters=True,  # bound values (password hashes, emails) never enter exception text or logs
     connect_args={"check_same_thread": False} if settings.database_url.startswith("sqlite") else {},
 )
 
