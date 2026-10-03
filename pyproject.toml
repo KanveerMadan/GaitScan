@@ -21,8 +21,8 @@ dependencies = [
     # SQLAlchemy 2.1 maps postgresql:// to psycopg 3
     "psycopg[binary]>=3.2",
     # analysis (gaitcore)
-    "mediapipe==0.10.9",
-    "protobuf>=3.20.3,<4",
+    # Same release as @mediapipe/tasks-vision 1.0.1 (Tasks PoseLandmarker; model pinned in gaitcore/model.py)
+    "mediapipe==1.0.1",
     "opencv-python-headless>=4.12",
     "numpy>=2.0",
     "pandas>=2.2",
@@ -54,6 +54,13 @@ dev = [
 
 [tool.uv]
 package = false
+# mediapipe 1.0.1 declares the GUI build opencv-contrib-python (needs libGL) and sounddevice
+# (PortAudio, audio tasks only). The pose Tasks API needs neither: cv2 comes from
+# opencv-python-headless above. A never-true marker removes them from the lock.
+override-dependencies = [
+    "opencv-contrib-python; sys_platform == 'never'",
+    "sounddevice; sys_platform == 'never'",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -99,3 +106,8 @@ no_implicit_reexport = true
 strict_equality = true
 warn_return_any = true
 extra_checks = true
+
+# mediapipe 1.0.1 ships neither stubs nor py.typed.
+[[tool.mypy.overrides]]
+module = "mediapipe.*"
+ignore_missing_imports = true

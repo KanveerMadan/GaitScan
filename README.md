@@ -54,6 +54,7 @@ Requires Python 3.11 and [uv](https://docs.astral.sh/uv/).
 
 ```bash
 uv sync                          # creates .venv from uv.lock
+uv run python gaitcore/model.py fetch   # pinned pose model (9.4 MB, SHA-256 checked) -> gaitcore/models/
 cp .env.example .env             # ENV=dev works without further edits
 uv run alembic upgrade head      # creates/updates the database (SQLite in dev)
 uv run uvicorn app.main:app --reload --env-file .env
@@ -69,6 +70,10 @@ uv run pytest _audit/tests       # audit spec: expected failures until Phase 2
 uv run ruff check . && uv run ruff format --check . && uv run mypy
 uv run pre-commit install        # run the same checks on every commit (needs git >= 2.35)
 ```
+
+Pose extraction on **macOS arm64** aborts inside mediapipe 1.0.1 (a Metal-only calculator,
+"Service is unavailable", even with the CPU delegate). Run anything that decodes video in the Docker
+image (Linux, CPU), which is also what production runs. Tests use synthetic landmarks and run anywhere.
 
 ### Docker
 ```bash

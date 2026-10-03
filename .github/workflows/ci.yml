@@ -39,13 +39,9 @@ jobs:
       - name: Test (SQLite + Postgres)
         run: uv run pytest -q
       - name: Dependency audit
-        # Ignored until Phase 2 upgrades mediapipe (0.10.9 pins protobuf<4).
-        # PYSEC-2026-1805 / -1806: protobuf parsing DoS on untrusted input; we only
-        # parse MediaPipe's own bundled model data. REMOVE both ignores in Phase 2.
         run: |
           uv export --frozen --no-dev --no-hashes --no-emit-project -o requirements-audit.txt
-          uvx pip-audit -r requirements-audit.txt --disable-pip --no-deps \
-            --ignore-vuln PYSEC-2026-1805 --ignore-vuln PYSEC-2026-1806
+          uvx pip-audit -r requirements-audit.txt --disable-pip --no-deps
 
   docker:
     runs-on: ubuntu-24.04
