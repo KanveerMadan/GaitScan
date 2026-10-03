@@ -1,0 +1,23 @@
+$ TEST_POSTGRES_URL=postgresql://…@localhost:55432/gaitscan_test uv run pytest -q
+........................................................................ [ 60%]
+...............................................                          [100%]
+119 passed in 52.43s
+
+$ uv run pytest -q _audit/tests   (audit spec; failures expected until Phase 2)
+E         comparison failed
+E         comparison failed
+E         comparison failed
+E         comparison failed
+FAILED _audit/tests/test_angles_audit.py::test_degenerate_points_should_be_nan
+FAILED _audit/tests/test_angles_audit.py::test_aspect_ratio_preserves_angle_on_portrait_video
+FAILED _audit/tests/test_angles_audit.py::test_shoulder_tilt_level_shoulders_facing_either_way
+FAILED _audit/tests/test_angles_audit.py::test_cadence_reports_steps_per_minute
+FAILED _audit/tests/test_angles_audit.py::test_cadence_robust_to_jitter[6]
+FAILED _audit/tests/test_angles_audit.py::test_healthy_walker_classified_walking
+FAILED _audit/tests/test_angles_audit.py::test_symmetry_index_detects_halved_knee_rom
+7 failed, 11 passed in 2.91s
+
+$ uv run ruff check . && uv run ruff format --check . && uv run mypy
+All checks passed!
+47 files already formatted
+Success: no issues found in 26 source files

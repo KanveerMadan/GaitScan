@@ -1,0 +1,39 @@
+$ npx vitest run --reporter verbose
+ ✓ src/App.test.jsx > login never stores the password in the browser 184ms
+ ✓ src/App.test.jsx > purges plaintext credentials saved by earlier versions 8ms
+ ✓ src/App.test.jsx > registration offers no role choice and sends no role 47ms
+ ✓ src/App.test.jsx > never logs the bearer token 36ms
+ ✓ src/App.test.jsx > shows the not-a-medical-device disclaimer before and after sign-in 24ms
+ ✓ src/App.test.jsx > upload screen gives the capture protocol, not 'any angle' 16ms
+ ✓ src/App.test.jsx > results show a measurement summary without a risk score 33ms
+ ✓ src/App.test.jsx > report download is an authenticated request 57ms
+ ✓ src/App.test.jsx > history shows no risk score 106ms
+ ✓ src/App.test.jsx > clinician dashboard shows no risk score or attention flag 14ms
+ ✓ src/App.test.jsx > an expired session (401) signs the user out 29ms
+ ✓ src/App.test.jsx > requests go to the configured API base URL 30ms
+ ✓ src/App.test.jsx > registration asks for at least 10 characters 9ms
+ ✓ src/App.test.jsx > 429 without a message body still tells the user when to retry 16ms
+ ✓ src/App.test.jsx > 429 shows the server's message when it has one 14ms
+ ✓ src/App.test.jsx > validation errors with a list detail show a message instead of crashing 13ms
+ ✓ src/App.test.jsx > change-password form posts current and new password 75ms
+ ✓ src/App.test.jsx > change-password form shows the server's rejection 65ms
+ Test Files  1 passed (1)
+      Tests  18 passed (18)
+
+$ npx eslint . --max-warnings 0 && npx prettier --check . && npx tsc --noEmit
+eslint: 0 problems
+All matched files use Prettier code style!
+tsc: ok
+
+$ npm audit (before = audit F11 record on react-scripts 5 + axios 1.14.0)
+before: 48 vulnerabilities (2 critical, 23 high)
+after (all deps):  {'info': 0, 'low': 0, 'moderate': 0, 'high': 0, 'critical': 0, 'total': 0}
+after (--omit=dev): {'info': 0, 'low': 0, 'moderate': 0, 'high': 0, 'critical': 0, 'total': 0}
+
+$ VITE_API_BASE_URL=http://localhost:18000 npm run build
+dist/index.html                   0.79 kB │ gzip:   0.43 kB
+dist/assets/index-DYPFnrYA.css    0.29 kB │ gzip:   0.22 kB
+dist/assets/index-cGf1EvMb.js   660.80 kB │ gzip: 194.62 kB
+✓ built in 238ms
+$ npx vite build   (no VITE_API_BASE_URL)
+Error: VITE_API_BASE_URL must be set for production builds (see .env.example).

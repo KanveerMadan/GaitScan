@@ -1,0 +1,13 @@
+## docker run gaitscan-api:phase1 against postgres:16 seeded with legacy 'early' create_all schema
+healthz: {"status":"ok"} 200
+docs: 404
+alembic_version|0002
+rows|2|1|1|1|1|1
+users.role type|character varying
+register: ok (token received)
+me: 200
+analyze (synthetic blank video, no person): {"detail":"Could not detect a person in the video."} 400
+22 bad logins, rotating spoofed leftmost XFF: 401 401 401 401 401 401 401 401 401 401 401 401 401 401 401 401 401 401 401 401 429 429 
+different real client afterwards: 401
+error lines in container log: 0
+bcrypt hashes in container log: 0
