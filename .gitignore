@@ -79,3 +79,4 @@ data/processed/
 _audit/sandbox/
 _audit/.venv/
 _audit/fe_build/
+requirements-audit.txt
