@@ -41,7 +41,7 @@ def _per_leg(values: dict[str, list[float]], unit: str, digits: int, centre: str
 def metrics_from_walk(walk: Walk) -> dict[str, Any]:
     m: dict[str, Any] = {
         "cadence": {"value": round(walk.cadence, 1), "n": len(walk.step_times), "unit": "steps/min"},
-        "step_time": _summary(walk.step_times, "s", 3, "mean"),
+        "step_time": {**_summary(walk.step_times, "s", 3, "mean"), "value": round(walk.mean_step_time, 3)},
         "stride_time": _per_leg(walk.stride_times, "s", 3, "mean"),
         "peak_knee_flexion": _per_leg(walk.knee_peak_flexion, "deg", 1, "median"),
         "hip_sagittal_excursion": _per_leg(walk.hip_excursion, "deg", 1, "median"),

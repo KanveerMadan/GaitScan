@@ -4,7 +4,7 @@
    "cadence": {
     "n": 9,
     "unit": "steps/min",
-    "value": 110.2
+    "value": 109.1
    },
    "hip_sagittal_excursion": {
     "left": {
@@ -44,7 +44,7 @@
     "n": 9,
     "sd": 0.017,
     "unit": "s",
-    "value": 0.544
+    "value": 0.55
    },
    "stride_time": {
     "left": {
@@ -201,7 +201,7 @@
    "cadence": {
     "n": 9,
     "unit": "steps/min",
-    "value": 110.2
+    "value": 109.6
    },
    "hip_sagittal_excursion": {
     "left": {
@@ -235,7 +235,7 @@
     "n": 9,
     "sd": 0.017,
     "unit": "s",
-    "value": 0.544
+    "value": 0.547
    },
    "stride_time": {
     "left": {
@@ -327,7 +327,7 @@
    "cadence": {
     "n": 9,
     "unit": "steps/min",
-    "value": 110.2
+    "value": 109.1
    },
    "hip_sagittal_excursion": {
     "left": {
@@ -361,7 +361,7 @@
     "n": 9,
     "sd": 0.017,
     "unit": "s",
-    "value": 0.544
+    "value": 0.55
    },
    "stride_time": {
     "left": {
@@ -583,7 +583,7 @@
    "cadence": {
     "n": 9,
     "unit": "steps/min",
-    "value": 110.2
+    "value": 109.1
    },
    "hip_sagittal_excursion": {
     "left": {
@@ -617,7 +617,7 @@
     "n": 9,
     "sd": 0.017,
     "unit": "s",
-    "value": 0.544
+    "value": 0.55
    },
    "stride_time": {
     "left": {

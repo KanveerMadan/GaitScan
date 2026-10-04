@@ -243,3 +243,14 @@ def test_result_has_units_quality_and_versions():
         assert key in q
     assert 0 < q["usable_frame_fraction"] <= 1
     assert not any(isinstance(v, float) and math.isnan(v) for v in q.values())
+
+
+def test_cadence_is_immune_to_a_constant_timing_offset_on_one_leg():
+    """Heel-strike timing errors can differ between the near and far leg (or after a knee change).
+    A constant offset d on one leg makes L->R steps t+d and R->L steps t-d; when a pass holds more of
+    one kind, a plain mean is biased. Averaging the two alternations cancels d exactly."""
+    from gaitcore.gait import Walk
+
+    w = Walk(fps=30.0, step_times=[0.6, 0.5, 0.6, 0.5, 0.6], step_ends=["R", "L", "R", "L", "R"])
+    assert w.cadence == pytest.approx(60 / 0.55)
+    assert w.mean_step_time == pytest.approx(0.55)

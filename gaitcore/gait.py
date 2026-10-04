@@ -81,6 +81,7 @@ class Walk:
     fps: float
     heel_strikes: dict[str, list[int]] = field(default_factory=lambda: {"L": [], "R": []})
     step_times: list[float] = field(default_factory=list)
+    step_ends: list[str] = field(default_factory=list)  # foot whose strike ends each step
     stride_times: dict[str, list[float]] = field(default_factory=lambda: {"L": [], "R": []})
     knee_peak_flexion: dict[str, list[float]] = field(default_factory=lambda: {"L": [], "R": []})
     hip_excursion: dict[str, list[float]] = field(default_factory=lambda: {"L": [], "R": []})
@@ -88,9 +89,26 @@ class Walk:
     step_length_times: list[float] = field(default_factory=list)  # step times of the measured lengths
 
     @property
+    def mean_step_time(self) -> float:
+        """Mean step time, balanced over the two alternations (steps ending on L, steps ending on R).
+
+        A constant heel-strike timing offset d on one leg (e.g. a different event bias for the near
+        and far leg) makes one alternation t+d and the other t-d. When a pass holds more of one kind,
+        a plain mean is biased; the mean of the two alternation means cancels d exactly."""
+        if not self.step_times:
+            return math.nan
+        times = np.asarray(self.step_times)
+        ends = np.asarray(self.step_ends) if len(self.step_ends) == len(times) else np.array([])
+        by_end = [times[ends == s] for s in ("L", "R")] if len(ends) else []
+        if len(by_end) == 2 and all(len(t) for t in by_end):
+            return float((by_end[0].mean() + by_end[1].mean()) / 2)
+        return float(times.mean())
+
+    @property
     def cadence(self) -> float:
-        """Steps per minute over all valid steps."""
-        return 60.0 / float(np.mean(self.step_times)) if self.step_times else math.nan
+        """Steps per minute: 60 / the balanced mean step time."""
+        t = self.mean_step_time
+        return 60.0 / t if math.isfinite(t) else math.nan
 
     @property
     def speed_m_s(self) -> float | None:
@@ -137,6 +155,7 @@ def measure_walk(
             if s0 == s1 or not (STEP_S_RANGE[0] <= dt <= STEP_S_RANGE[1]):
                 continue
             walk.step_times.append(dt)
+            walk.step_ends.append(s1)
             if calibration is not None and walk.step_lengths_m is not None:
                 nxt = events[k + 1][0] if k + 1 < len(events) else min(seg.end, f1 + (f1 - f0))
                 p_new = _floor_position(tracks, s1, f1, nxt, calibration)
