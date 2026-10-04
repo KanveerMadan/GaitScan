@@ -1,0 +1,3 @@
+# Frontend 69ae1d5
+      Tests  20 passed (20)
+npm audit --omit=dev --audit-level=high: found 0 vulnerabilities

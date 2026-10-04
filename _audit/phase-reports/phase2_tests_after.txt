@@ -1,0 +1,35 @@
+# Phase 2 backend tests (SQLite) 05578e9
+
+158 passed, 1 skipped (after the F14 lock commit; 157 before it)
+
+# Postgres 16 (docker postgres:16)
+161 passed, 3 warnings in 53.42s
+
+# Audit spec (_audit/tests, amended a7efac2)
+PASSED _audit/tests/test_angles_audit.py::test_angle_known_values[A0-B0-C0-90.0]
+PASSED _audit/tests/test_angles_audit.py::test_angle_known_values[A1-B1-C1-180.0]
+PASSED _audit/tests/test_angles_audit.py::test_angle_known_values[A2-B2-C2-0.0]
+PASSED _audit/tests/test_angles_audit.py::test_angle_known_values[A3-B3-C3-45.0]
+PASSED _audit/tests/test_angles_audit.py::test_angle_known_values[A4-B4-C4-120.0]
+PASSED _audit/tests/test_angles_audit.py::test_arccos_domain_is_clipped
+PASSED _audit/tests/test_angles_audit.py::test_returns_degrees_not_radians
+PASSED _audit/tests/test_angles_audit.py::test_y_axis_inversion_does_not_change_unsigned_angle
+PASSED _audit/tests/test_angles_audit.py::test_degenerate_points_should_be_nan
+PASSED _audit/tests/test_angles_audit.py::test_left_knee_uses_mediapipe_left_indices
+PASSED _audit/tests/test_angles_audit.py::test_hip_angle_is_trunk_thigh_not_hip_flexion
+PASSED _audit/tests/test_angles_audit.py::test_aspect_ratio_preserves_angle_on_portrait_video
+PASSED _audit/tests/test_angles_audit.py::test_shoulder_tilt_level_shoulders_facing_either_way
+PASSED _audit/tests/test_angles_audit.py::test_cadence_reports_steps_per_minute
+PASSED _audit/tests/test_angles_audit.py::test_cadence_robust_to_jitter[3]
+PASSED _audit/tests/test_angles_audit.py::test_cadence_robust_to_jitter[6]
+PASSED _audit/tests/test_angles_audit.py::test_healthy_walker_measured_without_activity_label
+PASSED _audit/tests/test_angles_audit.py::test_halved_knee_rom_shows_in_per_leg_peak_flexion
+18 passed, 1 warning in 2.51s
+
+# Lint/types
+All checks passed!
+55 files already formatted
+Success: no issues found in 32 source files
+
+# pip-audit (no ignores)
+No known vulnerabilities found

@@ -6,7 +6,7 @@ Source of truth for which phase is next. Plan of record: [REBUILD_PLAN_V3.md](RE
 |---|---|
 | 0 — Stop the bleeding | done (merged to `main` via PR #1 in both repos; not deployed) |
 | 1 — Foundations | done (pushed; not merged; not deployed; Render auto-deploy off) |
-| 2 — Measurement correctness | in progress |
+| 2 — Measurement correctness | done (pushed; not merged; one criterion not met: walk01 rejected) |
 | 3 — Honest results | todo |
 | 4 — Usability | todo |
 | 5 — Privacy & close-out | todo |
@@ -97,9 +97,16 @@ Phase numbering changed on 2026-10-03. V1 Phases 0–1 keep their numbers and hi
 - Next (written under V1): Phase 2 — Measurement core v2. Superseded by V3 Phase 2 (same first task: upgrade mediapipe and remove the two protobuf ignores from backend CI).
 
 ## Phase 2 — Measurement correctness
-- Status: **in progress** (started 2026-10-03)
-- Branches: backend and frontend `rebuild/phase-2-measurement`, **stacked on `rebuild/phase-1-foundations`** (Phase 1 is not merged into `origin/main`; checked with `git fetch` on 2026-10-03).
+- Status: **done** (2026-10-04) · report: [phase-reports/PHASE_2.md](phase-reports/PHASE_2.md)
+- Branches: backend and frontend `rebuild/phase-2-measurement`, **stacked on `rebuild/phase-1-foundations`** (Phase 1 not merged into `origin/main`; checked with `git fetch` on 2026-10-03). Pushed; not merged; not deployed.
 - Starting state: backend 116 passed, 1 skipped; audit spec 7 failed / 11 passed; frontend 18 passed.
+- End state: backend 158 passed, 1 skipped (SQLite), 161 passed (Postgres 16); audit spec 18/18 (amended, approved); frontend 20 passed; pip-audit clean with no ignores; security probe 15/16.
+- **Not met:** walk01's usable segments accepted. walk01 has no complete step in any pass under the measurement rules, so it is rejected (`too_little_walking`); the rule was kept. Human action 1 in the report.
+- Deviations (details in the report): audit spec amended (owner-approved, `a7efac2`); per-landmark out-of-frame exclusion; balanced cadence mean; `/analyze` moved to the thread pool with a one-run lock (small slices of Phase 4).
+- Findings closed: F11 (protobuf), F23, F24, F25, F26, F27, F28, F29, F30, F31, F32, F33, F34, F35, F37, F42, F15 (report from the stored result). Partial: F13 (no event-loop stall; the background task is Phase 4), F14 (one run at a time; downscaling is Phase 4), F06 (LLM removed entirely; consent/deletion are Phase 5).
+- Backend commits: `2ddd461` plan V3 · `a7efac2` audit spec amendment · `21ec11f` MediaPipe 1.0.1 · `8f0ec4d` core tests · `3f9eae5` core · `3d99bc8` short-pass fixes · `31ac84f` migration tests · `82df61b` API/DB switch and removal · `437a0f1` audit spec port · `d201767` balanced cadence · `05578e9` probes · `596f82e`/`56347cf` one run at a time · (next) Phase 2 report.
+- Frontend commits: `8a73cc1` tests · `03286dd` v2 UI · `69ae1d5` README.
+- Next: Phase 3 — Honest results. First task: download and inspect the OpenCap lab data; stop and report if it can't support a sagittal comparison.
 
 ## Phase 3 — Honest results
 - Status: todo
