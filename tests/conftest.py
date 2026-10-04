@@ -22,8 +22,6 @@ os.environ.update(
         "CORS_ORIGINS": "http://localhost:3000",
     }
 )
-os.environ.pop("GROQ_API_KEY", None)
-os.environ.pop("ENABLE_LLM_EXPLANATIONS", None)
 
 
 def migrate(url, rev="head"):
@@ -111,61 +109,86 @@ def link(clinician_email, patient_email):
         db.close()
 
 
-def seed_session(owner_email, legacy_text=False):
-    """Insert a finished analysis directly (no video needed). legacy_text mimics rows
-    written before Phase 0, which carry diagnostic wording."""
-    from app.db.database import SessionLocal
-    from app.db.models import Exercise, Finding, Session
+def seed_session(owner_email, legacy=False, legacy_text=False):
+    """Insert a stored analysis directly (no video needed).
 
+    Default: a v2 session whose result is the pipeline's output for the synthetic walker.
+    legacy=True: a row as migration 0003 leaves pre-V3 sessions (pipeline_version 'legacy', old values
+    only in session_archive). legacy_text adds the diagnostic wording rows written before Phase 0 had.
+    """
+    from synthetic import synthetic_clip
+
+    from app.db.database import SessionLocal
+    from app.db.models import Session, SessionArchive
+    from gaitcore.pipeline import analyse
+
+    legacy = legacy or legacy_text
     sid = str(uuid.uuid4())
     db = SessionLocal()
     try:
-        db.add(
-            Session(
-                id=sid,
-                patient_name="Test Patient",
-                user_id=db_user(owner_email),
-                activity="Limping" if legacy_text else "Walking",
-                confidence=70,
-                risk_score=80 if legacy_text else 15,
-                risk_label="Serious abnormality" if legacy_text else "x",
-                risk_color="red",
-                risk_meaning=(
-                    "Serious gait issues detected. Please consult a doctor or physiotherapist soon."
-                    if legacy_text
-                    else "x"
-                ),
-                cadence=100.0,
-                knee_si=12.0,
-                hip_si=4.0,
-                knee_flex_L=55.0,
-                knee_flex_R=50.0,
+        if not legacy:
+            result = analyse(synthetic_clip()[0]).to_dict()
+            db.add(
+                Session(
+                    id=sid,
+                    patient_name="Test Patient",
+                    user_id=db_user(owner_email),
+                    pipeline_version=result["pipeline_version"],
+                    result=result,
+                )
             )
-        )
-        db.add(
-            Finding(
-                session_id=sid,
-                metric="Knee Symmetry",
-                value="12.0%",
-                status="mild",
-                plain_english=(
-                    "which can cause long-term joint damage and pain."
-                    if legacy_text
-                    else "Left and right knee motion differed by 12%."
-                ),
+        else:
+            db.add(
+                Session(
+                    id=sid,
+                    patient_name="Test Patient",
+                    user_id=db_user(owner_email),
+                    pipeline_version="legacy",
+                )
             )
-        )
-        db.add(
-            Exercise(
-                session_id=sid,
-                name="Glute bridge",
-                muscle="Glutes",
-                difficulty="Easy",
-                instructions="Lie on back.",
-                why="Reduces your injury risk & keeps L<R balance" if legacy_text else "Builds hip strength.",
+            db.flush()
+            db.add(
+                SessionArchive(
+                    session_id=sid,
+                    source="test",
+                    data={
+                        "session": {
+                            "activity": "Limping" if legacy_text else "Walking",
+                            "risk_score": 80 if legacy_text else 15,
+                            "risk_label": "Serious abnormality" if legacy_text else "x",
+                            "risk_meaning": "Serious gait issues detected. Please consult a doctor."
+                            if legacy_text
+                            else "x",
+                            "cadence": 100.0,
+                            "knee_si": 12.0,
+                        },
+                        "findings": [
+                            {
+                                "metric": "Knee Symmetry",
+                                "plain_english": "which can cause long-term joint damage and pain.",
+                            }
+                        ],
+                        "exercises": [{"name": "Glute bridge", "why": "Reduces your injury risk"}],
+                    },
+                )
             )
-        )
         db.commit()
     finally:
         db.close()
     return sid
+
+
+def fake_video(monkeypatch, info=None, **clip_kwargs):
+    """Skip decoding and MediaPipe: any upload 'is' a 30 fps video whose landmarks are the
+    synthetic walker (tests/synthetic.py) built with `clip_kwargs`."""
+    from synthetic import synthetic_clip
+
+    import app.api.analysis as m
+    from gaitcore.pipeline import VideoInfo
+
+    clip, truth = synthetic_clip(**clip_kwargs)
+    monkeypatch.setattr(
+        m, "probe", lambda path: info or VideoInfo(clip.fps, clip.n_frames, clip.width, clip.height)
+    )
+    monkeypatch.setattr(m, "extract_clip", lambda path: clip)
+    return clip, truth

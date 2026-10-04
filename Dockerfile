@@ -31,7 +31,7 @@ COPY alembic ./alembic
 COPY gaitcore ./gaitcore
 COPY app ./app
 
-RUN useradd --create-home --uid 10001 app && mkdir -p data outputs && chown app:app data outputs
+RUN useradd --create-home --uid 10001 app && mkdir -p data && chown app:app data
 USER app
 
 EXPOSE 8000

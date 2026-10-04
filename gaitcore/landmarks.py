@@ -29,45 +29,6 @@ def _options() -> PoseLandmarkerOptions:
     )
 
 
-def extract_landmarks(video_path: str) -> pd.DataFrame:
-    rows: list[dict[str, float]] = []
-    cap = cv2.VideoCapture(video_path)
-
-    if not cap.isOpened():
-        raise VideoReadError(f"Cannot open video: {video_path}")
-
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    log.info(f"Video loaded: {total} frames at {fps:.1f} fps")
-
-    with PoseLandmarker.create_from_options(_options()) as landmarker:
-        idx = 0
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
-
-            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
-            # VIDEO mode needs strictly increasing timestamps in ms.
-            result = landmarker.detect_for_video(image, round(idx * 1000 / fps))
-
-            if result.pose_landmarks:
-                row: dict[str, float] = {"frame": idx, "time_s": round(idx / fps, 4)}
-                for i, lm in enumerate(result.pose_landmarks[0]):
-                    row[f"lm{i}_x"] = round(lm.x, 6)
-                    row[f"lm{i}_y"] = round(lm.y, 6)
-                    row[f"lm{i}_z"] = round(lm.z, 6)
-                    row[f"lm{i}_vis"] = round(lm.visibility, 4)
-                rows.append(row)
-
-            idx += 1
-
-    cap.release()
-    log.info(f"Done: landmarks extracted from {len(rows)}/{total} frames")
-    return pd.DataFrame(rows)
-
-
 def extract_clip(video_path: str) -> Clip:
     """Every decoded frame -> one landmark row (NaN when nobody is detected), plus `n_poses`, the
     number of people found (up to 2: enough to know the frame is ambiguous)."""

@@ -1,6 +1,7 @@
 """Pose landmarks -> quality gate -> steady passes -> events -> measurements (ADR-006)."""
 
 import math
+from dataclasses import dataclass
 
 import cv2
 
@@ -61,27 +62,55 @@ def analyse(clip: Clip, calibration: Calibration | None = None) -> AnalysisResul
     return AnalysisResult(status="accepted", metrics=metrics_from_walk(walk), quality=q)
 
 
-def analyse_video(path: str, calibration: Calibration | None = None) -> AnalysisResult:
-    """Reject too-short or low-frame-rate files before running the pose model on them."""
-    from gaitcore.landmarks import VideoReadError, extract_clip
+@dataclass(frozen=True)
+class VideoInfo:
+    fps: float
+    frames: int
+    width: int
+    height: int
+
+    @property
+    def duration_s(self) -> float:
+        return self.frames / self.fps
+
+
+def probe(path: str) -> VideoInfo:
+    """Container metadata, without decoding. Raises VideoReadError for unreadable files."""
+    from gaitcore.landmarks import VideoReadError
 
     cap = cv2.VideoCapture(path)
     if not cap.isOpened():
         raise VideoReadError(f"Cannot open video: {path}")
-    fps = float(cap.get(cv2.CAP_PROP_FPS) or 0.0)
-    frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
-    w, h = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    info = VideoInfo(
+        fps=float(cap.get(cv2.CAP_PROP_FPS) or 0.0),
+        frames=int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0),
+        width=int(cap.get(cv2.CAP_PROP_FRAME_WIDTH) or 0),
+        height=int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 0),
+    )
     cap.release()
-    if fps <= 0 or frames <= 0:
+    if info.fps <= 0 or info.frames <= 0:
         raise VideoReadError(f"No frames or frame rate in: {path}")
+    return info
+
+
+def precheck(info: VideoInfo) -> AnalysisResult | None:
+    """Reject too-short or low-frame-rate files before the pose model runs on them."""
     q: dict[str, object] = {
-        "fps": round(fps, 2),
-        "duration_s": round(frames / fps, 2),
-        "frames_total": frames,
+        "fps": round(info.fps, 2),
+        "duration_s": round(info.duration_s, 2),
+        "frames_total": info.frames,
     }
-    r = quality.too_short(frames / fps) or quality.low_frame_rate(fps)
-    if r:
-        return _rejected(r, q)
+    r = quality.too_short(info.duration_s) or quality.low_frame_rate(info.fps)
+    return _rejected(r, q) if r else None
+
+
+def analyse_video(path: str, calibration: Calibration | None = None) -> AnalysisResult:
+    from gaitcore.landmarks import extract_clip
+
+    info = probe(path)
+    early = precheck(info)
+    if early:
+        return early
     if calibration is not None:
-        calibration.check(w, h)
+        calibration.check(info.width, info.height)
     return analyse(extract_clip(path), calibration)

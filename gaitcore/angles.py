@@ -76,31 +76,3 @@ def knee_flexion(hip: Array, knee: Array, ankle: Array, direction: Array | float
     180 - interior angle when flexed; negative when the knee is hyperextended."""
     f = thigh_angle(hip, knee, direction) - segment_angle(knee, ankle, direction)
     return (f + 180.0) % 360.0 - 180.0
-
-
-def _legacy_angle(A: Point, B: Point, C: Point) -> float:
-    BA = np.array(A) - np.array(B)
-    BC = np.array(C) - np.array(B)
-    cos_a = np.dot(BA, BC) / (np.linalg.norm(BA) * np.linalg.norm(BC) + 1e-8)
-    return float(np.degrees(np.arccos(np.clip(cos_a, -1.0, 1.0))))
-
-
-def add_all_angles(df: pd.DataFrame) -> pd.DataFrame:
-    """Legacy (pre-V3) whole-clip angles on normalised coordinates, bit-for-bit as before.
-    Removed together with gaitcore.legacy."""
-
-    def ang(r: "pd.Series[float]", a: int, b: int, c: int) -> float:
-        return _legacy_angle(_p(r, a, None), _p(r, b, None), _p(r, c, None))
-
-    df = df.copy()
-    df["knee_L"] = df.apply(lambda r: ang(r, 23, 25, 27), axis=1)
-    df["knee_R"] = df.apply(lambda r: ang(r, 24, 26, 28), axis=1)
-    df["hip_L"] = df.apply(lambda r: ang(r, 11, 23, 25), axis=1)
-    df["hip_R"] = df.apply(lambda r: ang(r, 12, 24, 26), axis=1)
-    df["shoulder_tilt"] = df.apply(
-        lambda r: _legacy_angle(
-            _p(r, 11, None), _p(r, 12, None), (float(r["lm12_x"]) + 0.1, float(r["lm12_y"]))
-        ),
-        axis=1,
-    )
-    return df

@@ -3,8 +3,7 @@
 import glob
 
 import pytest
-from conftest import auth, register
-from synthetic import synthetic_landmarks
+from conftest import auth, fake_video, register
 
 
 @pytest.fixture
@@ -14,10 +13,8 @@ def token(client):
 
 @pytest.fixture
 def fake_pipeline(monkeypatch):
-    """Skip MediaPipe: return synthetic landmarks for any uploaded file."""
-    import app.api.analysis as m
-
-    monkeypatch.setattr(m, "extract_landmarks", lambda path: synthetic_landmarks())
+    """Skip decoding and MediaPipe: any upload yields the synthetic walker's landmarks."""
+    fake_video(monkeypatch)
 
 
 def leftovers():
@@ -63,7 +60,8 @@ def test_unexpected_error_is_generic_500_with_reference(client, token, monkeypat
     def boom(path):
         raise RuntimeError("internal detail /srv/app/secret-path")
 
-    monkeypatch.setattr(m, "extract_landmarks", boom)
+    fake_video(monkeypatch)
+    monkeypatch.setattr(m, "extract_clip", boom)
     before = set(leftovers())
     r = client.post("/analyze", headers=auth(token), files={"video": ("walk.mp4", b"x" * 64, "video/mp4")})
     assert r.status_code == 500

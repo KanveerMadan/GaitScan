@@ -1,157 +1,112 @@
-"""POST /analyze: synchronous upload -> analysis -> PDF (moves to a worker in Phase 3)."""
+"""POST /analyze: upload -> quality gate -> measurements (synchronous until Plan V3 Phase 4).
+
+A clip that fails the quality gate is not stored: the response is 422 with
+{"detail": {"code": ..., "message": ...}}, the message telling the user what to change.
+"""
 
 import logging
 import os
-import shutil
 import uuid
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session as DBSession
 
 from app.core.config import settings
+from app.core.copy import DISCLAIMER
 from app.core.security import get_current_user
 from app.db.database import get_db
-from app.db.models import Exercise, Finding, User
 from app.db.models import Session as SessionModel
-from app.services.exercises import get_exercise_prescription
-from app.services.plots import generate_plots
-from app.services.report_pdf import generate_pdf_report
-from gaitcore.activity import ActivityResult, classify_activity
-from gaitcore.angles import add_all_angles
-from gaitcore.landmarks import VideoReadError, extract_landmarks
-from gaitcore.legacy import DISCLAIMER, ScoringResult, calculate_risk_scores
+from app.db.models import User
+from app.schemas import AnalyzeResponse, Result
+from gaitcore.calibration import Calibration, CalibrationError
+from gaitcore.landmarks import VideoReadError, extract_clip
+from gaitcore.pipeline import analyse, precheck, probe
+from gaitcore.result import AnalysisResult
 
-VALID_MODES = {"Clinical", "Runner", "Athlete", "Elderly"}
 VIDEO_EXTENSIONS = (".mp4", ".mov", ".avi")
 
 log = logging.getLogger("gaitscan")
 router = APIRouter(tags=["analysis"])
 
 
-class AnalysisReport(ScoringResult):
-    activity: ActivityResult
-    exercises: list[dict[str, str]]
+def rejected(code: str, message: str) -> HTTPException:
+    return HTTPException(422, {"code": code, "message": message})
 
 
-@router.post("/analyze")
-async def analyze(
+def parse_calibration(values: list[float | None], distance_m: float | None) -> Calibration | None:
+    given = [*values, distance_m]
+    if all(v is None for v in given):
+        return None
+    if any(v is None for v in given):
+        raise rejected(
+            "bad_calibration",
+            "Floor calibration needs both points (calib_x1, calib_y1, calib_x2, calib_y2, in video pixels) "
+            "and the distance between them in metres (calib_distance_m).",
+        )
+    x1, y1, x2, y2 = (float(v) for v in values if v is not None)
+    return Calibration(x1, y1, x2, y2, float(distance_m or 0.0))
+
+
+def run_pipeline(path: str, calibration: Calibration | None) -> AnalysisResult:
+    info = probe(path)
+    result = precheck(info)
+    if result is None:
+        if calibration is not None:
+            calibration.check(info.width, info.height)
+        result = analyse(extract_clip(path), calibration)
+    return result
+
+
+@router.post("/analyze", response_model=AnalyzeResponse)
+def analyze(
     video: UploadFile = File(...),
     patient_name: str = Form("Anonymous"),
-    mode: str = Form("Clinical"),
+    calib_x1: float | None = Form(None),
+    calib_y1: float | None = Form(None),
+    calib_x2: float | None = Form(None),
+    calib_y2: float | None = Form(None),
+    calib_distance_m: float | None = Form(None),
     current_user: User = Depends(get_current_user),
     db: DBSession = Depends(get_db),
-):
+) -> AnalyzeResponse:
     ext = os.path.splitext((video.filename or "").lower())[1]
     if ext not in VIDEO_EXTENSIONS:
         raise HTTPException(400, "Only .mp4, .mov, .avi files accepted")
-
-    if mode not in VALID_MODES:
-        mode = "Clinical"
+    calibration = parse_calibration([calib_x1, calib_y1, calib_x2, calib_y2], calib_distance_m)
 
     job_id = str(uuid.uuid4())
     video_path = f"data/raw/{job_id}{ext}"
-    output_dir = f"outputs/{job_id}"
-    succeeded = False
-
     try:
         save_upload(video.file, video_path, settings.max_upload_bytes)
-        os.makedirs(output_dir, exist_ok=True)
         try:
-            df = extract_landmarks(video_path)
+            result = run_pipeline(video_path, calibration)
         except VideoReadError:
             raise HTTPException(
                 422, "We couldn't read this file as a video. Please upload an .mp4, .mov or .avi recording."
             ) from None
-        if len(df) < 10:
-            raise HTTPException(400, "Could not detect a person in the video.")
+        except CalibrationError as e:
+            raise rejected("bad_calibration", str(e)) from None
+        if not result.accepted:
+            assert result.rejection is not None
+            raise rejected(result.rejection.code, result.rejection.message)
 
-        df = add_all_angles(df)
-
-        activity_result = classify_activity(df)
-
-        scoring = calculate_risk_scores(df, activity=activity_result["activity"], mode=mode)
-        results = AnalysisReport(
-            **scoring,
-            activity=activity_result,
-            exercises=get_exercise_prescription(
-                scoring["findings"],
-                activity_result["activity"],
-                scoring["scores"],
-                scoring["risk_label"],
-                mode=mode,
-            ),
-        )
-
-        generate_plots(df, output_dir=output_dir)
-        pdf_path = f"{output_dir}/gaitscan_report.pdf"
-        generate_pdf_report(results, output_path=pdf_path, plots_dir=output_dir)
-
-        s = results["scores"]
-        session_row = SessionModel(
-            id=job_id,
-            patient_name=patient_name,
-            mode=mode,
-            user_id=current_user.id,
-            activity=activity_result["activity"],
-            confidence=int(activity_result.get("confidence", 0)),
-            risk_score=int(s.get("overall_risk_score", 0)),
-            risk_label=results["risk_label"],
-            risk_color=results["risk_color"],
-            risk_meaning=results["risk_meaning"],
-            cadence=float(s.get("cadence", 0)),
-            knee_si=float(s.get("knee_symmetry_index", 0)),
-            hip_si=float(s.get("hip_symmetry_index", 0)),
-            knee_flex_L=float(s.get("knee_flexion_range_L", 0)),
-            knee_flex_R=float(s.get("knee_flexion_range_R", 0)),
-        )
-        db.add(session_row)
-
-        for f in results["findings"]:
-            db.add(
-                Finding(
-                    session_id=job_id,
-                    metric=f["metric"],
-                    value=f["value"],
-                    status=f["status"],
-                    plain_english=f["plain_english"],
-                )
+        data = result.to_dict()
+        db.add(
+            SessionModel(
+                id=job_id,
+                patient_name=patient_name,
+                user_id=current_user.id,
+                pipeline_version=result.pipeline_version,
+                result=data,
             )
-
-        for ex in results["exercises"]:
-            db.add(
-                Exercise(
-                    session_id=job_id,
-                    name=ex["name"],
-                    muscle=ex["muscle"],
-                    difficulty=ex["difficulty"],
-                    instructions=ex["instructions"],
-                    why=ex["why"],
-                )
-            )
-
+        )
         db.commit()
-        succeeded = True
-
-        return JSONResponse(
-            {
-                "job_id": job_id,
-                "status": "success",
-                "mode": mode,
-                "mode_description": results.get("mode_description", ""),
-                "activity": results["activity"],
-                "risk_label": results["risk_label"],
-                "risk_meaning": results["risk_meaning"],
-                "risk_color": results["risk_color"],
-                "scores": results["scores"],
-                "findings": results["findings"],
-                "recommendations": results["recommendations"],
-                "exercises": results["exercises"],
-                "report_url": f"/report/{job_id}",
-                "disclaimer": DISCLAIMER,
-            }
+        return AnalyzeResponse(
+            job_id=job_id,
+            result=Result.model_validate(data),
+            report_url=f"/report/{job_id}",
+            disclaimer=DISCLAIMER,
         )
-
     except HTTPException:
         raise
     except Exception:
@@ -159,11 +114,9 @@ async def analyze(
         log.exception("analysis failed ref=%s job=%s", ref, job_id)
         raise HTTPException(500, f"Analysis failed due to an internal error. Reference: {ref}") from None
     finally:
-        # The raw video is never kept, whatever happened; partial outputs are dropped on failure.
+        # The raw video is never kept, whatever happened.
         if os.path.exists(video_path):
             os.remove(video_path)
-        if not succeeded:
-            shutil.rmtree(output_dir, ignore_errors=True)
 
 
 def save_upload(src, dest: str, limit: int) -> None:

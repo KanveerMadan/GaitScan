@@ -5,10 +5,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from app.api.sessions import session_out
 from app.core.security import get_current_user, require_clinician
 from app.db.database import get_db
 from app.db.models import ClinicianInvite, ClinicianPatient, User
-from app.services import display
+from app.db.models import Session as GaitSession
+from app.schemas import PatientRef, PatientSessions, PatientSummary
 
 router = APIRouter(tags=["clinician"])
 
@@ -71,82 +73,39 @@ def join_clinician(
     return {"message": "Successfully linked to your clinician"}
 
 
-@router.get("/clinician/patients")
+@router.get("/clinician/patients", response_model=list[PatientSummary])
 def get_patients(clinician: User = Depends(require_clinician), db: Session = Depends(get_db)):
-    from app.db.models import Session as GaitSession
-
     links = db.query(ClinicianPatient).filter(ClinicianPatient.clinician_id == clinician.id).all()
-
-    result: list[dict[str, object]] = []
+    result: list[PatientSummary] = []
     for link in links:
         patient = db.query(User).filter(User.id == link.patient_id).first()
         if not patient:
             continue
-
         sessions = (
             db.query(GaitSession)
             .filter(GaitSession.user_id == link.patient_id)
             .order_by(GaitSession.created_at.desc())
             .all()
         )
-
-        if not sessions:
-            result.append(
-                {
-                    "patient_id": patient.id,
-                    "name": patient.full_name or patient.email,
-                    "email": patient.email,
-                    "session_count": 0,
-                    "latest_risk": None,
-                    "latest_activity": None,
-                    "trend": [],
-                    "flag": False,
-                    "linked_since": link.created_at.isoformat() if link.created_at else None,
-                }
-            )
-            continue
-
-        latest = sessions[0]
-
-        trend = [
-            {"date": s.created_at.strftime("%d %b") if s.created_at else None, "risk": s.risk_score}
-            for s in reversed(sessions[:5])
-        ]
-
-        flag = False
-        if latest.risk_score and latest.risk_score > 50:
-            flag = True
-        if len(sessions) >= 3:
-            last3 = [s.risk_score for s in sessions[:3] if s.risk_score is not None]
-            if len(last3) == 3 and last3[0] > last3[1] > last3[2]:
-                flag = True
-
+        latest = sessions[0].created_at if sessions else None
         result.append(
-            {
-                "patient_id": patient.id,
-                "name": patient.full_name or patient.email,
-                "email": patient.email,
-                "session_count": len(sessions),
-                "latest_risk": latest.risk_score,
-                "latest_risk_color": display.summary(latest.risk_score)["risk_color"],
-                "latest_activity": display.activity(latest.activity),
-                "latest_knee_si": latest.knee_si,
-                "trend": trend,
-                "flag": flag,
-                "linked_since": link.created_at.isoformat() if link.created_at else None,
-            }
+            PatientSummary(
+                patient_id=patient.id,
+                name=patient.full_name or patient.email,
+                email=patient.email,
+                session_count=len(sessions),
+                latest_session_at=latest.isoformat() if latest else None,
+                linked_since=link.created_at.isoformat() if link.created_at else None,
+            )
         )
-
-    result.sort(key=lambda x: (not x["flag"], str(x["name"])))
+    result.sort(key=lambda p: p.name)
     return result
 
 
-@router.get("/clinician/patients/{patient_id}/sessions")
+@router.get("/clinician/patients/{patient_id}/sessions", response_model=PatientSessions)
 def get_patient_sessions(
     patient_id: int, clinician: User = Depends(require_clinician), db: Session = Depends(get_db)
 ):
-    from app.db.models import Session as GaitSession
-
     # verify this patient belongs to this clinician
     link = (
         db.query(ClinicianPatient)
@@ -165,20 +124,7 @@ def get_patient_sessions(
         .order_by(GaitSession.created_at.desc())
         .all()
     )
-
-    return {
-        "patient": {"id": patient.id, "name": patient.full_name or patient.email, "email": patient.email},
-        "sessions": [
-            {
-                "id": s.id,
-                "activity": display.activity(s.activity),
-                "risk_score": s.risk_score,
-                **display.summary(s.risk_score),
-                "knee_si": s.knee_si,
-                "hip_si": s.hip_si,
-                "cadence": s.cadence,
-                "created_at": s.created_at.isoformat() if s.created_at else None,
-            }
-            for s in sessions
-        ],
-    }
+    return PatientSessions(
+        patient=PatientRef(id=patient.id, name=patient.full_name or patient.email, email=patient.email),
+        sessions=[session_out(s) for s in sessions],
+    )

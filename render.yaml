@@ -23,5 +23,3 @@ services:
         value: "2"
       - key: SENTRY_DSN
         sync: false
-      - key: ENABLE_LLM_EXPLANATIONS
-        value: "false"

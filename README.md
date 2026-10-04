@@ -7,21 +7,29 @@ Video-based gait **measurement** API (FastAPI + MediaPipe Pose).
 > A qualified clinician should interpret any output.
 
 ## What it does today
-- Accepts a video upload (`.mp4`, `.mov`, `.avi`; size-capped), runs MediaPipe Pose on every frame
-  and deletes the raw video afterwards.
-- Computes 2D joint angles (knee, hip) and whole-clip summary measurements: knee/hip left–right
-  symmetry index, knee flexion range, cadence.
-- Compares them with mode-specific reference ranges (Clinical, Runner, Athlete, Elderly) and returns
-  per-metric findings worded as measurements, plus a PDF report.
-- Optional exercise suggestions from a fixed template list; LLM phrasing via Groq is **off** unless
-  `ENABLE_LLM_EXPLANATIONS=true` (it sends the measurement summary to Groq).
+- Accepts a side-view walking video (`.mp4`, `.mov`, `.avi`; size-capped), runs the MediaPipe pose
+  model (pinned `pose_landmarker_full` float16/1, MediaPipe 1.0.1) and deletes the raw video afterwards.
+- Runs a **quality gate** first. A clip with more than one person, hidden feet, a rotated picture,
+  a non-side view, too little steady walking, under 24 fps or under 3 s gets no numbers, only a
+  specific reason and what to change.
+- Measures, from the steady walking passes only (turns, standing and acceleration excluded):
+  - cadence (steps/min, from heel strikes of both feet), step time and stride time per leg (s);
+  - peak knee flexion per stride, per leg (deg, median ± SD);
+  - hip sagittal excursion per stride (thigh angle range, deg);
+  - step length (m) and walking speed (m/s) **only** when a floor calibration is given: two points
+    on the floor, a known distance apart, in video pixels (`calib_x1/y1/x2/y2`, `calib_distance_m`).
+- Every result carries units, a recording-quality block (frames used, steps and strides detected,
+  passes, frame rate) and the pipeline/model versions. A PDF is built from the stored result.
+- Not measured, by design (see `_audit/REBUILD_PLAN_V3.md` §2): any risk or composite score,
+  activity labels, left/right symmetry indices, ankle angles, frontal-plane angles, uncalibrated
+  distances, exercise suggestions. Sessions analysed before this version are listed as "legacy"
+  without measurements; their old values are archived, not shown.
 - Accounts with JWT auth, patient/clinician roles (clinicians are promoted by an admin, never
   self-assigned), invite codes linking patients to a clinician.
 
 ## Video capture protocol
-The current pipeline measures 2D angles in the image plane, so results are only meaningful for
-recordings that follow this protocol. Other views produce wrong numbers without warning until the
-Phase 2 quality gate lands.
+The pipeline measures 2D angles in the image plane, so results are only meaningful for recordings
+that follow this protocol. The quality gate rejects the clearest violations, not all of them.
 
 1. **Side view.** The camera points at a right angle to the walking direction. Frontal or diagonal
    views distort knee and hip angles (a true 60° reads as 45° at 45° yaw in our probe).
@@ -36,14 +44,16 @@ Phase 2 quality gate lands.
    **10 seconds** of walking, no turns in the clip.
 
 ## Known limitations
-- No accuracy figures exist for any metric yet: there is no ground truth or validation set (audit
-  F22, plan Phase 5).
-- Cadence counts threshold crossings of one knee and under-reads (synthetic 110 steps/min reads ~54);
-  angles are aspect-distorted on non-square frames; no visibility gating, smoothing or input quality
-  gate. All are fixed in **Phase 2** (ADR-006). The audit tests in `_audit/tests/` pin the expected
-  behaviour and fail until then.
-- Analysis runs synchronously inside the request (blocks the API for the clip's duration) and
-  artifacts live on local disk; both move to a worker + object storage in **Phase 3**.
+- **No accuracy figures yet.** The pipeline is checked against synthetic ground truth only; its error
+  against lab motion capture is measured in Plan V3 Phase 3 (audit F22). No error ranges are shown.
+- Side view, one person, steady overground walking only. Treadmill walking is not supported (the
+  pelvis must move across the frame).
+- The far leg is partly hidden in a side view; its values carry their own stride count and may be
+  missing.
+- A short pass across a narrow (portrait) frame may contain no complete step; such clips are
+  rejected as too little walking.
+- Analysis still runs inside the request (one at a time); Plan V3 Phase 4 makes it non-blocking.
+- On macOS arm64, MediaPipe 1.0.1 cannot run pose extraction (see Local setup); use Docker.
 
 ## Architecture
 See [docs/architecture.md](docs/architecture.md). In short: one deployable, two packages:
@@ -66,7 +76,7 @@ Open http://localhost:8000/docs (interactive docs are only served when `ENV=dev`
 ```bash
 uv run pytest                    # app tests (SQLite)
 TEST_POSTGRES_URL=postgresql://user:pass@localhost:5432/gaitscan_test uv run pytest  # + Postgres
-uv run pytest _audit/tests       # audit spec: expected failures until Phase 2
+uv run pytest _audit/tests       # audit spec (amended for V3; passes)
 uv run ruff check . && uv run ruff format --check . && uv run mypy
 uv run pre-commit install        # run the same checks on every commit (needs git >= 2.35)
 ```

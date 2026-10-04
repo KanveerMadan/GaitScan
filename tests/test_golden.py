@@ -1,9 +1,8 @@
-"""Golden test: the Phase 1 refactor must not change any analysis output.
+"""Golden test: pins the v2 pipeline's complete output on synthetic inputs.
 
-tests/golden/legacy_pipeline.json was generated from the pre-refactor code
-(commit f17025c, src/ layout) with `python tests/test_golden.py --regenerate`. Inputs are
-synthetic landmarks only. Regenerate ONLY for an intentional output change, and
-say so in the commit.
+tests/golden/v2_pipeline.json replaces legacy_pipeline.json (the legacy pipeline was removed in
+Plan V3 Phase 2). Regenerate ONLY for an intentional output change, and say so in the commit:
+    ENV=dev python tests/test_golden.py --regenerate
 """
 
 import json
@@ -11,59 +10,37 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-GOLDEN = os.path.join(HERE, "golden", "legacy_pipeline.json")
+GOLDEN = os.path.join(HERE, "golden", "v2_pipeline.json")
 sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.dirname(HERE))
 
-from synthetic import synthetic_landmarks  # noqa: E402
+from synthetic import synthetic_clip  # noqa: E402
 
-CASES = [(spm, ks) for spm in (60, 110, 170) for ks in (1.0, 0.3)]
-MODES = ["Clinical", "Runner", "Athlete", "Elderly"]
-ACTIVITIES = ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"]
-
-
-def _pipeline():
-    from app.services.exercises import _match_exercises
-    from gaitcore.activity import classify_activity
-    from gaitcore.angles import add_all_angles
-    from gaitcore.legacy import calculate_risk_scores
-
-    return add_all_angles, classify_activity, calculate_risk_scores, _match_exercises
-
-
-def _round(obj):
-    if isinstance(obj, float):
-        return round(obj, 6)
-    if isinstance(obj, dict):
-        return {k: _round(v) for k, v in obj.items()}
-    if isinstance(obj, (list, tuple)):
-        return [_round(v) for v in obj]
-    if hasattr(obj, "item"):  # numpy scalar
-        return _round(obj.item())
-    return obj
+CASES = {
+    "spm90": {"steps_per_min": 90, "passes": 4},
+    "spm110": {"steps_per_min": 110},
+    "spm125": {"steps_per_min": 125, "passes": 4},
+    "noise2px": {"noise_px": 2.0, "seed": 3},
+    "yaw15": {"yaw_deg": 15},
+    "two_people": {"people": 2},
+    "rotated90": {"rotate90": True},
+    "feet_hidden": {"feet_visibility": 0.2},
+    "frontal": {"yaw_deg": 90},
+    "few_steps": {"passes": 1, "pass_secs": 3.4},
+    "low_fps": {"fps": 15},
+    "short": {"passes": 1, "pass_secs": 2.5},
+}
 
 
 def compute():
-    add_all_angles, classify_activity, calculate_risk_scores, match = _pipeline()
-    out = {}
-    for spm, ks in CASES:
-        df = add_all_angles(synthetic_landmarks(steps_per_min=spm, knee_scale_R=ks))
-        key = f"spm={spm},knee_scale_R={ks}"
-        out[key] = {
-            "angle_means": {
-                c: float(df[c].mean()) for c in ("knee_L", "knee_R", "hip_L", "hip_R", "shoulder_tilt")
-            },
-            "activity": classify_activity(df),
-            "scoring": {
-                f"{mode}/{act}": calculate_risk_scores(df, activity=act, mode=mode)
-                for mode in MODES
-                for act in ACTIVITIES
-            },
-        }
-        out[key]["exercise_ids"] = {
-            k: [e["id"] for e in match(v["findings"], k.split("/")[1], k.split("/")[0])]
-            for k, v in out[key]["scoring"].items()
-        }
-    return _round(out)
+    from gaitcore.calibration import Calibration
+    from gaitcore.pipeline import analyse
+
+    out = {name: analyse(synthetic_clip(**kw)[0]).to_dict() for name, kw in CASES.items()}
+    clip, truth = synthetic_clip()
+    px = 4.0 / 0.9 * 200
+    out["calibrated"] = analyse(clip, Calibration(100, truth.floor_y, 100 + px, truth.floor_y, 4.0)).to_dict()
+    return json.loads(json.dumps(out))
 
 
 def test_analysis_output_matches_golden():
@@ -73,9 +50,8 @@ def test_analysis_output_matches_golden():
 
 
 if __name__ == "__main__" and "--regenerate" in sys.argv:
-    sys.path.insert(0, os.path.dirname(HERE))
     os.environ.setdefault("ENV", "dev")
     os.makedirs(os.path.dirname(GOLDEN), exist_ok=True)
     with open(GOLDEN, "w") as f:
-        json.dump(compute(), f, indent=1, sort_keys=True, ensure_ascii=False)
+        json.dump(compute(), f, indent=1, sort_keys=True)
     print("wrote", GOLDEN)

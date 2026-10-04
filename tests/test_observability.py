@@ -69,7 +69,10 @@ def test_exception_tracebacks_are_redacted(client, capfd, monkeypatch):
     def boom(path):
         raise RuntimeError("failure while processing bob@example.com")
 
-    monkeypatch.setattr(analysis, "extract_landmarks", boom)
+    from conftest import fake_video
+
+    fake_video(monkeypatch)
+    monkeypatch.setattr(analysis, "extract_clip", boom)
     _, t = register(client)
     client.post(
         "/analyze", headers={"Authorization": f"Bearer {t}"}, files={"video": ("v.mp4", b"x", "video/mp4")}

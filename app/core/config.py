@@ -27,7 +27,6 @@ class Settings(BaseModel):
     access_token_minutes: int = 12 * 60
     max_upload_mb: int = 100
     max_upload_bytes: int = 0  # derived from max_upload_mb
-    enable_llm_explanations: bool = False
     sentry_dsn: str = ""
     # Proxies in front of the app that append to X-Forwarded-For (see app/core/ratelimit.py).
     trusted_proxy_hops: int = 0
