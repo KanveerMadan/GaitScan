@@ -1,0 +1,15 @@
+true_knee_flexion | app-reported flexion at camera yaw 0/15/30/45/60/75/90 deg
+   10 deg          | [10.0, 9.7, 8.8, 7.3, 5.3, 2.8, 0.0]
+   30 deg          | [30.0, 29.0, 26.2, 21.5, 15.4, 8.0, 0.0]
+   60 deg          | [60.0, 58.4, 53.5, 45.1, 33.1, 17.6, 0.0]
+
+camera yaw | v2 quality gate on the synthetic walker (view ratio; status)
+   0 deg   | ratio 0.0 ; accepted  ; knee L 56.7
+  10 deg   | ratio 0.129 ; accepted  ; knee L 55.9
+  15 deg   | ratio 0.192 ; accepted  ; knee L 55.0
+  20 deg   | ratio 0.253 ; accepted  ; knee L 53.7
+  25 deg   | ratio 0.313 ; accepted  ; knee L 52.1
+  30 deg   | ratio 0.37 ; rejected not_side_view ; knee L None
+  40 deg   | ratio 0.476 ; rejected not_side_view ; knee L None
+  60 deg   | ratio 0.642 ; rejected not_side_view ; knee L None
+  90 deg   | ratio 0.741 ; rejected not_side_view ; knee L None

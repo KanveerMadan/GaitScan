@@ -1,0 +1,18 @@
+PASS  | F12 1-character password accepted at registration | 422
+PASS  | F03 register_self_assign_clinician | 201 role=patient
+PASS  | F04 plaintext_password_logged | ['{"method": "POST", "path": "/auth/register", "status": 422, "duration_ms": 5.1, "event": "request", "request_id": "66c4a3f0957a490f847f08557e7c35fc", "level": "info", "timestamp": "2026-10-04T07:28:06.076251Z"}', '{"event": "HTTP Request: POST http://testserver/auth/register \\"HTTP/1.1 422 Unprocessable Entity\\"", "level": "info", "timestamp": "2026-10-04T07:28:06.076804Z"}']
+FAIL  | F12 email_enumeration_via_register | 409 {'detail': 'Could not create an account with these details.'}
+v4    | _alice_session_seeded | upload rejected (422); synthetic v2 session 36-char id stored
+PASS  | F02 GET /sessions/{id} without auth returns another user's health data | 401 patient_name=None findings=0
+PASS  | F02 GET /report/{id} without auth returns PDF | 401 application/json 30 bytes
+PASS  | F01 forged JWT with committed secret impersonates any email | {'detail': 'Invalid or expired token'}
+PASS  | F01 forged JWT reads victim session list | 401 n=-
+PASS  | F03 /debug/links exposes other clinicians' links | {'detail': 'Not Found'}
+PASS  | F08 access token lifetime > 1 day | 0.5 days
+PASS  | F06/F07 non-video bytes left on disk | left on disk: []
+PASS  | F09 internal error detail returned to client | 422 {"detail":"We couldn't read this file as a video. Please upload an .mp4, .mov or .avi recording."}
+PASS  | F08 CORS allows arbitrary origins | access-control-allow-origin=None
+PASS  | F15 regenerated PDF reports wrong mode (Runner -> Clinical) | 'Runner' in pdf=False; 'Clinical Mode' in pdf=False
+PASS  | F40 patient name absent from PDF | 'Alice' in pdf=True
+PASS  | F10 no login rate limiting (30 bad attempts) | status codes: [401, 429]
+SUMMARY: 15/16 PASS, 1/16 FAIL
