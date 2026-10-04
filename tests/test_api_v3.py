@@ -149,3 +149,33 @@ def test_openapi_schema_has_no_removed_fields(client):
     from app.main import app
 
     assert not keys(app.openapi()) & REMOVED_KEYS
+
+
+def test_analyses_run_one_at_a_time(client, monkeypatch):
+    """F14: /analyze runs in FastAPI's thread pool (so health checks stay responsive), but two
+    pose-model runs at once would roughly double peak memory on a 512 MB instance."""
+    import threading
+    import time
+
+    import app.api.analysis as m
+
+    clip, _ = fake_video(monkeypatch)
+    active, peak, lock = [0], [0], threading.Lock()
+
+    def slow_extract(path):
+        with lock:
+            active[0] += 1
+            peak[0] = max(peak[0], active[0])
+        time.sleep(0.3)
+        with lock:
+            active[0] -= 1
+        return clip
+
+    monkeypatch.setattr(m, "extract_clip", slow_extract)
+    _, t = register(client)
+    threads = [threading.Thread(target=upload, args=(client, t)) for _ in range(3)]
+    for th in threads:
+        th.start()
+    for th in threads:
+        th.join()
+    assert peak[0] == 1
