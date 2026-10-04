@@ -68,7 +68,8 @@ addopts = "-p no:cacheprovider"
 [tool.ruff]
 line-length = 110
 target-version = "py311"
-extend-exclude = ["_audit", "alembic/versions"]
+# tests/test_audit_spec.py is a byte-identical copy of the audit spec (test_audit_spec_is_unchanged).
+extend-exclude = ["_audit", "alembic/versions", "tests/test_audit_spec.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "S", "T20"]
