@@ -6,6 +6,7 @@ A clip that fails the quality gate is not stored: the response is 422 with
 
 import logging
 import os
+import threading
 import uuid
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -26,6 +27,10 @@ from gaitcore.result import AnalysisResult
 VIDEO_EXTENSIONS = (".mp4", ".mov", ".avi")
 
 log = logging.getLogger("gaitscan")
+# One pose-model run per process: the handler runs in FastAPI's thread pool (health checks stay
+# responsive, F13), but parallel runs would multiply peak memory (~350-490 MB each, F14).
+# Plan V3 Phase 4 replaces this with a background task and a status endpoint.
+_PIPELINE_LOCK = threading.Lock()
 router = APIRouter(tags=["analysis"])
 
 
@@ -48,6 +53,11 @@ def parse_calibration(values: list[float | None], distance_m: float | None) -> C
 
 
 def run_pipeline(path: str, calibration: Calibration | None) -> AnalysisResult:
+    with _PIPELINE_LOCK:
+        return _run_pipeline(path, calibration)
+
+
+def _run_pipeline(path: str, calibration: Calibration | None) -> AnalysisResult:
     info = probe(path)
     result = precheck(info)
     if result is None:
