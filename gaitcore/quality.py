@@ -8,7 +8,7 @@ specific reason the user can act on. Checks run in this order; the first failure
 | no_person | a pose in < MIN_POSE_FRAMES frames | Nothing to measure. |
 | multiple_people | > MAX_MULTI_FRACTION (10%) of frames with a pose have 2+ people | Frames with 2+ people are always masked (we can't tell who is who); above 10% the walk is too fragmented. Design threshold. |
 | wrong_orientation | median trunk angle from vertical > MAX_TRUNK_TILT (45 deg) | Physical: an upright walker's trunk leans well under 45 deg; above it the video is rotated or the person is not upright. |
-| feet_not_visible | both heels and both ankles visible in < MIN_FEET_FRACTION (50%) of frames with a pose | Heel strikes need both heels. Design threshold, checked on the occluded-feet variant. |
+| feet_not_visible | both heels and both ankles visible in < MIN_FEET_FRACTION (50%) of the frames where the hips are in view | Heel strikes need both heels. Counted only while the person is in the picture, so walking out of frame is not mistaken for hidden feet. Design threshold. |
 | not_side_view | median shoulder width / trunk length > MAX_VIEW_RATIO (0.35) | Geometry: biacromial breadth / trunk length is ~0.90 in Winter's segment proportions (2009); MediaPipe's shoulder points sit inside the acromia, so ~0.8 is ASSUMED for the frontal ratio (to be checked on the Phase 3 multi-view data). At camera yaw a the ratio is ~0.8 sin a, so 0.35 = ~26 deg, about where a 60 deg knee flexion reads 5 deg low in the audit's projection probe (out_view_dependency.txt: 58.4 deg at 15 deg yaw, 53.5 deg at 30 deg). |
 | too_little_walking | fewer than MIN_STEPS (6) steps in steady passes | Measurement resolution: event timing is quantised to 1 frame; over 6 steps at 30 fps that bounds cadence error to about 1 step/min. |
 """
@@ -106,7 +106,8 @@ def orientation(clip: Clip) -> Rejection | None:
 
 
 def feet_fraction(clip: Clip) -> float:
-    pose = has_pose(clip)
+    """Share of the frames with both hips in view in which both heels and both ankles are visible."""
+    pose = np.isfinite(masked_xy(clip, 23)).all(axis=1) & np.isfinite(masked_xy(clip, 24)).all(axis=1)
     ok = np.ones(clip.n_frames, dtype=bool)
     for idx in SIDES.values():
         for name in ("ankle", "heel"):
@@ -119,7 +120,7 @@ def feet(clip: Clip) -> Rejection | None:
     if frac < MIN_FEET_FRACTION:
         return Rejection(
             "feet_not_visible",
-            f"Both feet were clearly visible in only {frac:.0%} of the video. Keep the whole body, "
+            f"Both feet were clearly visible in only {frac:.0%} of the time the person was in view. Keep the whole body, "
             "including both feet, in the frame, with nothing in front of the legs.",
         )
     return None

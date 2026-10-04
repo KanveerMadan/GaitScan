@@ -10,8 +10,8 @@ kinematics (Winter, Biomechanics and Motor Control of Human Movement, 4th ed., 2
 this pipeline is checked on synthetic ground truth in tests/test_measurement.py: a gait-like signal
 (5 harmonics of a 0.92 Hz stride) is kept within 2% of its range (the 4th/5th harmonics, 3.7/4.6 Hz,
 lose ~12-26% of their amplitude) and white frame noise is reduced by more than 30% RMS.
-Each contiguous run of valid samples is filtered on its own; runs too short for filtfilt's edge
-padding are discarded.
+Each contiguous run of valid samples is filtered on its own (Gustafsson's initial conditions, so no
+padding is needed); runs shorter than one cut-off period are discarded.
 """
 
 from dataclasses import dataclass
@@ -67,8 +67,10 @@ def masked_xy(clip: Clip, i: int) -> Array:
 
 
 def min_run(fps: float) -> int:
-    b, a = butter(ORDER, CUTOFF_HZ / (fps / 2))
-    return 3 * max(len(a), len(b)) + 1  # filtfilt's default padding needs more samples than this
+    """Shortest run that is filtered: one period of the cut-off (1/6 s; 5 frames at 30 fps).
+    Gustafsson's method sets the filter's initial conditions from the data itself, so short runs
+    need no padding; anything shorter than one cut-off period carries no usable gait information."""
+    return max(3, round(fps / CUTOFF_HZ))
 
 
 def lowpass(xy: Array, fps: float) -> Array:
@@ -78,7 +80,7 @@ def lowpass(xy: Array, fps: float) -> Array:
     need = min_run(fps)
     for s, e in runs(np.asarray(np.isfinite(xy).all(axis=1))):
         if e - s >= need:
-            out[s:e] = filtfilt(b, a, xy[s:e], axis=0)
+            out[s:e] = filtfilt(b, a, xy[s:e], axis=0, method="gust")
     return out
 
 

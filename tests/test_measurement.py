@@ -71,7 +71,7 @@ def test_lowpass_keeps_the_gait_signal_and_reduces_frame_noise():
 
 def test_lowpass_drops_runs_too_short_to_filter():
     xy = np.full((40, 2), np.nan)
-    xy[5:9] = 1.0  # 4 samples
+    xy[5:9] = 1.0  # 4 samples: shorter than one 6 Hz period at 30 fps (5)
     xy[15:40] = 2.0
     out = lowpass(xy, 30.0)
     assert np.isnan(out[5:9]).all() and np.allclose(out[15:40], 2.0)
@@ -96,14 +96,19 @@ def test_turns_and_standing_are_excluded():
         assert s.end / clip.fps <= turn[0] or s.start / clip.fps >= turn[1]
 
 
-def test_out_of_frame_spans_are_excluded():
-    clip, _ = synthetic_clip(width=900, passes=1, pass_secs=5.0)  # walks off both edges
-    _, segs = walk_of(clip)
+def test_out_of_frame_landmarks_are_never_used():
+    """Walks off both edges of a narrow frame. Landmarks outside the image are masked, so no heel
+    strike can come from a heel outside the image and no knee value from a leg partly outside."""
+    clip, _ = synthetic_clip(width=900, passes=2, pass_secs=5.0)
+    walk, segs = walk_of(clip)
+    assert segs and sum(len(v) for v in walk.heel_strikes.values()) >= 4
     lm = clip.landmarks
-    for s in segs:
-        for i in (23, 24, 25, 26, 27, 28, 29, 30):
-            x = lm[f"lm{i}_x"].to_numpy()[s.start : s.end]
-            assert (x >= 0).all() and (x <= 1).all()
+    for side, heel in (("L", 29), ("R", 30)):
+        for f in walk.heel_strikes[side]:
+            assert 0 <= lm.loc[f, f"lm{heel}_x"] <= 1 and 0 <= lm.loc[f, "lm23_x"] <= 1
+    tracks = build_tracks(clip)
+    outside = (lm["lm27_x"] < 0) | (lm["lm27_x"] > 1)
+    assert outside.any() and np.isnan(tracks[("L", "ankle")][outside.to_numpy()]).all()
 
 
 # ---- events and temporal metrics ---------------------------------------------------------------
