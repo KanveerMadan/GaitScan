@@ -7,6 +7,7 @@ Plan: [REBUILD_PLAN_V3.md](REBUILD_PLAN_V3.md). Full history of Phases 0–2 is 
 - Phase 3 tasks done: none
 - Next task: confirm the pipeline supports multiple passes, a second test type and a treadmill speed (refactor if not); then OpenCap data download + `make evaluate`
 - Blockers / human actions:
-  - Phase 1 → Phase 2 PRs and CI not yet run; nothing deployed (DB backup required before migration 0003)
+  - Phase 1 PRs open (#2 in both repos): GitHub CI green; Vercel preview builds fail (VITE_API_BASE_URL for Preview?). Nothing deployed (DB backup required before migration 0003)
+  - hip_sagittal_excursion hidden from API/PDF/UI (CONDITIONAL); still computed for the Phase 3 check
   - No protocol-conforming real clip yet (walk01 is rejected: no complete step)
   - OpenCap lab data licence/README to be confirmed at download (stop and report if no sagittal comparison is possible)
