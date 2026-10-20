@@ -254,3 +254,9 @@ def test_cadence_is_immune_to_a_constant_timing_offset_on_one_leg():
     w = Walk(fps=30.0, step_times=[0.6, 0.5, 0.6, 0.5, 0.6], step_ends=["R", "L", "R", "L", "R"])
     assert w.cadence == pytest.approx(60 / 0.55)
     assert w.mean_step_time == pytest.approx(0.55)
+
+
+def test_only_kept_metrics_are_returned():
+    """Plan V3: hip sagittal excursion is CONDITIONAL (must pass the Phase 3 accuracy check)."""
+    metrics = analyse(synthetic_clip()[0]).to_dict()["metrics"]
+    assert set(metrics) == {"cadence", "step_time", "stride_time", "peak_knee_flexion"}
