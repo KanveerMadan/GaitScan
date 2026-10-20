@@ -23,7 +23,6 @@ ROWS = (  # (metric key, label); per-leg metrics have "left"/"right"
     ("step_time", "Step time"),
     ("stride_time", "Stride time"),
     ("peak_knee_flexion", "Peak knee flexion (per stride)"),
-    ("hip_sagittal_excursion", "Hip sagittal excursion (thigh, per stride)"),
     ("step_length", "Step length (floor calibration)"),
     ("walking_speed", "Walking speed (floor calibration)"),
 )

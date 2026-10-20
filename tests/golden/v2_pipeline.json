@@ -6,20 +6,6 @@
     "unit": "steps/min",
     "value": 109.1
    },
-   "hip_sagittal_excursion": {
-    "left": {
-     "n": 3,
-     "sd": 0.0,
-     "unit": "deg",
-     "value": 54.5
-    },
-    "right": {
-     "n": 3,
-     "sd": 0.0,
-     "unit": "deg",
-     "value": 56.0
-    }
-   },
    "peak_knee_flexion": {
     "left": {
      "n": 3,
@@ -203,20 +189,6 @@
     "unit": "steps/min",
     "value": 109.6
    },
-   "hip_sagittal_excursion": {
-    "left": {
-     "n": 3,
-     "sd": 0.8,
-     "unit": "deg",
-     "value": 54.3
-    },
-    "right": {
-     "n": 3,
-     "sd": 2.0,
-     "unit": "deg",
-     "value": 55.4
-    }
-   },
    "peak_knee_flexion": {
     "left": {
      "n": 3,
@@ -329,20 +301,6 @@
     "unit": "steps/min",
     "value": 109.1
    },
-   "hip_sagittal_excursion": {
-    "left": {
-     "n": 3,
-     "sd": 0.0,
-     "unit": "deg",
-     "value": 54.5
-    },
-    "right": {
-     "n": 3,
-     "sd": 0.0,
-     "unit": "deg",
-     "value": 56.0
-    }
-   },
    "peak_knee_flexion": {
     "left": {
      "n": 3,
@@ -412,20 +370,6 @@
     "unit": "steps/min",
     "value": 124.1
    },
-   "hip_sagittal_excursion": {
-    "left": {
-     "n": 8,
-     "sd": 0.4,
-     "unit": "deg",
-     "value": 53.4
-    },
-    "right": {
-     "n": 4,
-     "sd": 0.0,
-     "unit": "deg",
-     "value": 53.9
-    }
-   },
    "peak_knee_flexion": {
     "left": {
      "n": 8,
@@ -494,15 +438,6 @@
     "n": 8,
     "unit": "steps/min",
     "value": 90.0
-   },
-   "hip_sagittal_excursion": {
-    "left": {
-     "n": 4,
-     "sd": 1.3,
-     "unit": "deg",
-     "value": 56.5
-    },
-    "right": null
    },
    "peak_knee_flexion": {
     "left": {
@@ -584,20 +519,6 @@
     "n": 9,
     "unit": "steps/min",
     "value": 109.1
-   },
-   "hip_sagittal_excursion": {
-    "left": {
-     "n": 3,
-     "sd": 0.0,
-     "unit": "deg",
-     "value": 53.0
-    },
-    "right": {
-     "n": 3,
-     "sd": 0.0,
-     "unit": "deg",
-     "value": 54.4
-    }
    },
    "peak_knee_flexion": {
     "left": {
