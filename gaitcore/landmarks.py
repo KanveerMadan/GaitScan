@@ -10,6 +10,8 @@ from gaitcore import model
 from gaitcore.clip import Clip
 
 log = logging.getLogger(__name__)
+# The pose model works on a 256x256 input; full-resolution frames only cost memory (512 MB on Render).
+MAX_SIDE = 640
 
 
 class VideoReadError(ValueError):
@@ -32,7 +34,9 @@ def _options() -> PoseLandmarkerOptions:
 def extract_clip(video_path: str) -> Clip:
     """Every decoded frame -> one landmark row (NaN when nobody is detected), plus `n_poses`, the
     number of people found (up to 2: enough to know the frame is ambiguous)."""
-    cap = cv2.VideoCapture(video_path)
+    # One decoder thread: FFmpeg's default is one per visible CPU, each holding full-size frames,
+    # and a shared host can show many CPUs to a small container.
+    cap = cv2.VideoCapture(video_path, cv2.CAP_FFMPEG, [cv2.CAP_PROP_N_THREADS, 1])
     if not cap.isOpened():
         raise VideoReadError(f"Cannot open video: {video_path}")
     fps = float(cap.get(cv2.CAP_PROP_FPS) or 0.0)
@@ -50,6 +54,11 @@ def extract_clip(video_path: str) -> Clip:
             if not ret:
                 break
             height, width = frame.shape[:2]
+            scale = MAX_SIDE / max(width, height)
+            if scale < 1:  # same aspect ratio, so normalised landmarks still map onto the original frame
+                frame = cv2.resize(
+                    frame, (round(width * scale), round(height * scale)), interpolation=cv2.INTER_AREA
+                )
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
             result = landmarker.detect_for_video(image, round(idx * 1000 / fps))
