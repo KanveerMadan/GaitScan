@@ -1,9 +1,9 @@
 """F01, F03, F04, F08: token signing, roles, password handling."""
+
 import os
 import time
 
-from jose import jwt
-
+import jwt
 from conftest import PASSWORD, auth, register
 
 
@@ -20,8 +20,9 @@ def test_token_signed_with_other_secret_is_rejected(client):
 
 
 def test_register_cannot_self_assign_clinician(client):
-    r = client.post("/auth/register", json={"email": "wannabe@example.com", "password": PASSWORD,
-                                            "role": "clinician"})
+    r = client.post(
+        "/auth/register", json={"email": "wannabe@example.com", "password": PASSWORD, "role": "clinician"}
+    )
     assert r.status_code == 201
     assert r.json()["role"] == "patient"
     me = client.get("/auth/me", headers=auth(r.json()["access_token"])).json()

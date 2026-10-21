@@ -7,6 +7,12 @@ Changes vs v1: env is configured before import; the clinician is promoted throug
 DB (self-assignment no longer exists); PDF-content checks fetch as the owner; the
 error-leak check looks for internal details instead of treating every 500 as a leak;
 adds a CORS-wildcard check.
+
+v3 (Phase 1): imports from app/ when there is no src/ (ADR-001 layout); legitimate
+users get passwords of >= 10 characters so the 10-character minimum doesn't stop the
+script; the F03 role check registers with a valid-length password so it still tests
+the role logic, and the 1-character password is a separate F12 password-policy check.
+Every check keeps its v2 pass/fail criterion.
 """
 import os, sys, io, contextlib, glob, re, secrets, shutil, subprocess, time
 os.environ.update({"DATABASE_URL": "sqlite:///./probe.db", "ENV": "dev", "MPLBACKEND": "Agg",
@@ -16,10 +22,21 @@ if os.path.exists("probe.db"):
     os.remove("probe.db")
 sys.path.insert(0, os.getcwd())
 from fastapi.testclient import TestClient
-from jose import jwt
-from src.api.main import app
-from src.core.database import SessionLocal
-from src.models.user import User
+import jwt  # PyJWT (works in both the audit venv and the project venv)
+if os.path.isdir("src"):
+    from src.api.main import app
+    from src.core.database import SessionLocal
+    from src.models.user import User
+else:
+    from alembic.config import Config
+    from alembic import command
+    _cfg = Config(os.path.join(os.getcwd(), "alembic.ini"))
+    _cfg.attributes["database_url"] = os.environ["DATABASE_URL"]
+    _cfg.attributes["configure_logger"] = False
+    command.upgrade(_cfg, "head")  # tables come from Alembic since Phase 1
+    from app.main import app
+    from app.db.database import SessionLocal
+    from app.db.models import User
 
 VIDEO = sys.argv[1]
 c = TestClient(app, raise_server_exceptions=False)
@@ -34,15 +51,18 @@ def promote(email):
 
 # 1. Self-assigned clinician role + trivial password + plaintext password in logs   [F03 F04 F12]
 buf = io.StringIO()
-with contextlib.redirect_stdout(buf):
-    r = c.post("/auth/register", json={"email": "mallory@x.io", "password": "a", "role": "clinician"})
-check("F03 register_self_assign_clinician_with_1char_password", r.status_code == 201 and r.json()["role"] == "clinician",
+with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):  # JSON logs go to stderr
+    r1 = c.post("/auth/register", json={"email": "trivial@x.io", "password": "a"})
+    r = c.post("/auth/register", json={"email": "mallory@x.io", "password": "mallory-pw-12", "role": "clinician"})
+check("F12 1-character password accepted at registration", r1.status_code == 201, f"{r1.status_code}")
+check("F03 register_self_assign_clinician", r.status_code == 201 and r.json()["role"] == "clinician",
       f"{r.status_code} role={r.json().get('role')}")
-check("F04 plaintext_password_logged", "PASSWORD RECEIVED: a" in buf.getvalue(), buf.getvalue().strip().splitlines()[:2])
+check("F04 plaintext_password_logged", any(p in buf.getvalue() for p in ("PASSWORD RECEIVED", "mallory-pw-12")),
+      buf.getvalue().strip().splitlines()[:2])
 mallory = r.json()["access_token"]
 
 # 2. Account enumeration   [F12]
-r = c.post("/auth/register", json={"email": "mallory@x.io", "password": "zzzzzzzz"})
+r = c.post("/auth/register", json={"email": "mallory@x.io", "password": "zzzzzzzzzz"})
 check("F12 email_enumeration_via_register", r.status_code == 409, f"{r.status_code} {r.json()}")
 
 # 3. Victim patient uploads a real analysis
@@ -75,16 +95,16 @@ check("F01 forged JWT reads victim session list", r.status_code == 200 and len(r
       f"{r.status_code} n={len(r.json()) if r.status_code == 200 else '-'}")
 
 # 6. /debug/links leaks every clinician's patient graph   [F03]
-c.post("/auth/register", json={"email": "drbob@x.io", "password": "pw"})
+c.post("/auth/register", json={"email": "drbob@x.io", "password": "drbob-pw-123"})
 promote("drbob@x.io")
-bob = c.post("/auth/login", json={"email": "drbob@x.io", "password": "pw"}).json()["access_token"]
+bob = c.post("/auth/login", json={"email": "drbob@x.io", "password": "drbob-pw-123"}).json()["access_token"]
 code = c.post("/clinician/invite", headers=H(bob)).json()["code"]
 c.post("/patient/join", headers=H(alice), json={"code": code})
 r = c.get("/debug/links", headers=H(mallory))
 check("F03 /debug/links exposes other clinicians' links", r.status_code == 200 and len(r.json()) > 0, r.json())
 
 # 7. Token lifetime   [F08]
-claims = jwt.get_unverified_claims(alice)
+claims = jwt.decode(alice, options={"verify_signature": False})
 check("F08 access token lifetime > 1 day", claims["exp"] - time.time() > 86400, f"{(claims['exp']-time.time())/86400:.1f} days")
 
 # 8. Upload: non-video content left on disk; internal detail leaked   [F06 F07 F09]

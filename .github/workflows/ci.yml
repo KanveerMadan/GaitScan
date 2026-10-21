@@ -1,0 +1,54 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: gaitscan_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_POSTGRES_URL: postgresql://postgres:ci@localhost:5432/gaitscan_test
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v5
+      - name: System libraries for opencv-contrib (pulled in by mediapipe)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgl1 libglib2.0-0
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.11"
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Lint
+        run: uv run ruff check . && uv run ruff format --check .
+      - name: Typecheck
+        run: uv run mypy
+      - name: Test (SQLite + Postgres)
+        run: uv run pytest -q
+      - name: Dependency audit
+        # Ignored until Phase 2 upgrades mediapipe (0.10.9 pins protobuf<4).
+        # PYSEC-2026-1805 / -1806: protobuf parsing DoS on untrusted input; we only
+        # parse MediaPipe's own bundled model data. REMOVE both ignores in Phase 2.
+        run: |
+          uv export --frozen --no-dev --no-hashes --no-emit-project -o requirements-audit.txt
+          uvx pip-audit -r requirements-audit.txt --disable-pip --no-deps \
+            --ignore-vuln PYSEC-2026-1805 --ignore-vuln PYSEC-2026-1806
+
+  docker:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - run: docker build -t gaitscan-api:ci .

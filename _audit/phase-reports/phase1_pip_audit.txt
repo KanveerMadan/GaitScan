@@ -1,0 +1,10 @@
+before (audit F11, pre-Phase-1 requirements.txt): 40 unique advisories in 9 packages
+
+$ uv export --frozen --no-dev --no-hashes --no-emit-project | pip-audit --disable-pip --no-deps
+Name     Version ID              Fix Versions
+-------- ------- --------------- --------------------
+protobuf 3.20.3  PYSEC-2026-1806 4.25.8,5.29.5,6.31.1
+protobuf 3.20.3  PYSEC-2026-1805 5.29.6,6.33.5
+
+CI runs the same command with --ignore-vuln PYSEC-2026-1805 --ignore-vuln PYSEC-2026-1806 (expiry: Phase 2 mediapipe upgrade):
+No known vulnerabilities found, 4 ignored

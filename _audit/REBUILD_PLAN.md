@@ -176,7 +176,7 @@ The goal is to be able to write, truthfully: *"Knee flexion ±X° vs goniometer/
 - **Pipeline correctness (Phase 2) moves ahead of async/storage.** Extracting `gaitcore` is a prerequisite for a clean worker anyway, the core bugs are cheap (S/M), and every session stored before the fix is unusable data.
 - **Validation data collection starts in Phase 2**, since scheduling subjects takes calendar time, even though the harness lands in Phase 5.
 
-Budget assumption: 10–15 h/week. Total ≈ 175 h ≈ 13–17 weeks.
+Budget assumption: 10–15 h/week. Total ≈ 180 h ≈ 13–17 weeks. (Amended 2026-09-27: F10, F12, F15 and a password minimum pulled into Phase 1.)
 
 ### Phase 0 — Stop the bleeding (≈ 12 h, 1 week)
 **Goal:** no unauthenticated access to health data, no forgeable tokens, no diagnostic claims in production.
@@ -194,21 +194,26 @@ Budget assumption: 10–15 h/week. Total ≈ 175 h ≈ 13–17 weeks.
 
 **Acceptance:** `_audit/probes/api_security_probe.py` shows PASS for F01–F05, F08–F09 checks (rate limiting and enumeration may still FAIL). `grep -riE "abnormal|injury|damage|prescri|risk score" src ../gaitscan-frontend/src` returns nothing user-facing. The app still analyses `walk01.mp4` end to end on Render.
 
-### Phase 1 — Foundations (≈ 25 h, 2 weeks)
-**Goal:** reproducible builds, tests and CI, with zero behaviour change.
+### Phase 1 — Foundations (≈ 32 h, 2–3 weeks)
+**Goal:** reproducible builds, tests and CI, with zero behaviour change to the analysis output; plus the auth hardening pulled forward by the 2026-09-27 amendment.
 
 1. Move code to `gaitcore/` (extract, angles, current scoring as `legacy.py`) and `app/` (api, services, schemas, db). Moves and imports only. (4 h, ADR-001)
 2. `pyproject.toml` + `uv.lock`; drop `scikit-learn`, `sounddevice`, `joblib`, `opencv-python`, `opencv-contrib-python`; keep `opencv-python-headless`; replace `python-jose` → PyJWT; bump FastAPI/Starlette/python-multipart/pillow to non-vulnerable versions. (2 h, F11, F16)
 3. `pydantic-settings` config + `.env.example` (both repos); no SQLite fallback outside `ENV=dev`. (1.5 h, F17)
 4. Alembic baseline revision matching the current schema; `init_db` removed. (2 h, F17)
 5. ruff + ruff format + mypy + pre-commit + detect-secrets. (1.5 h)
-6. Tests: port the audit unit tests (known failures `xfail(strict=True)`); golden test for `walk01.mp4` pinning **current** output (the refactor safety net); API tests including the security probe as tests. (5 h, F38)
+6. Tests: golden test pinning **current** analysis output (the refactor safety net) on **synthetic landmarks** (the execution rules forbid the identifiable sample clip as a fixture; a local, uncommitted before/after check on `walk01.mp4` is run as extra evidence); API tests including the security probe as tests. The audit unit tests stay in `_audit/tests/` (import paths updated only) and are ported in Phase 2, the phase that fixes them. The execution rules forbid skipping them, which `xfail` would amount to. (5 h, F38)
 7. GitHub Actions CI (backend + frontend) + Dependabot + pip-audit. (2 h)
 8. Dockerfile + `render.yaml` (web only for now; health check `/healthz`); switch the Render service to Docker. (3 h)
 9. `structlog` + Sentry (API + frontend). (1.5 h, F41)
 10. Frontend: CRA → Vite (+ TS with `allowJs` initially); `VITE_API_BASE_URL`; replace the boilerplate test with one real render test. (2.5 h, F39)
+11. **Amendment 2026-09-27: auth hardening pulled forward from Phase 4 (F10, F12) and Phase 3 (F15).** (≈ 7 h)
+    - **F10 login rate limiting:** failed logins limited per email and per client IP; registration limited per IP; `429` with `Retry-After`.
+    - **F12 email enumeration:** unknown-email logins spend the same bcrypt time as real ones; registration is rate-limited and its duplicate response is generic. Full closure needs email verification or invite-only sign-up (ADR-004, Phase 4); Phase 1 records the residual risk.
+    - **F15 mode lost on PDF regeneration:** persist `mode` on each session (Alembic migration after the baseline); regeneration uses it. Legacy rows without a stored mode say "not recorded" instead of claiming Clinical.
+    - **Password minimum length 10**, enforced on registration and on password change only (a minimal `POST /auth/change-password` + frontend form is added so the rule has a change path). Login never checks length, so existing users with shorter passwords can still sign in.
 
-**Acceptance:** CI green on a PR; `docker build && docker run` serves the API locally; Render deploys the Docker image; the golden test shows identical output to pre-refactor; `pip-audit` and `npm audit --omit=dev` report 0 high/critical.
+**Acceptance:** CI green on a PR; `docker build && docker run` serves the API locally; Render deploys the Docker image; the golden test shows identical output to pre-refactor; `pip-audit` and `npm audit --omit=dev` report 0 high/critical. Amendment: tests prove rate limiting (429 after the limit), equal-cost unknown-email login, mode round-trips through PDF regeneration (security probe F15 check PASS), and password length ≥ 10 on register/change while a legacy short-password user can still log in.
 
 ### Phase 2 — Measurement core v2 (≈ 30 h, 2 weeks)
 **Goal:** numbers that are correct by construction, and a quality gate that refuses bad input (ADR-005, ADR-006).
@@ -234,9 +239,9 @@ Budget assumption: 10–15 h/week. Total ≈ 175 h ≈ 13–17 weeks.
 **Goal:** the API never blocks, no local disk state, and verifiable raw-video deletion (ADR-002, ADR-003).
 
 1. `analysis_jobs` table + migration; `app/worker.py` claim loop (`SKIP LOCKED`), subprocess with timeout/memory cap, 2 retries, error codes. (6 h, F13, F14)
-2. R2 bucket, presigned PUT (size/type constrained) and GET; lifecycle rule `raw/` 7 days; the worker deletes raw on success. (4 h, F15, F06)
+2. R2 bucket, presigned PUT (size/type constrained) and GET; lifecycle rule `raw/` 7 days; the worker deletes raw on success. (4 h, F06)
 3. Worker-side input validation: open with OpenCV, duration ≤ 60 s, resolution cap, codec readable. (2 h, F07)
-4. Persist the full `AnalysisResult` (JSONB per-stride arrays, quality, config, versions); PDF built from DB on demand. (4 h, F15)
+4. Persist the full `AnalysisResult` (JSONB per-stride arrays, quality, config, versions); PDF built from DB on demand, including charts. (4 h; the `mode` part of F15 moved to Phase 1)
 5. Render Background Worker service in `render.yaml`; `docker compose` with MinIO for local dev. (3 h)
 6. Frontend: direct-to-R2 upload with real progress, job polling with TanStack Query, routes `/jobs/:id`, `/sessions/:id`; timeout and error states. (7 h, F21, F39)
 
@@ -250,7 +255,7 @@ Budget assumption: 10–15 h/week. Total ≈ 175 h ≈ 13–17 weeks.
 **Goal:** a clinic can safely hold patient data (ADR-004, ADR-007).
 
 1. `Organization`, `Membership`, `Patient`, `Consent`, `AuditLog` models + migrations; migrate existing users (patients → Patient records under a legacy org). (6 h)
-2. PyJWT access (15 min) + refresh cookie; owner invites practitioners by email token; password policy; rate limiting (`slowapi`); generic auth errors. (6 h, F08, F10, F12)
+2. PyJWT access (15 min) + refresh cookie; owner invites practitioners by email token; invite-only / email-verified sign-up closes the residual F12 enumeration. Rate limiting, the password minimum and generic auth errors moved to Phase 1 (amendment 2026-09-27). (5 h, F08, F12)
 3. `org_scope` dependency on every route, plus a parametrised test hitting every route cross-org and expecting 404. (4 h)
 4. Consent capture UI (clinician-attested + optional patient signature on tablet; guardian flag for minors); analysis refused without active consent. (5 h)
 5. `DELETE /v1/patients/{id}` (DB + R2 cascade + audit entry), `GET /v1/patients/{id}/export`, retention cron. (5 h)

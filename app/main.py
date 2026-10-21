@@ -1,0 +1,66 @@
+import logging
+import os
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
+
+from app.api.analysis import router as analysis_router
+from app.api.auth import router as auth_router
+from app.api.clinician import router as clinician_router
+from app.api.sessions import router as sessions_router
+from app.core.config import settings
+from app.core.logging import RequestLogMiddleware, configure_logging
+from app.core.observability import init_sentry
+from app.db import database
+
+configure_logging()
+init_sentry(settings.sentry_dsn, settings.env)
+
+# Interactive docs and the OpenAPI schema are only exposed in dev.
+_docs = settings.docs_enabled
+app = FastAPI(
+    title="GaitScan API",
+    version="2.1.0",
+    docs_url="/docs" if _docs else None,
+    redoc_url="/redoc" if _docs else None,
+    openapi_url="/openapi.json" if _docs else None,
+)
+app.include_router(auth_router)
+app.include_router(clinician_router)
+app.include_router(analysis_router)
+app.include_router(sessions_router)
+
+app.add_middleware(RequestLogMiddleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
+)
+
+os.makedirs("data/raw", exist_ok=True)
+os.makedirs("outputs", exist_ok=True)
+
+
+@app.get("/")
+def root():
+    return {"message": "GaitScan API is running", "version": "2.1.0"}
+
+
+@app.get("/status")
+def status():
+    return {"status": "healthy", "message": "GaitScan is running"}
+
+
+@app.get("/healthz")
+def healthz() -> JSONResponse:
+    """Render health check: the process is up and the database answers."""
+    try:
+        with database.engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+    except Exception:
+        logging.getLogger("gaitscan").exception("health check: database unreachable")
+        return JSONResponse({"status": "unavailable"}, status_code=503)
+    return JSONResponse({"status": "ok"})
