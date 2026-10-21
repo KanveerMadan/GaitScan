@@ -30,6 +30,8 @@ class Settings(BaseModel):
     sentry_dsn: str = ""
     # Proxies in front of the app that append to X-Forwarded-For (see app/core/ratelimit.py).
     trusted_proxy_hops: int = 0
+    # ANALYSIS_LOG_MEMORY=1: log the process's peak RSS after each analysis (Render's 512 MB limit).
+    analysis_log_memory: bool = False
 
     @field_validator("env")
     @classmethod

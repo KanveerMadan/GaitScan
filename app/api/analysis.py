@@ -6,6 +6,7 @@ A clip that fails the quality gate is not stored: the response is 422 with
 
 import logging
 import os
+import resource
 import threading
 import uuid
 
@@ -54,7 +55,14 @@ def parse_calibration(values: list[float | None], distance_m: float | None) -> C
 
 def run_pipeline(path: str, calibration: Calibration | None) -> AnalysisResult:
     with _PIPELINE_LOCK:
-        return _run_pipeline(path, calibration)
+        try:
+            return _run_pipeline(path, calibration)
+        finally:
+            if settings.analysis_log_memory:
+                # High-water mark of the whole process so far, in KiB on Linux.
+                log.info(
+                    "analysis peak_rss_mb=%d", resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024
+                )
 
 
 def _run_pipeline(path: str, calibration: Calibration | None) -> AnalysisResult:
