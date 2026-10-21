@@ -25,8 +25,8 @@ jobs:
       MPLBACKEND: Agg
     steps:
       - uses: actions/checkout@v5
-      - name: System libraries for opencv-contrib (pulled in by mediapipe)
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgl1 libglib2.0-0
+      - name: System libraries for opencv-contrib and mediapipe's native library (as in the Dockerfile)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgl1 libglib2.0-0 libegl1 libgles2
       - uses: astral-sh/setup-uv@v6
         with:
           version: "0.12.11"
