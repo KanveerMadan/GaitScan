@@ -30,7 +30,7 @@ dependencies = [
     # reports
     "matplotlib>=3.9",
     "reportlab>=4.4",
-    "pillow>=12.3",
+    "pillow>=13.0.0",
     # optional LLM phrasing (off unless ENABLE_LLM_EXPLANATIONS)
     "groq>=0.30",
     # observability
@@ -54,6 +54,8 @@ dev = [
 
 [tool.uv]
 package = false
+# Security floors for transitive dependencies (pip-audit in CI).
+constraint-dependencies = ["certifi>=2026.10.19"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
