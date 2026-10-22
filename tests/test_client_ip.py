@@ -76,3 +76,29 @@ def test_spoofed_header_does_not_bypass_login_limit(client, hops):
         headers={"X-Forwarded-For": "198.51.100.7, 172.70.0.1"},
     )
     assert other.status_code == 401  # a different real client is unaffected
+
+
+@pytest.mark.parametrize("enabled", [False, True])
+def test_login_logs_proxy_headers_only_when_enabled(client, capfd, monkeypatch, enabled):
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "log_proxy_headers", enabled, raising=False)
+    capfd.readouterr()
+    client.post(
+        "/auth/login",
+        json={"email": "nobody@example.com", "password": "wrong-password-xyz"},
+        headers={
+            "X-Forwarded-For": "10.9.1.1, 203.0.113.9",
+            "X-Real-IP": "203.0.113.8",
+            "True-Client-IP": "203.0.113.7",
+            "CF-Connecting-IP": "203.0.113.6",
+            "Forwarded": "for=203.0.113.5",
+        },
+    )
+    err = capfd.readouterr().err
+    logged = [
+        v in err
+        for v in ("10.9.1.1, 203.0.113.9", "203.0.113.8", "203.0.113.7", "203.0.113.6", "for=203.0.113.5")
+    ]
+    assert logged == [enabled] * 5
+    assert ("proxy_headers" in err) is enabled
