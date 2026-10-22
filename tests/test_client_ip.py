@@ -1,17 +1,27 @@
 """Client address used for per-IP rate limits (F10).
 
-Assumed chain on Render (TRUSTED_PROXY_HOPS=2): client -> Cloudflare (appends client)
--> Render proxy (appends Cloudflare edge) -> app, so X-Forwarded-For arrives as
-"<anything the client wrote>, <client>, <edge>".
+Observed on Render (LOG_PROXY_HEADERS diagnostic): the TCP peer is 127.0.0.1 and
+X-Forwarded-For arrives as "<anything the client wrote>, <client>, <Cloudflare edge>, <10.x
+Render internal>", the last two varying per request; True-Client-IP and CF-Connecting-IP are
+the client even when X-Forwarded-For is spoofed. R below is 203.0.113.7.
 """
 
 import pytest
 from starlette.requests import Request
 
 
-def req(xff=None, peer="10.0.0.5"):
+def req(xff=None, peer="10.0.0.5", **extra):
+    """`extra` header names use underscores: true_client_ip="..." -> True-Client-IP."""
     headers = [(b"x-forwarded-for", xff.encode())] if xff is not None else []
+    headers += [(k.replace("_", "-").encode(), v.encode()) for k, v in extra.items()]
     return Request({"type": "http", "headers": headers, "client": (peer, 1234)})
+
+
+R = "203.0.113.7"
+# The exact shapes seen on Render; edge and internal addresses differ per request.
+PLAIN = f"{R}, 172.70.1.10, 10.201.3.4"
+SPOOFED = f"10.9.1.1,{R}, 172.70.2.20, 10.201.5.6"
+PLAIN_LATER = f"{R}, 162.158.9.9, 10.201.7.8"
 
 
 @pytest.fixture
@@ -78,27 +88,63 @@ def test_spoofed_header_does_not_bypass_login_limit(client, hops):
     assert other.status_code == 401  # a different real client is unaffected
 
 
-@pytest.mark.parametrize("enabled", [False, True])
-def test_login_logs_proxy_headers_only_when_enabled(client, capfd, monkeypatch, enabled):
+@pytest.fixture
+def ip_header(monkeypatch):
     from app.core.config import settings
 
-    monkeypatch.setattr(settings, "log_proxy_headers", enabled, raising=False)
-    capfd.readouterr()
-    client.post(
+    def set_header(name):
+        monkeypatch.setattr(settings, "client_ip_header", name, raising=False)
+
+    return set_header
+
+
+def test_client_ip_header_gives_the_real_client_for_render_chains(hops, ip_header):
+    from app.core.ratelimit import client_ip
+
+    hops(2)
+    ip_header("true-client-ip")
+    for xff in (PLAIN, SPOOFED, PLAIN_LATER):
+        assert client_ip(req(xff, peer="127.0.0.1", true_client_ip=R)) == R
+
+
+@pytest.mark.parametrize("value", [None, "", "not-an-ip", "203.0.113.7, 10.9.1.1"])
+def test_missing_or_invalid_client_ip_header_falls_back_to_hops(hops, ip_header, value):
+    from app.core.ratelimit import client_ip
+
+    hops(3)
+    ip_header("true-client-ip")
+    extra = {} if value is None else {"true_client_ip": value}
+    assert client_ip(req(SPOOFED, peer="127.0.0.1", **extra)) == R
+
+
+def test_three_hops_picks_the_client_from_render_chains(hops):
+    from app.core.ratelimit import client_ip
+
+    hops(3)
+    assert client_ip(req(PLAIN, peer="127.0.0.1")) == R
+    assert client_ip(req(SPOOFED, peer="127.0.0.1")) == R  # not 10.9.1.1
+    assert client_ip(req(PLAIN, peer="127.0.0.1")) == client_ip(req(PLAIN_LATER, peer="127.0.0.1"))
+
+
+def test_render_spoofing_does_not_bypass_login_limit_and_users_stay_separate(client, hops, ip_header):
+    """End to end with the production setting: rotating X-Forwarded-For and varying edges, one bucket."""
+    hops(2)
+    ip_header("true-client-ip")
+    codes = [
+        client.post(
+            "/auth/login",
+            json={"email": f"nobody{i}@example.com", "password": "wrong-password-xyz"},
+            headers={"X-Forwarded-For": f"10.9.{i}.1,{R}, 172.70.{i}.20, 10.201.{i}.6", "True-Client-IP": R},
+        ).status_code
+        for i in range(22)
+    ]
+    assert codes[:20] == [401] * 20 and codes[20:] == [429, 429]
+    other = client.post(
         "/auth/login",
         json={"email": "nobody@example.com", "password": "wrong-password-xyz"},
         headers={
-            "X-Forwarded-For": "10.9.1.1, 203.0.113.9",
-            "X-Real-IP": "203.0.113.8",
-            "True-Client-IP": "203.0.113.7",
-            "CF-Connecting-IP": "203.0.113.6",
-            "Forwarded": "for=203.0.113.5",
+            "X-Forwarded-For": "198.51.100.7, 172.70.1.10, 10.201.3.4",
+            "True-Client-IP": "198.51.100.7",
         },
     )
-    err = capfd.readouterr().err
-    logged = [
-        v in err
-        for v in ("10.9.1.1, 203.0.113.9", "203.0.113.8", "203.0.113.7", "203.0.113.6", "for=203.0.113.5")
-    ]
-    assert logged == [enabled] * 5
-    assert ("proxy_headers" in err) is enabled
+    assert other.status_code == 401  # a different real client is unaffected
