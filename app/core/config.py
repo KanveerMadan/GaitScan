@@ -31,9 +31,9 @@ class Settings(BaseModel):
     sentry_dsn: str = ""
     # Proxies in front of the app that append to X-Forwarded-For (see app/core/ratelimit.py).
     trusted_proxy_hops: int = 0
-    # shortcut: temporary diagnostic, remove after the client-IP fix. LOG_PROXY_HEADERS=1 logs the
-    # forwarding headers of each /auth/login request (app/core/ratelimit.py).
-    log_proxy_headers: bool = False
+    # Header holding the client address set by the edge proxy (Render: true-client-ip). Preferred over
+    # TRUSTED_PROXY_HOPS when present and a valid IP (app/core/ratelimit.py).
+    client_ip_header: str = ""
 
     @field_validator("env")
     @classmethod
