@@ -29,7 +29,7 @@ dependencies = [
     "scipy>=1.13",
     # reports
     "reportlab>=4.4",
-    "pillow>=12.3",
+    "pillow>=13.0.0",
     # observability
     "structlog>=25.4",
     "sentry-sdk[fastapi]>=2.35",
@@ -51,6 +51,8 @@ dev = [
 
 [tool.uv]
 package = false
+# Security floors for transitive dependencies (pip-audit in CI).
+constraint-dependencies = ["certifi>=2026.10.19"]
 # mediapipe 1.0.1 declares the GUI build opencv-contrib-python (needs libGL) and sounddevice
 # (PortAudio, audio tasks only). The pose Tasks API needs neither: cv2 comes from
 # opencv-python-headless above. A never-true marker removes them from the lock.
