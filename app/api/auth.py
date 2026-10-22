@@ -81,6 +81,7 @@ def register(payload: RegisterRequest, request: Request, db: Session = Depends(g
 @router.post("/login", response_model=TokenResponse)
 def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)):
     email_key = payload.email.lower()
+    ratelimit.log_proxy_headers(request)  # off unless LOG_PROXY_HEADERS=1
     ip = ratelimit.client_ip(request)
     ratelimit.enforce((ratelimit.login_failures_per_email, email_key), (ratelimit.login_attempts_per_ip, ip))
     ratelimit.login_attempts_per_ip.hit(ip)

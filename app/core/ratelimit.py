@@ -25,6 +25,7 @@ import threading
 import time
 from collections import defaultdict, deque
 
+import structlog
 from fastapi import HTTPException, Request
 
 from app.core.config import settings
@@ -80,6 +81,19 @@ def client_ip(request: Request) -> str:
         return peer
     # Shorter than `hops`: no client-written entries can be present, so the leftmost is trusted.
     return chain[-hops] if len(chain) >= hops else chain[0]
+
+
+# shortcut: temporary diagnostic, remove after the client-IP fix (shows Render's real header chain).
+PROXY_HEADERS = ("x-forwarded-for", "x-real-ip", "true-client-ip", "cf-connecting-ip", "forwarded")
+
+
+def log_proxy_headers(request: Request) -> None:
+    if settings.log_proxy_headers:
+        structlog.get_logger("gaitscan").info(
+            "login proxy_headers",
+            peer=request.client.host if request.client else None,
+            **{h.replace("-", "_"): request.headers.get(h) for h in PROXY_HEADERS},
+        )
 
 
 def enforce(*checks: tuple[SlidingWindowLimiter, str]) -> None:

@@ -31,6 +31,9 @@ class Settings(BaseModel):
     sentry_dsn: str = ""
     # Proxies in front of the app that append to X-Forwarded-For (see app/core/ratelimit.py).
     trusted_proxy_hops: int = 0
+    # shortcut: temporary diagnostic, remove after the client-IP fix. LOG_PROXY_HEADERS=1 logs the
+    # forwarding headers of each /auth/login request (app/core/ratelimit.py).
+    log_proxy_headers: bool = False
 
     @field_validator("env")
     @classmethod
