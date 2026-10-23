@@ -82,7 +82,9 @@ def build_pdf(result: dict[str, Any], patient_name: str | None, created_at: date
             rows.append([_p(label), _p(_fmt(m.get("left"))), _p(_fmt(m.get("right"))), _p("")])
         else:
             rows.append([_p(label), _p(""), _p(""), _p(_fmt(m))])
-    story += [_table(rows, [6 * cm, 3.7 * cm, 3.7 * cm, 3.7 * cm]), Spacer(1, 4), _p(NO_ERROR_RANGES, SMALL)]
+    story += [_table(rows, [6 * cm, 3.7 * cm, 3.7 * cm, 3.7 * cm]), Spacer(1, 4)]
+    story += [_p(note) for note in result.get("notes") or []]
+    story.append(_p(NO_ERROR_RANGES, SMALL))
     if "step_length" not in metrics:
         story.append(
             _p("Step length and walking speed need a floor calibration and were not measured.", SMALL)

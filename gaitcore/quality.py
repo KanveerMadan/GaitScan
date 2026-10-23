@@ -12,6 +12,7 @@ specific reason the user can act on. Checks run in this order; the first failure
 | not_side_view | median shoulder width / trunk length > MAX_VIEW_RATIO (0.35) | Geometry: biacromial breadth / trunk length is ~0.90 in Winter's segment proportions (2009); MediaPipe's shoulder points sit inside the acromia, so ~0.8 is ASSUMED for the frontal ratio (to be checked on the Phase 3 multi-view data). At camera yaw a the ratio is ~0.8 sin a, so 0.35 = ~26 deg, about where a 60 deg knee flexion reads 5 deg low in the audit's projection probe (out_view_dependency.txt: 58.4 deg at 15 deg yaw, 53.5 deg at 30 deg). |
 | not_side_view | angle between the ankle path and the shoulder path while walking across the frame > MAX_PATH_CONVERGENCE (4.8 deg) | Data: side-on, both paths run parallel to the floor; a walk that also moves towards or away from the camera makes them converge in perspective. LJMU (Topham et al. 2023, CC BY 4.0), 24 participants, 45 vs 90 deg cameras, leave-one-participant-out: threshold 4.83 deg, accuracy 0.986, 1/70 45 deg clips accepted, 1/69 90 deg clips rejected (the shoulder-width rule alone accepted 29/70). An angle between two image lines, so a rolled phone doesn't change it (+-5 deg roll simulated on LJMU: 0-4% of 90 deg clips rejected). On the synthetic pinhole walker 3.5 m away it trips at ~16 deg yaw. |
 | view_unconfirmed | the path angle can't be measured: fewer than MIN_SEGMENT_S (one step) of frames walking across the frame | Without it the side-on view isn't confirmed, so no numbers. |
+| legs_not_tracked | fewer than MIN_STEPS steps although the steady passes last >= MIN_STEADY_FOR_STEPS_S (4 s) | Physical: 4 s of steady walking holds 6 steps even at 90 steps/min (0.67 s per step), the slow end of normal adult walking, so finding fewer means the legs weren't followed, not that the walk was too short. The user is told to fix the lighting / clothing / view, not to walk longer. |
 | too_little_walking | fewer than MIN_STEPS (6) steps in steady passes | Measurement resolution: event timing is quantised to 1 frame; over 6 steps at 30 fps that bounds cadence error to about 1 step/min. |
 """
 
@@ -36,6 +37,7 @@ MIN_FEET_FRACTION = 0.5
 MAX_VIEW_RATIO = 0.35
 MAX_PATH_CONVERGENCE = 4.8
 MIN_STEPS = 6
+MIN_STEADY_FOR_STEPS_S = 4.0
 
 CAPTURE_TIP = (
     "Film from the side with the phone held still at hip height, 3-4 m from the walking line, "
@@ -193,11 +195,19 @@ def path_view(convergence: float) -> Rejection | None:
     return NOT_SIDE_VIEW if convergence > MAX_PATH_CONVERGENCE else None
 
 
-def enough_walking(n_steps: int) -> Rejection | None:
-    if n_steps < MIN_STEPS:
+def enough_walking(n_steps: int, steady_s: float) -> Rejection | None:
+    if n_steps >= MIN_STEPS:
+        return None
+    if steady_s >= MIN_STEADY_FOR_STEPS_S:
         return Rejection(
-            "too_little_walking",
-            f"Only {n_steps} steps of steady walking could be measured; at least {MIN_STEPS} are needed. "
-            f"{CAPTURE_TIP}",
+            "legs_not_tracked",
+            f"The video has {steady_s:.0f} s of steady walking, but the legs couldn't be followed well enough "
+            f"to count the steps (only {n_steps} found). Film in even light with the light behind the camera, "
+            "not behind the person, wear clothes that stand out from the floor and background, and keep both "
+            "legs in view from the hips to the heels.",
         )
-    return None
+    return Rejection(
+        "too_little_walking",
+        f"Only {n_steps} steps of steady walking could be measured; at least {MIN_STEPS} are needed. "
+        f"{CAPTURE_TIP}",
+    )

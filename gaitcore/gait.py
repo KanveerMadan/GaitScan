@@ -1,6 +1,30 @@
 """Gait events and per-step / per-stride measurements (ADR-006 steps 6-7; audit F24, F27).
 
-Heel strike: the frame where the heel is furthest ahead of the pelvis in the walking direction
+Cadence and step time come from label-free step events, because MediaPipe swaps the left/right leg
+labels for a frame or two at a time (LJMU, Topham et al. 2023, CC BY 4.0: in the clips whose cadence
+read 136-158 steps/min, ~10-12% of consecutive frames). The distance between the heels along the
+walking direction, |x_L - x_R|, can't change when the labels swap. It peaks once per step, in double
+support, when the feet are furthest apart:
+- |x_L - x_R| / leg length on frames with one person, low-pass filtered like every other signal
+  (signals.py), inside the steady passes. Heel visibility is not required: when the legs cross, the
+  far heel is often marked as hidden, and requiring it would split every step.
+- peaks with the same PROMINENCE (0.1 leg lengths) and at least STEP_S_RANGE[0] apart, searched for
+  inside each steady pass only: a peak cut by the end of a pass is lost, but one shaped by the speed
+  ramp before it is not counted (searching the whole clip read 84 for the 90 steps/min synthetic
+  walker). Each peak is timed at the centre of its width at half prominence (scipy peak_widths,
+  linearly interpolated between frames), so events are found to a fraction of a frame; the arg-max
+  alone is quantised to whole frames and wanders along the flat top of the double-support plateau.
+- consecutive events STEP_S_RANGE apart form a run; a gap outside it (a missed or extra peak) starts
+  a new run, so a missed event never gives a double-length step.
+Step time = the steps of each run, with its two alternations (steps ending on one foot, then the
+other) averaged so a constant timing offset on one foot cancels, pooled over the runs by step count;
+for a run with an even number of steps this is exactly its duration / its step count.
+On the 27 LJMU clips with AI-annotated + cross-checked heel strikes (blind visual count confirmed by
+RTMPose), this cadence was reported for 23, with a mean absolute error of 2.1 steps/min (max 12.8:
+one backlit clip with a spurious event); cadence from the labelled heel strikes below was reported
+for 20, with 12.0 (max 57.9).
+
+Per-foot heel strike (used for strides, knee angles and step length, which need to know the foot): the frame where the heel is furthest ahead of the pelvis in the walking direction
 (Zeni JA, Richards JG, Higginson JS. Two simple methods for determining gait events during treadmill
 and overground walking using kinematic data. Gait Posture 2008;27(4):710-714), applied to the 2D
 side view with the pelvis = midpoint of the hips. Both legs are detected, so cadence counts every
@@ -30,13 +54,13 @@ from dataclasses import dataclass, field
 
 import numpy as np
 import numpy.typing as npt
-from scipy.signal import find_peaks
+from scipy.signal import find_peaks, peak_widths
 
 from gaitcore.angles import knee_flexion, thigh_angle
 from gaitcore.calibration import Calibration
 from gaitcore.clip import Clip
 from gaitcore.segments import Segment
-from gaitcore.signals import Tracks, build_tracks, runs
+from gaitcore.signals import SIDES, Tracks, build_tracks, lowpass, raw_xy, runs, single_person
 
 MIN_STRIDE_S = 0.5
 PROMINENCE = 0.1
@@ -76,12 +100,41 @@ def heel_strikes(tracks: Tracks, side: str, seg: Segment, leg_px: float) -> npt.
     return np.array(found, dtype=int)
 
 
+def heel_separation(clip: Clip, leg_px: float) -> npt.NDArray[np.float64]:
+    """|x_L - x_R| of the heels in leg lengths, low-pass filtered; NaN on frames with no single pose."""
+    xl, xr = (raw_xy(clip, SIDES[s]["heel"])[:, 0] for s in ("L", "R"))
+    sep = np.where(single_person(clip), np.abs(xl - xr) / leg_px, np.nan)
+    return np.asarray(lowpass(np.c_[sep, sep], clip.fps)[:, 0])
+
+
+def contact_runs(sep: npt.NDArray[np.float64], seg: Segment, fps: float) -> list[list[float]]:
+    """Label-free step events (s) in a steady pass, grouped into runs of consecutive steps."""
+    window = np.full_like(sep, np.nan)
+    window[seg.start : seg.end] = sep[seg.start : seg.end]
+    out: list[list[float]] = []
+    for a, b in runs(np.isfinite(window)):
+        w = window[a:b]
+        peaks, _ = find_peaks(w, distance=max(1, math.ceil(STEP_S_RANGE[0] * fps)), prominence=PROMINENCE)
+        if not len(peaks):
+            continue
+        _, _, left, right = peak_widths(w, peaks, rel_height=0.5)
+        run: list[float] = []
+        for t in (a + (left + right) / 2) / fps:
+            if run and not (STEP_S_RANGE[0] <= t - run[-1] <= STEP_S_RANGE[1]):
+                out.append(run)
+                run = []
+            run.append(float(t))
+        out.append(run)
+    return [r for r in out if len(r) >= 2]
+
+
 @dataclass
 class Walk:
     fps: float
+    contact_runs: list[list[float]] = field(default_factory=list)  # label-free step events, s
     heel_strikes: dict[str, list[int]] = field(default_factory=lambda: {"L": [], "R": []})
-    step_times: list[float] = field(default_factory=list)
-    step_ends: list[str] = field(default_factory=list)  # foot whose strike ends each step
+    step_times: list[float] = field(default_factory=list)  # between labelled strikes of alternate feet
+    step_ends: list[str] = field(default_factory=list)  # foot whose strike ends each labelled step
     stride_times: dict[str, list[float]] = field(default_factory=lambda: {"L": [], "R": []})
     knee_peak_flexion: dict[str, list[float]] = field(default_factory=lambda: {"L": [], "R": []})
     hip_excursion: dict[str, list[float]] = field(default_factory=lambda: {"L": [], "R": []})
@@ -89,24 +142,33 @@ class Walk:
     step_length_times: list[float] = field(default_factory=list)  # step times of the measured lengths
 
     @property
-    def mean_step_time(self) -> float:
-        """Mean step time, balanced over the two alternations (steps ending on L, steps ending on R).
+    def contact_step_times(self) -> list[float]:
+        """Label-free step times, s."""
+        return [float(d) for run in self.contact_runs for d in np.diff(run)]
 
-        A constant heel-strike timing offset d on one leg (e.g. a different event bias for the near
-        and far leg) makes one alternation t+d and the other t-d. When a pass holds more of one kind,
-        a plain mean is biased; the mean of the two alternation means cancels d exactly."""
-        if not self.step_times:
-            return math.nan
-        times = np.asarray(self.step_times)
-        ends = np.asarray(self.step_ends) if len(self.step_ends) == len(times) else np.array([])
-        by_end = [times[ends == s] for s in ("L", "R")] if len(ends) else []
-        if len(by_end) == 2 and all(len(t) for t in by_end):
-            return float((by_end[0].mean() + by_end[1].mean()) / 2)
-        return float(times.mean())
+    @property
+    def step_count(self) -> int:
+        return sum(len(run) - 1 for run in self.contact_runs)
+
+    @property
+    def mean_step_time(self) -> float:
+        """Label-free step time: per run, the mean of its two alternations (steps ending on one foot,
+        then the other); runs pooled by step count.
+
+        A constant event timing offset d on one foot makes one alternation t+d and the other t-d.
+        When a run holds more of one kind (an odd number of steps), a plain mean is biased; the mean
+        of the two alternation means cancels d exactly."""
+        total, n = 0.0, 0
+        for run in self.contact_runs:
+            d = np.diff(run)
+            per_step = (d[0::2].mean() + d[1::2].mean()) / 2 if len(d) >= 2 else d[0]
+            total += float(per_step) * len(d)
+            n += len(d)
+        return total / n if n else math.nan
 
     @property
     def cadence(self) -> float:
-        """Steps per minute: 60 / the balanced mean step time."""
+        """Steps per minute: 60 / the label-free mean step time."""
         t = self.mean_step_time
         return 60.0 / t if math.isfinite(t) else math.nan
 
@@ -142,13 +204,15 @@ def measure_walk(
     if segments is None:
         segments = [Segment(0, clip.n_frames, facing(tracks))]
     fps = clip.fps
+    sep = heel_separation(clip, leg_px)
     for seg in segments:
+        walk.contact_runs.extend(contact_runs(sep, seg, fps))
         events = sorted(
             [(int(f), side) for side in ("L", "R") for f in heel_strikes(tracks, side, seg, leg_px)]
         )
         for f, side in events:
             walk.heel_strikes[side].append(f)
-        # Steps: consecutive strikes of alternate feet.
+        # Labelled steps: consecutive strikes of alternate feet.
         for k in range(1, len(events)):
             (f0, s0), (f1, s1) = events[k - 1], events[k]
             dt = (f1 - f0) / fps

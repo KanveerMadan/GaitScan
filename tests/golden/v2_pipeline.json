@@ -4,7 +4,7 @@
    "cadence": {
     "n": 9,
     "unit": "steps/min",
-    "value": 109.1
+    "value": 109.6
    },
    "peak_knee_flexion": {
     "left": {
@@ -28,9 +28,9 @@
    },
    "step_time": {
     "n": 9,
-    "sd": 0.017,
+    "sd": 0.004,
     "unit": "s",
-    "value": 0.55
+    "value": 0.547
    },
    "stride_time": {
     "left": {
@@ -58,6 +58,7 @@
    "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
    "version": "float16/1"
   },
+  "notes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": true,
@@ -88,6 +89,7 @@
    "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
    "version": "float16/1"
   },
+  "notes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -111,6 +113,7 @@
    "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
    "version": "float16/1"
   },
+  "notes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -144,6 +147,7 @@
    "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
    "version": "float16/1"
   },
+  "notes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -172,6 +176,7 @@
    "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
    "version": "float16/1"
   },
+  "notes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -208,7 +213,7 @@
    },
    "step_time": {
     "n": 9,
-    "sd": 0.017,
+    "sd": 0.005,
     "unit": "s",
     "value": 0.547
    },
@@ -233,6 +238,7 @@
    "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
    "version": "float16/1"
   },
+  "notes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -263,6 +269,7 @@
    "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
    "version": "float16/1"
   },
+  "notes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -285,6 +292,7 @@
    "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
    "version": "float16/1"
   },
+  "notes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -303,7 +311,7 @@
    "cadence": {
     "n": 9,
     "unit": "steps/min",
-    "value": 109.1
+    "value": 109.6
    },
    "peak_knee_flexion": {
     "left": {
@@ -321,9 +329,9 @@
    },
    "step_time": {
     "n": 9,
-    "sd": 0.017,
+    "sd": 0.004,
     "unit": "s",
-    "value": 0.55
+    "value": 0.547
    },
    "stride_time": {
     "left": {
@@ -346,6 +354,7 @@
    "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
    "version": "float16/1"
   },
+  "notes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -373,7 +382,7 @@
    "cadence": {
     "n": 16,
     "unit": "steps/min",
-    "value": 124.1
+    "value": 124.5
    },
    "peak_knee_flexion": {
     "left": {
@@ -391,9 +400,9 @@
    },
    "step_time": {
     "n": 16,
-    "sd": 0.017,
+    "sd": 0.003,
     "unit": "s",
-    "value": 0.483
+    "value": 0.482
    },
    "stride_time": {
     "left": {
@@ -416,6 +425,7 @@
    "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
    "version": "float16/1"
   },
+  "notes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -441,9 +451,9 @@
  "spm90": {
   "metrics": {
    "cadence": {
-    "n": 8,
+    "n": 6,
     "unit": "steps/min",
-    "value": 90.0
+    "value": 89.8
    },
    "peak_knee_flexion": {
     "left": {
@@ -455,10 +465,10 @@
     "right": null
    },
    "step_time": {
-    "n": 8,
-    "sd": 0.0,
+    "n": 6,
+    "sd": 0.006,
     "unit": "s",
-    "value": 0.667
+    "value": 0.668
    },
    "stride_time": {
     "left": {
@@ -476,6 +486,7 @@
    "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
    "version": "float16/1"
   },
+  "notes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -487,7 +498,7 @@
    "passes": 4,
    "path_convergence_deg": 0.5,
    "steady_walking_s": 10.8,
-   "steps_detected": 8,
+   "steps_detected": 6,
    "strides": {
     "left": 4,
     "right": 0
@@ -506,6 +517,7 @@
    "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
    "version": "float16/1"
   },
+  "notes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -525,7 +537,7 @@
    "cadence": {
     "n": 9,
     "unit": "steps/min",
-    "value": 109.1
+    "value": 109.6
    },
    "peak_knee_flexion": {
     "left": {
@@ -543,9 +555,9 @@
    },
    "step_time": {
     "n": 9,
-    "sd": 0.017,
+    "sd": 0.004,
     "unit": "s",
-    "value": 0.55
+    "value": 0.547
    },
    "stride_time": {
     "left": {
@@ -568,6 +580,7 @@
    "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
    "version": "float16/1"
   },
+  "notes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,

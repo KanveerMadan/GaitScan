@@ -9,7 +9,7 @@ from gaitcore import quality
 from gaitcore.calibration import Calibration
 from gaitcore.clip import Clip
 from gaitcore.gait import leg_length, measure_walk
-from gaitcore.result import AnalysisResult, metrics_from_walk
+from gaitcore.result import AnalysisResult, metrics_from_walk, notes_from_walk
 from gaitcore.segments import steady_segments
 from gaitcore.signals import build_tracks
 
@@ -56,12 +56,14 @@ def analyse(clip: Clip, calibration: Calibration | None = None) -> AnalysisResul
         return _rejected(r, q)
 
     walk = measure_walk(clip, segments, calibration, tracks=tracks)
-    q["steps_detected"] = len(walk.step_times)
+    q["steps_detected"] = walk.step_count
     q["strides"] = {"left": len(walk.stride_times["L"]), "right": len(walk.stride_times["R"])}
-    r = quality.enough_walking(len(walk.step_times))
+    r = quality.enough_walking(walk.step_count, steady_frames / clip.fps)
     if r:
         return _rejected(r, q)
-    return AnalysisResult(status="accepted", metrics=metrics_from_walk(walk), quality=q)
+    return AnalysisResult(
+        status="accepted", metrics=metrics_from_walk(walk), quality=q, notes=notes_from_walk(walk)
+    )
 
 
 @dataclass(frozen=True)

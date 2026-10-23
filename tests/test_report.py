@@ -26,3 +26,15 @@ def test_pdf_never_shows_hip_excursion_even_from_an_older_stored_result():
     text = "".join(page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages)
     assert "Cadence" in text
     assert "hip" not in text.lower()
+
+
+def test_pdf_shows_the_result_notes():
+    from app.services.report_pdf import build_pdf
+    from gaitcore.pipeline import analyse
+    from gaitcore.result import LEGS_NOT_TOLD_APART
+
+    result = analyse(synthetic_clip()[0]).to_dict()
+    result["notes"] = [LEGS_NOT_TOLD_APART]
+    pdf = build_pdf(result, patient_name="Anonymous", created_at=None)
+    text = " ".join("".join(page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages).split())
+    assert "couldn't be told apart reliably" in text

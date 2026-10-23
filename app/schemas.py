@@ -13,6 +13,7 @@ class Result(BaseModel):
     status: str
     metrics: dict[str, Any]
     quality: dict[str, Any]
+    notes: list[str] = []  # user-facing caveats; absent in results stored before 2026-10-24
 
 
 class AnalyzeResponse(BaseModel):

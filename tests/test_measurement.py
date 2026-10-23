@@ -168,11 +168,11 @@ def flip_legs(clip, fraction, seed):
 
 
 LEG_FLIPS_UNFIXED = pytest.mark.xfail(
-    strict=True, reason="leg-label flips not handled yet; fix awaits approval"
+    strict=True, reason="per-foot heel strikes still follow the leg labels; label flips not handled yet"
 )
 
 
-@pytest.mark.parametrize("seed", [0] + [pytest.param(s, marks=LEG_FLIPS_UNFIXED) for s in (1, 2, 3)])
+@pytest.mark.parametrize("seed", [0, 1, 2, 3])
 def test_brief_left_right_leg_flips_never_give_a_wrong_cadence(seed):
     r = analyse(flip_legs(synthetic_clip(steps_per_min=110)[0], 0.10, seed))
     if r.accepted:  # rejecting the clip is allowed; a wrong number is not
