@@ -138,6 +138,44 @@ def test_heel_strikes_of_both_legs_are_found_near_the_truth():
         assert (err <= 2 / clip.fps).all(), err  # within 2 frames (Zeni's method leads slightly)
 
 
+LEG_PAIRS = ((25, 26), (27, 28), (29, 30), (31, 32))  # knee, ankle, heel, toe (L, R)
+
+
+def flip_legs(clip, fraction, seed):
+    """MediaPipe's left/right leg flips: for 1-2 frames the whole leg (knee, ankle, heel, toe) carries
+    the other leg's label; the hips keep theirs. On LJMU (Topham et al. 2023, CC BY 4.0) the labels
+    flipped between ~10-12% of consecutive frames in every accepted clip whose cadence read 136-158
+    steps/min (P8: 116 on one task, 153 on the next). `fraction` of frames are flipped here."""
+    rng, lm, flipped = np.random.default_rng(seed), clip.landmarks, set()
+    while len(flipped) < fraction * clip.n_frames:
+        start = int(rng.integers(0, clip.n_frames))
+        flipped.update(range(start, min(clip.n_frames, start + int(rng.integers(1, 3)))))
+    rows = sorted(flipped)
+    for a, b in LEG_PAIRS:
+        for k in ("x", "y", "z", "vis"):
+            va, vb = lm.loc[rows, f"lm{a}_{k}"].to_numpy(), lm.loc[rows, f"lm{b}_{k}"].to_numpy()
+            lm.loc[rows, f"lm{a}_{k}"], lm.loc[rows, f"lm{b}_{k}"] = vb, va
+    return clip
+
+
+@pytest.mark.parametrize("seed", [0, 1, 2, 3])
+def test_brief_left_right_leg_flips_never_give_a_wrong_cadence(seed):
+    r = analyse(flip_legs(synthetic_clip(steps_per_min=110)[0], 0.10, seed))
+    if r.accepted:  # rejecting the clip is allowed; a wrong number is not
+        assert r.metrics["cadence"]["value"] == pytest.approx(110, abs=2)
+
+
+@pytest.mark.parametrize("seed", [0, 1, 2, 3])
+def test_heel_strikes_are_found_on_the_right_foot_despite_leg_flips(seed):
+    clip, truth = synthetic_clip()
+    walk, _ = walk_of(flip_legs(clip, 0.10, seed))
+    for side in "LR":
+        det = np.array(walk.heel_strikes[side]) / clip.fps
+        assert len(det) >= 4, side
+        err = np.array([np.min(np.abs(np.array(truth.heel_strikes[side]) - d)) for d in det])
+        assert (err <= 2 / clip.fps).all(), (side, err)
+
+
 def test_step_and_stride_times():
     r = analyse(synthetic_clip(steps_per_min=100, passes=3, pass_secs=6.0, width=2000)[0])
     assert r.metrics["step_time"]["value"] == pytest.approx(0.6, abs=0.02)
