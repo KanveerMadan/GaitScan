@@ -49,9 +49,9 @@ def test_analysis_of_1080p_60fps_10s_peaks_under_420_mb(tmp_path):
         [sys.executable, "-c", CHILD, video],
         capture_output=True,
         text=True,
-        check=True,
         env={**os.environ, "PYTHONPATH": ROOT},
     )
+    assert out.returncode == 0, out.stderr[-2000:]
     peak_mb = int(out.stdout.split()[-1])  # ru_maxrss is in KiB on Linux
     assert peak_mb <= PEAK_RSS_LIMIT_MB, f"peak RSS {peak_mb} MB"
 

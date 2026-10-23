@@ -32,6 +32,8 @@ jobs:
           version: "0.12.11"
           enable-cache: true
       - run: uv sync --frozen
+      - name: Pinned pose model (gitignored; the Docker image fetches it the same way)
+        run: uv run python gaitcore/model.py fetch
       - name: Lint
         run: uv run ruff check . && uv run ruff format --check .
       - name: Typecheck
