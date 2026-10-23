@@ -31,6 +31,9 @@ class Settings(BaseModel):
     sentry_dsn: str = ""
     # Proxies in front of the app that append to X-Forwarded-For (see app/core/ratelimit.py).
     trusted_proxy_hops: int = 0
+    # Header holding the client address set by the edge proxy (Render: true-client-ip). Preferred over
+    # TRUSTED_PROXY_HOPS when present and a valid IP (app/core/ratelimit.py).
+    client_ip_header: str = ""
 
     @field_validator("env")
     @classmethod

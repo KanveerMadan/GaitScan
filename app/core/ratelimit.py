@@ -2,25 +2,28 @@
 
 Client address and its trust assumption
 ---------------------------------------
-Per-IP limits key on `client_ip()`. With TRUSTED_PROXY_HOPS=0 (default) that is the
-TCP peer and all forwarding headers are ignored. With N > 0 we assume exactly N
-proxies sit in front of the app and each *appends* the address it received from to
-X-Forwarded-For. The entry N places from the right was written by the outermost
-trusted proxy and is the real client; anything left of it was written by the client
-and is never read, so a spoofed header cannot choose the bucket.
+Per-IP limits key on `client_ip()`:
+1. CLIENT_IP_HEADER set (Render: true-client-ip): that header, if it holds one valid IP.
+   Only safe when the edge proxy always overwrites it, so a client can't choose it.
+2. Otherwise TRUSTED_PROXY_HOPS=N > 0: we assume exactly N proxies sit in front of the
+   app and each *appends* the address it received from to X-Forwarded-For. The entry N
+   places from the right is the real client; anything left of it was written by the
+   client and is never read, so a spoofed header cannot choose the bucket.
+3. Otherwise (0, the default) the TCP peer; forwarding headers are ignored.
 
-Render (assumed, not in Render's docs): client -> Cloudflare -> Render proxy -> app,
-both appending, so XFF = "<client-written...>, <client>, <Cloudflare edge>" and
-render.yaml sets TRUSTED_PROXY_HOPS=2. If the real chain has fewer appending proxies,
-the chosen entry could be client-written (spoofable); with more, users share an
-edge address. Verify after deploying (PHASE_1.md, human actions). uvicorn's own
---proxy-headers is disabled in the Dockerfile because it trusts the leftmost entry.
+Render, observed with a temporary header log: the peer is 127.0.0.1, XFF arrives as
+"<client-written...>, <client>, <Cloudflare edge>, <10.x Render internal>" with the last
+two varying per request (so hops=1 or 2 gave every request its own bucket; hops=3 is
+the client), and True-Client-IP / CF-Connecting-IP hold the client even when XFF is
+spoofed. uvicorn's own --proxy-headers is disabled in the Dockerfile because it trusts
+the leftmost entry.
 
 ponytail: in-process memory. Correct for one uvicorn worker on one instance (the
 current deployment). With several workers or instances each has its own counts, so
 move this to Postgres or Redis when scaling out.
 """
 
+import ipaddress
 import threading
 import time
 from collections import defaultdict, deque
@@ -70,6 +73,11 @@ ALL = (login_failures_per_email, login_attempts_per_ip, registrations_per_ip)
 
 
 def client_ip(request: Request) -> str:
+    if settings.client_ip_header:
+        try:
+            return str(ipaddress.ip_address(request.headers.get(settings.client_ip_header, "").strip()))
+        except ValueError:
+            pass  # missing or not a single IP: fall back to the X-Forwarded-For chain
     peer = request.client.host if request.client else "unknown"
     hops = settings.trusted_proxy_hops
     if hops <= 0:

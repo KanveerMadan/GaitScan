@@ -18,9 +18,12 @@ services:
         sync: false
       - key: DATABASE_URL
         sync: false
-      # Cloudflare + Render proxy both append to X-Forwarded-For (app/core/ratelimit.py).
+      # Client address for rate limits (app/core/ratelimit.py): Cloudflare's True-Client-IP,
+      # falling back to X-Forwarded-For with 3 trusted hops (client, edge, Render internal).
+      - key: CLIENT_IP_HEADER
+        value: "true-client-ip"
       - key: TRUSTED_PROXY_HOPS
-        value: "2"
+        value: "3"
       - key: SENTRY_DSN
         sync: false
       - key: ENABLE_LLM_EXPLANATIONS
