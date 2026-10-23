@@ -32,6 +32,9 @@ class Settings(BaseModel):
     trusted_proxy_hops: int = 0
     # ANALYSIS_LOG_MEMORY=1: log the process's peak RSS after each analysis (Render's 512 MB limit).
     analysis_log_memory: bool = False
+    # Header holding the client address set by the edge proxy (Render: true-client-ip). Preferred over
+    # TRUSTED_PROXY_HOPS when present and a valid IP (app/core/ratelimit.py).
+    client_ip_header: str = ""
 
     @field_validator("env")
     @classmethod
