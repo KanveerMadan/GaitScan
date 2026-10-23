@@ -127,6 +127,15 @@ def test_synthetic_110_steps_per_min_reads_110_plus_minus_2():
     assert r.metrics["cadence"]["value"] == pytest.approx(110, abs=2)
 
 
+@pytest.mark.parametrize("fps", [25, 60])
+def test_cadence_is_right_at_other_frame_rates(fps):
+    """Event times are found to a fraction of a frame, so a step time that isn't a whole number of
+    frames (110 steps/min = 13.6 frames at 25 fps) doesn't round the cadence."""
+    r = analyse(synthetic_clip(steps_per_min=110, fps=fps)[0])
+    assert r.accepted, r.rejection
+    assert r.metrics["cadence"]["value"] == pytest.approx(110, abs=2)
+
+
 def test_heel_strikes_of_both_legs_are_found_near_the_truth():
     clip, truth = synthetic_clip()
     walk, _ = walk_of(clip)
@@ -168,6 +177,18 @@ def test_brief_left_right_leg_flips_never_give_a_wrong_cadence(seed):
     r = analyse(flip_legs(synthetic_clip(steps_per_min=110)[0], 0.10, seed))
     if r.accepted:  # rejecting the clip is allowed; a wrong number is not
         assert r.metrics["cadence"]["value"] == pytest.approx(110, abs=2)
+
+
+def test_cadence_and_step_time_do_not_depend_on_the_left_right_labels():
+    """Cadence and step time come from the distance between the heels, |x_L - x_R|, which swapping
+    the leg labels can't change: any amount of label flipping gives exactly the same values."""
+    base = analyse(synthetic_clip(steps_per_min=110)[0])
+    assert base.accepted
+    for fraction, seed in ((0.1, 1), (0.3, 2), (0.5, 3)):
+        r = analyse(flip_legs(synthetic_clip(steps_per_min=110)[0], fraction, seed))
+        assert r.accepted, (fraction, r.rejection)
+        assert r.metrics["cadence"] == base.metrics["cadence"], fraction
+        assert r.metrics["step_time"] == base.metrics["step_time"], fraction
 
 
 @pytest.mark.parametrize("seed", [pytest.param(s, marks=LEG_FLIPS_UNFIXED) for s in (0, 1, 2, 3)])
@@ -336,14 +357,73 @@ def test_result_has_units_quality_and_versions():
 
 
 def test_cadence_is_immune_to_a_constant_timing_offset_on_one_leg():
-    """Heel-strike timing errors can differ between the near and far leg (or after a knee change).
-    A constant offset d on one leg makes L->R steps t+d and R->L steps t-d; when a pass holds more of
-    one kind, a plain mean is biased. Averaging the two alternations cancels d exactly."""
+    """Event timing errors can differ between the near and far leg (or after a knee change). The
+    step events alternate between the feet, so a constant offset d on one foot's events makes
+    alternate steps t+d and t-d; when a run holds an odd number of steps, a plain mean is biased.
+    Averaging the two alternations of each run cancels d exactly."""
     from gaitcore.gait import Walk
 
-    w = Walk(fps=30.0, step_times=[0.6, 0.5, 0.6, 0.5, 0.6], step_ends=["R", "L", "R", "L", "R"])
+    w = Walk(fps=30.0, contact_runs=[[0.0, 0.6, 1.1, 1.7, 2.2, 2.8]])  # steps 0.6 0.5 0.6 0.5 0.6
     assert w.cadence == pytest.approx(60 / 0.55)
     assert w.mean_step_time == pytest.approx(0.55)
+    w.contact_runs.append([10.0, 10.5, 11.1, 11.6])  # a second pass: 0.5 0.6 0.5
+    assert w.mean_step_time == pytest.approx(0.55)
+    assert w.step_count == 8
+
+
+def test_per_leg_values_are_hidden_when_left_and_right_steps_are_too_variable():
+    """Stride time and knee flexion per leg need the left/right labels. When the steps between
+    labelled heel strikes vary by more than 20% (coefficient of variation), the labels are not
+    trusted: per-leg values are withheld with a note, and cadence and step time (label-free) stay."""
+    from gaitcore.gait import Walk
+    from gaitcore.result import LEGS_NOT_TOLD_APART, metrics_from_walk, notes_from_walk
+
+    def walk(step_times):
+        return Walk(
+            fps=30.0,
+            contact_runs=[[0.0, 0.55, 1.1, 1.65, 2.2, 2.75, 3.3]],
+            step_times=step_times,
+            stride_times={"L": [1.1, 1.1, 1.1], "R": [1.1, 1.1, 1.1]},
+            knee_peak_flexion={"L": [60.0, 61.0, 59.0], "R": [58.0, 60.0, 59.0]},
+        )
+
+    steady = walk([0.55, 0.56, 0.54, 0.55, 0.55, 0.56])  # CV 0.01
+    m = metrics_from_walk(steady)
+    assert m["stride_time"]["left"]["value"] == pytest.approx(1.1) and m["peak_knee_flexion"]["right"]
+    assert notes_from_walk(steady) == []
+
+    erratic = walk([0.55, 0.30, 0.80, 0.25, 0.85, 0.55])  # CV 0.44: labels swapping
+    m = metrics_from_walk(erratic)
+    assert m["stride_time"] == {"left": None, "right": None}
+    assert m["peak_knee_flexion"] == {"left": None, "right": None}
+    assert m["cadence"]["value"] == pytest.approx(60 / 0.55, abs=0.1)
+    assert notes_from_walk(erratic) == [LEGS_NOT_TOLD_APART]
+    assert "left and right legs" in LEGS_NOT_TOLD_APART.lower()
+
+
+def test_result_carries_user_facing_notes():
+    assert analyse(synthetic_clip()[0]).to_dict()["notes"] == []
+
+
+def collapse_legs(clip):
+    """MediaPipe sometimes puts both legs on the same one: the right leg's points copy the left's."""
+    lm = clip.landmarks
+    for a, b in LEG_PAIRS:
+        for k in ("x", "y", "z", "vis"):
+            lm[f"lm{b}_{k}"] = lm[f"lm{a}_{k}"]
+    return clip
+
+
+def test_enough_walking_but_too_few_steps_is_reported_as_legs_not_tracked():
+    """>= 4 s of steady walking holds at least 6 steps at any normal cadence (6 x 0.67 s at
+    90 steps/min), so finding fewer means the legs weren't followed, not that the walk was short."""
+    r = analyse(collapse_legs(synthetic_clip(passes=2)[0]))
+    assert r.quality["steady_walking_s"] >= 4.0
+    assert r.status == "rejected" and r.rejection.code == "legs_not_tracked"
+    assert "legs" in r.rejection.message and len(r.rejection.message) > 40
+    assert r.metrics == {}
+    short = analyse(collapse_legs(synthetic_clip(passes=1, pass_secs=4.0)[0]))  # 2.4 s steady
+    assert short.rejection.code == "too_little_walking"
 
 
 def test_only_kept_metrics_are_returned():
