@@ -65,6 +65,8 @@ def synthetic_clip(
     rotate90=False,
     feet_visibility=0.95,
     far_visibility=0.8,
+    camera_distance=None,  # px from the walking line; None = orthographic (no perspective)
+    camera_height=None,  # px above the floor; default: hip height
 ) -> tuple[Clip, Truth]:
     rng = np.random.default_rng(seed)
     step_t = 60.0 / steps_per_min
@@ -146,10 +148,17 @@ def synthetic_clip(
     face_x = direction * np.cos(body)  # forward component of the facing direction
 
     cx = width / 2
+    eye_y = floor - (LEG if camera_height is None else camera_height)
 
-    def proj(x_world, z_world):
-        # camera yaw: image x = x cos(yaw) + z sin(yaw), about the frame centre
-        return cx + (x_world - cx) * np.cos(yaw) + z_world * np.sin(yaw)
+    def proj(x_world, z_world, y_world):
+        # camera yaw: image x = x cos(yaw) + z sin(yaw), about the frame centre. With a camera
+        # distance, a pinhole camera at that distance (scale 1 at the frame centre on the walking
+        # line): points further away shrink towards the horizon at eye_y.
+        u = (x_world - cx) * np.cos(yaw) + z_world * np.sin(yaw)
+        if camera_distance is None:
+            return cx + u, y_world
+        s = camera_distance / (camera_distance + (x_world - cx) * np.sin(yaw) - z_world * np.cos(yaw))
+        return cx + u * s, eye_y + (y_world - eye_y) * s
 
     pts = {}
     for side, zs in (("L", 1.0), ("R", -1.0)):
@@ -168,9 +177,9 @@ def synthetic_clip(
         sgn = np.where(sgn == 0, 1, sgn)
         knee = (mx + sgn * hgt * nx, my + sgn * hgt * ny)
         for name, (x, y) in (("hip", hip), ("knee", knee), ("ankle", ankle), ("heel", heel), ("toe", toe)):
-            pts[(side, name)] = (proj(x, z), y)
+            pts[(side, name)] = proj(x, z, y)
         sh_z = zs * SHOULDER_HALF * lateral
-        pts[(side, "shoulder")] = (proj(px, sh_z), pelvis_y - TORSO)
+        pts[(side, "shoulder")] = proj(px, sh_z, pelvis_y - TORSO)
 
     idx = {
         ("L", "shoulder"): 11,
@@ -188,8 +197,7 @@ def synthetic_clip(
     }
     cols = {}
     for i in range(33):  # head/arms: a point above the shoulders (unused by the pipeline)
-        cols[f"lm{i}_x"] = proj(px, 0.0)
-        cols[f"lm{i}_y"] = pelvis_y - TORSO - 0.2 * LEG
+        cols[f"lm{i}_x"], cols[f"lm{i}_y"] = proj(px, 0.0, pelvis_y - TORSO - 0.2 * LEG)
         cols[f"lm{i}_z"] = np.zeros(n)
         cols[f"lm{i}_vis"] = np.full(n, 0.99)
     # The camera stays on one side, so the far leg is R on even passes and L after each turn.

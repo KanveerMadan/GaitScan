@@ -8,8 +8,9 @@ import math
 
 import numpy as np
 import pytest
-from synthetic import knee_flexion_truth, synthetic_clip
+from synthetic import M_PER_PX, knee_flexion_truth, synthetic_clip
 
+from gaitcore import quality
 from gaitcore.calibration import Calibration, CalibrationError
 from gaitcore.gait import leg_length, measure_walk
 from gaitcore.pipeline import analyse
@@ -197,6 +198,7 @@ GATE_CASES = {
     "feet_not_visible": {"feet_visibility": 0.2},
     "not_side_view": {"yaw_deg": 40},
     "too_little_walking": {"passes": 1, "pass_secs": 3.4},
+    "view_unconfirmed": {"step_ratio": 0.0},  # stepping on the spot: never walks across the frame
 }
 
 
@@ -223,6 +225,50 @@ def test_slightly_oblique_side_view_is_accepted():
     assert analyse(synthetic_clip(yaw_deg=15)[0]).accepted
 
 
+# A phone 3.5 m from the walking line (the capture tip says 3-4 m), seen as a pinhole camera.
+PHONE_PX = 3.5 / M_PER_PX
+
+
+def rolled(clip, deg):
+    """The same scene filmed with the phone rolled by `deg`: landmarks rotated about the frame centre."""
+    lm, a, w, h = clip.landmarks, np.radians(deg), clip.width, clip.height
+    for i in range(33):
+        x, y = lm[f"lm{i}_x"] * w - w / 2, lm[f"lm{i}_y"] * h - h / 2
+        lm[f"lm{i}_x"] = (x * np.cos(a) - y * np.sin(a) + w / 2) / w
+        lm[f"lm{i}_y"] = (x * np.sin(a) + y * np.cos(a) + h / 2) / h
+    return clip
+
+
+@pytest.mark.parametrize("yaw", [18, 22])
+def test_oblique_walk_seen_in_perspective_is_rejected_as_not_side_view(yaw):
+    """LJMU's 45 deg clips passed the shoulder-width rule 41% of the time; with perspective the
+    walker's ankle and shoulder paths converge, which a side-on camera never shows."""
+    r = analyse(synthetic_clip(yaw_deg=yaw, camera_distance=PHONE_PX)[0])
+    assert r.quality["view_ratio"] <= quality.MAX_VIEW_RATIO  # the shoulder rule alone lets it through
+    assert r.rejection is not None and r.rejection.code == "not_side_view"
+
+
+@pytest.mark.parametrize("yaw", [0, 10])
+def test_near_side_view_seen_in_perspective_is_accepted(yaw):
+    r = analyse(synthetic_clip(yaw_deg=yaw, camera_distance=PHONE_PX)[0])
+    assert r.accepted, r.rejection
+    assert r.quality["path_convergence_deg"] < quality.MAX_PATH_CONVERGENCE
+
+
+@pytest.mark.parametrize("deg", [-5, 5])
+def test_side_view_decision_is_unaffected_by_camera_roll(deg):
+    side = analyse(rolled(synthetic_clip(camera_distance=PHONE_PX)[0], deg))
+    assert side.accepted, side.rejection
+    oblique = analyse(rolled(synthetic_clip(yaw_deg=22, camera_distance=PHONE_PX)[0], deg))
+    assert oblique.rejection is not None and oblique.rejection.code == "not_side_view"
+
+
+def test_view_unconfirmed_message_asks_for_a_walk_across_the_frame():
+    r = analyse(synthetic_clip(**GATE_CASES["view_unconfirmed"])[0])
+    assert "side-on" in r.rejection.message and "across the frame" in r.rejection.message
+    assert r.quality["path_convergence_deg"] is None
+
+
 # ---- result shape ------------------------------------------------------------------------------
 def test_result_has_units_quality_and_versions():
     d = analyse(synthetic_clip()[0]).to_dict()
@@ -239,6 +285,7 @@ def test_result_has_units_quality_and_versions():
         "usable_frame_fraction",
         "steps_detected",
         "strides",
+        "path_convergence_deg",
     ):
         assert key in q
     assert 0 < q["usable_frame_fraction"] <= 1

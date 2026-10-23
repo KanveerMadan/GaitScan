@@ -65,6 +65,7 @@ def test_accepted_analysis_returns_and_stores_measurements(client, monkeypatch):
         ("too_little_walking", {"passes": 1, "pass_secs": 3.4}),
         ("low_frame_rate", {"fps": 15}),
         ("too_short", {"passes": 1, "pass_secs": 2.5}),
+        ("view_unconfirmed", {"step_ratio": 0.0}),
     ],
 )
 def test_rejected_clips_get_a_reason_and_are_not_stored(client, monkeypatch, code, kwargs):
