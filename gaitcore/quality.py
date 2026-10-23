@@ -10,10 +10,13 @@ specific reason the user can act on. Checks run in this order; the first failure
 | wrong_orientation | median trunk angle from vertical > MAX_TRUNK_TILT (45 deg) | Physical: an upright walker's trunk leans well under 45 deg; above it the video is rotated or the person is not upright. |
 | feet_not_visible | both heels and both ankles visible in < MIN_FEET_FRACTION (50%) of the frames where the hips are in view | Heel strikes need both heels. Counted only while the person is in the picture, so walking out of frame is not mistaken for hidden feet. Design threshold. |
 | not_side_view | median shoulder width / trunk length > MAX_VIEW_RATIO (0.35) | Geometry: biacromial breadth / trunk length is ~0.90 in Winter's segment proportions (2009); MediaPipe's shoulder points sit inside the acromia, so ~0.8 is ASSUMED for the frontal ratio (to be checked on the Phase 3 multi-view data). At camera yaw a the ratio is ~0.8 sin a, so 0.35 = ~26 deg, about where a 60 deg knee flexion reads 5 deg low in the audit's projection probe (out_view_dependency.txt: 58.4 deg at 15 deg yaw, 53.5 deg at 30 deg). |
+| not_side_view | angle between the ankle path and the shoulder path while walking across the frame > MAX_PATH_CONVERGENCE (4.8 deg) | Data: side-on, both paths run parallel to the floor; a walk that also moves towards or away from the camera makes them converge in perspective. LJMU (Topham et al. 2023, CC BY 4.0), 24 participants, 45 vs 90 deg cameras, leave-one-participant-out: threshold 4.83 deg, accuracy 0.986, 1/70 45 deg clips accepted, 1/69 90 deg clips rejected (the shoulder-width rule alone accepted 29/70). An angle between two image lines, so a rolled phone doesn't change it (+-5 deg roll simulated on LJMU: 0-4% of 90 deg clips rejected). On the synthetic pinhole walker 3.5 m away it trips at ~16 deg yaw. |
+| view_unconfirmed | the path angle can't be measured: fewer than MIN_SEGMENT_S (one step) of frames walking across the frame | Without it the side-on view isn't confirmed, so no numbers. |
 | too_little_walking | fewer than MIN_STEPS (6) steps in steady passes | Measurement resolution: event timing is quantised to 1 frame; over 6 steps at 30 fps that bounds cadence error to about 1 step/min. |
 """
 
 import math
+import warnings
 from dataclasses import dataclass
 
 import numpy as np
@@ -21,7 +24,7 @@ import numpy.typing as npt
 
 from gaitcore.angles import segment_angle
 from gaitcore.clip import Clip
-from gaitcore.segments import Segment
+from gaitcore.segments import MIN_SEGMENT_S, V_MIN, Segment, pelvis_in_view, pelvis_speed
 from gaitcore.signals import SIDES, Tracks, masked_xy, raw_xy, single_person
 
 MIN_DURATION_S = 3.0
@@ -31,6 +34,7 @@ MAX_MULTI_FRACTION = 0.10
 MAX_TRUNK_TILT = 45.0
 MIN_FEET_FRACTION = 0.5
 MAX_VIEW_RATIO = 0.35
+MAX_PATH_CONVERGENCE = 4.8
 MIN_STEPS = 6
 
 CAPTURE_TIP = (
@@ -142,14 +146,51 @@ def view_ratio(clip: Clip, tracks: Tracks, segments: list[Segment]) -> float:
     return float(np.median(r)) if len(r) else math.nan
 
 
+NOT_SIDE_VIEW = Rejection(
+    "not_side_view",
+    "The camera doesn't seem to be at the side of the walking path. Place the phone side-on, "
+    "at right angles to the direction of walking.",
+)
+
+
 def side_view(ratio: float) -> Rejection | None:
-    if math.isfinite(ratio) and ratio > MAX_VIEW_RATIO:
+    return NOT_SIDE_VIEW if math.isfinite(ratio) and ratio > MAX_VIEW_RATIO else None
+
+
+def _line_angle(xy: npt.NDArray[np.float64], need: int) -> float:
+    """Angle from horizontal (deg) of the least-squares line y(x) through the finite points."""
+    ok = np.isfinite(xy).all(axis=1)
+    if ok.sum() < need or np.ptp(xy[ok, 0]) == 0:
+        return math.nan
+    return math.degrees(math.atan(float(np.polyfit(xy[ok, 0], xy[ok, 1], 1)[0])))
+
+
+def path_convergence(clip: Clip, tracks: Tracks, leg_px: float) -> float:
+    """Angle (deg) between the ankle path and the shoulder-midpoint path over the frames where the
+    person walks across the frame (pelvis in view, moving >= V_MIN). The ankle path is the mean of
+    the visible ankles. NaN with fewer than MIN_SEGMENT_S of such frames."""
+    with np.errstate(invalid="ignore"):
+        walking = pelvis_in_view(clip) & (np.abs(pelvis_speed(tracks, leg_px)) >= V_MIN)
+    shoulders = (masked_xy(clip, 11) + masked_xy(clip, 12)) / 2
+    ankles = np.stack([masked_xy(clip, idx["ankle"]) for idx in SIDES.values()])
+    with np.errstate(invalid="ignore"), warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)  # frames with neither ankle: NaN
+        ankle = np.nanmean(ankles, axis=0)
+    need = math.ceil(MIN_SEGMENT_S * clip.fps)
+    w = walking[:, None]
+    return abs(
+        _line_angle(np.where(w, ankle, np.nan), need) - _line_angle(np.where(w, shoulders, np.nan), need)
+    )
+
+
+def path_view(convergence: float) -> Rejection | None:
+    if not math.isfinite(convergence):
         return Rejection(
-            "not_side_view",
-            "The camera doesn't seem to be at the side of the walking path. Place the phone side-on, "
-            "at right angles to the direction of walking.",
+            "view_unconfirmed",
+            f"We couldn't confirm a side-on camera view: walk straight across the frame, from one side to "
+            f"the other. {CAPTURE_TIP}",
         )
-    return None
+    return NOT_SIDE_VIEW if convergence > MAX_PATH_CONVERGENCE else None
 
 
 def enough_walking(n_steps: int) -> Rejection | None:

@@ -67,6 +67,7 @@
    "frames_total": 450,
    "frames_with_pose": 450,
    "passes": 3,
+   "path_convergence_deg": 0.7,
    "steady_walking_s": 8.1,
    "steps_detected": 9,
    "strides": {
@@ -119,6 +120,7 @@
    "frames_total": 102,
    "frames_with_pose": 102,
    "passes": 1,
+   "path_convergence_deg": 3.5,
    "steady_walking_s": 2.1,
    "steps_detected": 2,
    "strides": {
@@ -151,6 +153,7 @@
    "frames_total": 450,
    "frames_with_pose": 450,
    "passes": 0,
+   "path_convergence_deg": null,
    "steady_walking_s": 0.0,
    "usable_frame_fraction": 0.0,
    "view_ratio": 0.741
@@ -239,6 +242,7 @@
    "frames_total": 450,
    "frames_with_pose": 450,
    "passes": 3,
+   "path_convergence_deg": 0.7,
    "steady_walking_s": 8.2,
    "steps_detected": 9,
    "strides": {
@@ -351,6 +355,7 @@
    "frames_total": 450,
    "frames_with_pose": 450,
    "passes": 3,
+   "path_convergence_deg": 0.7,
    "steady_walking_s": 8.1,
    "steps_detected": 9,
    "strides": {
@@ -420,6 +425,7 @@
    "frames_total": 615,
    "frames_with_pose": 615,
    "passes": 4,
+   "path_convergence_deg": 0.0,
    "steady_walking_s": 10.8,
    "steps_detected": 16,
    "strides": {
@@ -479,6 +485,7 @@
    "frames_total": 615,
    "frames_with_pose": 615,
    "passes": 4,
+   "path_convergence_deg": 0.5,
    "steady_walking_s": 10.8,
    "steps_detected": 8,
    "strides": {
@@ -570,6 +577,7 @@
    "frames_total": 450,
    "frames_with_pose": 450,
    "passes": 3,
+   "path_convergence_deg": 0.8,
    "steady_walking_s": 8.1,
    "steps_detected": 9,
    "strides": {

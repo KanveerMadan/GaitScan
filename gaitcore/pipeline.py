@@ -49,7 +49,9 @@ def analyse(clip: Clip, calibration: Calibration | None = None) -> AnalysisResul
     steady_frames = sum(s.end - s.start for s in segments)
     q["steady_walking_s"] = round(steady_frames / clip.fps, 2)
     q["usable_frame_fraction"] = round(steady_frames / clip.n_frames, 3)
-    r = quality.side_view(ratio)
+    convergence = quality.path_convergence(clip, tracks, leg_px) if math.isfinite(leg_px) else math.nan
+    q["path_convergence_deg"] = round(convergence, 1) if math.isfinite(convergence) else None
+    r = quality.side_view(ratio) or quality.path_view(convergence)
     if r:
         return _rejected(r, q)
 
