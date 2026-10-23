@@ -2,12 +2,12 @@
 
 Plan: [REBUILD_PLAN_V3.md](REBUILD_PLAN_V3.md). Full history of Phases 0–2 is in git and `phase-reports/`.
 
-- Current phase: **3 — Honest results + new measurements** (not started)
-- Done: Phase 0 (merged to main), Phase 1 (pushed, not merged), Phase 2 (`rebuild/phase-2-measurement`, pushed, stacked on Phase 1)
-- Phase 3 tasks done: none
-- Next task: confirm the pipeline supports multiple passes, a second test type and a treadmill speed (refactor if not); then OpenCap data download + `make evaluate`
+- Done and deployed: Phase 0 + Phase 1 merged to main (#1, #2); backend on Render `gaitscan-api`, frontend on Vercel
+- Merged since: #11 per-IP rate limits keyed on CLIENT_IP_HEADER (Render: True-Client-IP), #12 pillow 13.0.0 / certifi 2026.10.19
+- Phase 2: `rebuild/phase-2-measurement`, draft PR #10, not merged (origin/main merged in 2026-10-23)
+- Current phase: **2 — LJMU check of the quality gates** (Topham et al. 2023, CC BY 4.0), then Phase 3
+- Next task: LJMU discrepancies (0 steps on P1 E1 90°, None stride time / knee flexion), then side-view and multiple_people gates
 - Blockers / human actions:
-  - Phase 1 PRs open (#2 in both repos): GitHub CI green; Vercel preview builds fail (VITE_API_BASE_URL for Preview?). Nothing deployed (DB backup required before migration 0003)
   - hip_sagittal_excursion hidden from API/PDF/UI (CONDITIONAL); still computed for the Phase 3 check
   - No protocol-conforming real clip yet (walk01 is rejected: no complete step)
-  - OpenCap lab data licence/README to be confirmed at download (stop and report if no sagittal comparison is possible)
+  - Dependabot PRs #7–#9 open, untriaged
