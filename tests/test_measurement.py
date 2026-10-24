@@ -8,7 +8,7 @@ import math
 
 import numpy as np
 import pytest
-from synthetic import M_PER_PX, knee_flexion_truth, synthetic_clip
+from synthetic import LEG, M_PER_PX, knee_flexion_truth, synthetic_clip
 
 from gaitcore import quality
 from gaitcore.calibration import Calibration, CalibrationError
@@ -203,11 +203,16 @@ def test_heel_strikes_are_found_on_the_right_foot_despite_leg_flips(seed):
 
 
 def test_step_and_stride_times():
-    r = analyse(synthetic_clip(steps_per_min=100, passes=3, pass_secs=6.0, width=2000)[0])
+    """Stride time is still computed (for the Phase 3 check) but not returned: brief left/right
+    label flips can make it read up to 26% short without tripping the per-leg check."""
+    clip = synthetic_clip(steps_per_min=100, passes=3, pass_secs=6.0, width=2000)[0]
+    r = analyse(clip)
     assert r.metrics["step_time"]["value"] == pytest.approx(0.6, abs=0.02)
-    for leg in ("left", "right"):
-        st = r.metrics["stride_time"][leg]
-        assert st is not None and st["value"] == pytest.approx(1.2, abs=0.03) and st["unit"] == "s"
+    assert "stride_time" not in r.metrics
+    walk, _ = walk_of(clip)
+    for side in "LR":
+        assert len(walk.stride_times[side]) >= 3
+        assert np.mean(walk.stride_times[side]) == pytest.approx(1.2, abs=0.03)
 
 
 def test_per_stride_peak_knee_flexion_matches_the_pixels():
@@ -349,6 +354,7 @@ def test_result_has_units_quality_and_versions():
         "usable_frame_fraction",
         "steps_detected",
         "strides",
+        "step_time_cv",
         "path_convergence_deg",
     ):
         assert key in q
@@ -372,7 +378,7 @@ def test_cadence_is_immune_to_a_constant_timing_offset_on_one_leg():
 
 
 def test_per_leg_values_are_hidden_when_left_and_right_steps_are_too_variable():
-    """Stride time and knee flexion per leg need the left/right labels. When the steps between
+    """Knee flexion per leg needs the left/right labels. When the steps between
     labelled heel strikes vary by more than 20% (coefficient of variation), the labels are not
     trusted: per-leg values are withheld with a note, and cadence and step time (label-free) stay."""
     from gaitcore.gait import Walk
@@ -389,16 +395,16 @@ def test_per_leg_values_are_hidden_when_left_and_right_steps_are_too_variable():
 
     steady = walk([0.55, 0.56, 0.54, 0.55, 0.55, 0.56])  # CV 0.01
     m = metrics_from_walk(steady)
-    assert m["stride_time"]["left"]["value"] == pytest.approx(1.1) and m["peak_knee_flexion"]["right"]
+    assert m["peak_knee_flexion"]["left"]["value"] == pytest.approx(60.0) and m["peak_knee_flexion"]["right"]
     assert notes_from_walk(steady) == []
 
     erratic = walk([0.55, 0.30, 0.80, 0.25, 0.85, 0.55])  # CV 0.44: labels swapping
     m = metrics_from_walk(erratic)
-    assert m["stride_time"] == {"left": None, "right": None}
     assert m["peak_knee_flexion"] == {"left": None, "right": None}
     assert m["cadence"]["value"] == pytest.approx(60 / 0.55, abs=0.1)
     assert notes_from_walk(erratic) == [LEGS_NOT_TOLD_APART]
     assert "left and right legs" in LEGS_NOT_TOLD_APART.lower()
+    assert "stride" not in LEGS_NOT_TOLD_APART.lower()  # stride time isn't shown at all
 
 
 def test_result_carries_user_facing_notes():
@@ -426,7 +432,40 @@ def test_enough_walking_but_too_few_steps_is_reported_as_legs_not_tracked():
     assert short.rejection.code == "too_little_walking"
 
 
+def spurious_heel_bumps(clip, truth, amp=0.8, every=2):
+    """A short forward jump of the left heel point between steps, as a mis-tracked heel gives:
+    the heel separation gets an extra peak there."""
+    lm = clip.landmarks
+    t = np.arange(len(lm)) / clip.fps
+    hs = np.sort(truth.heel_strikes["L"] + truth.heel_strikes["R"])
+    x = lm["lm29_x"].to_numpy(dtype=float)
+    for mid in ((hs[:-1] + hs[1:]) / 2)[::every]:
+        x = x + amp * LEG / clip.width * np.exp(-0.5 * ((t - mid) / 0.08) ** 2)
+    lm["lm29_x"] = x
+    return clip
+
+
+def test_irregular_label_free_steps_are_rejected():
+    """Spurious separation peaks between real steps make the label-free step times irregular; on
+    held-out LJMU clips every cadence error over 6 steps/min had a step-time CV above 0.15."""
+    assert analyse(synthetic_clip()[0]).status == "accepted"
+    r = analyse(spurious_heel_bumps(*synthetic_clip()))
+    assert r.quality["step_time_cv"] > quality.MAX_STEP_TIME_CV
+    assert r.status == "rejected" and r.rejection.code == "irregular_steps"
+    assert "steadily" in r.rejection.message and r.metrics == {}
+
+
+def test_step_time_irregularity_threshold():
+    assert quality.MAX_STEP_TIME_CV == 0.15
+    assert quality.regular_steps([0.55] * 8) is None
+    assert quality.regular_steps([0.5, 0.6] * 4) is None  # CV 0.10
+    r = quality.regular_steps([0.45, 0.65] * 4)  # CV 0.19
+    assert r is not None and r.code == "irregular_steps"
+    assert quality.regular_steps([0.55]) is None  # one step: no spread to judge
+
+
 def test_only_kept_metrics_are_returned():
-    """Plan V3: hip sagittal excursion is CONDITIONAL (must pass the Phase 3 accuracy check)."""
+    """Plan V3: hip sagittal excursion is CONDITIONAL (must pass the Phase 3 accuracy check). Stride
+    time is withheld until Phase 3: brief left/right flips make it wrong without any warning."""
     metrics = analyse(synthetic_clip()[0]).to_dict()["metrics"]
-    assert set(metrics) == {"cadence", "step_time", "stride_time", "peak_knee_flexion"}
+    assert set(metrics) == {"cadence", "step_time", "peak_knee_flexion"}
