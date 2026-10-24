@@ -1,0 +1,24 @@
+# walk01 under the v2 pipeline (landmarks from mediapipe 1.0.1, Linux CPU). Local clip, never committed.
+frame {'fps': 30.0, 'width': 480, 'height': 848} | duration 16.83 s
+leg length (thigh+shank) 307 px = 0.64 x frame width
+result: rejected too_little_walking
+quality: {"fps": 30.0, "duration_s": 16.83, "frames_total": 505, "calibrated": false, "frames_with_pose": 490, "feet_visible_fraction": 0.592, "view_ratio": 0.16, "passes": 9, "steady_walking_s": 8.5, "usable_frame_fraction": 0.505, "steps_detected": 0, "strides": {"left": 0, "right": 0}}
+
+## Heel landmark availability (of frames with the pelvis in view)
+L heel: below frame 0.04, off the side 0.15, visibility<0.5 0.11, masked total 0.26
+R heel: below frame 0.02, off the side 0.11, visibility<0.5 0.10, masked total 0.20
+
+## Heel strikes per steady pass (and, diagnostic only, with the pass widened by 0.5 s each side)
+pass  0.27- 1.10 s (0.83 s, dir +1): [(np.float64(0.4), 'R')] | widened: [(np.float64(0.4), 'R')]
+pass  1.67- 2.57 s (0.90 s, dir -1): [] | widened: []
+pass  3.13- 4.17 s (1.03 s, dir +1): [(np.float64(3.87), 'L')] | widened: [(np.float64(2.7), 'R'), (np.float64(3.87), 'L')]
+pass  4.87- 5.77 s (0.90 s, dir -1): [] | widened: []
+pass  6.40- 7.40 s (1.00 s, dir +1): [(np.float64(7.07), 'L')] | widened: [(np.float64(7.07), 'L')]
+pass  8.40- 9.33 s (0.93 s, dir -1): [(np.float64(8.9), 'L')] | widened: [(np.float64(8.9), 'L')]
+pass 10.30-11.43 s (1.13 s, dir +1): [(np.float64(11.13), 'L')] | widened: [(np.float64(11.13), 'L')]
+pass 12.33-13.40 s (1.07 s, dir -1): [(np.float64(13.0), 'L')] | widened: [(np.float64(13.0), 'L')]
+pass 14.47-15.17 s (0.70 s, dir +1): [(np.float64(15.0), 'R')] | widened: [(np.float64(14.33), 'L'), (np.float64(15.0), 'R')]
+
+Conclusion: no pass holds two consecutive observable heel strikes (a step), even widened. The person
+crosses the 480 px portrait frame in ~1 s with the feet at the bottom edge; the second strike of each
+pass falls where that heel is masked. Under the measurement rules walk01 has 0 measurable steps.

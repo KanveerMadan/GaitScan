@@ -1,0 +1,534 @@
+{
+ "calibrated": {
+  "metrics": {
+   "cadence": {
+    "n": 9,
+    "unit": "steps/min",
+    "value": 109.6
+   },
+   "peak_knee_flexion": {
+    "left": {
+     "n": 3,
+     "sd": 0.0,
+     "unit": "deg",
+     "value": 56.7
+    },
+    "right": {
+     "n": 3,
+     "sd": 0.0,
+     "unit": "deg",
+     "value": 56.3
+    }
+   },
+   "step_length": {
+    "n": 9,
+    "sd": 0.0,
+    "unit": "m",
+    "value": 0.54
+   },
+   "step_time": {
+    "n": 9,
+    "sd": 0.004,
+    "unit": "s",
+    "value": 0.547
+   },
+   "walking_speed": {
+    "n": 9,
+    "unit": "m/s",
+    "value": 0.99
+   }
+  },
+  "model": {
+   "mediapipe": "1.0.1",
+   "name": "pose_landmarker_full",
+   "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
+   "version": "float16/1"
+  },
+  "notes": [],
+  "pipeline_version": "2.0.0",
+  "quality": {
+   "calibrated": true,
+   "duration_s": 15.0,
+   "feet_visible_fraction": 1.0,
+   "fps": 30.0,
+   "frames_total": 450,
+   "frames_with_pose": 450,
+   "passes": 3,
+   "path_convergence_deg": 0.7,
+   "steady_walking_s": 8.1,
+   "step_time_cv": 0.008,
+   "steps_detected": 9,
+   "strides": {
+    "left": 3,
+    "right": 3
+   },
+   "usable_frame_fraction": 0.54,
+   "view_ratio": 0.0
+  },
+  "rejection": null,
+  "status": "accepted"
+ },
+ "feet_hidden": {
+  "metrics": {},
+  "model": {
+   "mediapipe": "1.0.1",
+   "name": "pose_landmarker_full",
+   "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
+   "version": "float16/1"
+  },
+  "notes": [],
+  "pipeline_version": "2.0.0",
+  "quality": {
+   "calibrated": false,
+   "duration_s": 15.0,
+   "feet_visible_fraction": 0.0,
+   "fps": 30.0,
+   "frames_total": 450,
+   "frames_with_pose": 450
+  },
+  "rejection": {
+   "code": "feet_not_visible",
+   "message": "Both feet were clearly visible in only 0% of the time the person was in view. Keep the whole body, including both feet, in the frame, with nothing in front of the legs."
+  },
+  "status": "rejected"
+ },
+ "few_steps": {
+  "metrics": {},
+  "model": {
+   "mediapipe": "1.0.1",
+   "name": "pose_landmarker_full",
+   "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
+   "version": "float16/1"
+  },
+  "notes": [],
+  "pipeline_version": "2.0.0",
+  "quality": {
+   "calibrated": false,
+   "duration_s": 3.4,
+   "feet_visible_fraction": 1.0,
+   "fps": 30.0,
+   "frames_total": 102,
+   "frames_with_pose": 102,
+   "passes": 1,
+   "path_convergence_deg": 3.5,
+   "steady_walking_s": 2.1,
+   "step_time_cv": 0.01,
+   "steps_detected": 2,
+   "strides": {
+    "left": 1,
+    "right": 0
+   },
+   "usable_frame_fraction": 0.618,
+   "view_ratio": 0.0
+  },
+  "rejection": {
+   "code": "too_little_walking",
+   "message": "Only 2 steps of steady walking could be measured; at least 6 are needed. Film from the side with the phone held still at hip height, 3-4 m from the walking line, with the whole body in view, and walk across the frame and back at your usual pace."
+  },
+  "status": "rejected"
+ },
+ "frontal": {
+  "metrics": {},
+  "model": {
+   "mediapipe": "1.0.1",
+   "name": "pose_landmarker_full",
+   "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
+   "version": "float16/1"
+  },
+  "notes": [],
+  "pipeline_version": "2.0.0",
+  "quality": {
+   "calibrated": false,
+   "duration_s": 15.0,
+   "feet_visible_fraction": 1.0,
+   "fps": 30.0,
+   "frames_total": 450,
+   "frames_with_pose": 450,
+   "passes": 0,
+   "path_convergence_deg": null,
+   "steady_walking_s": 0.0,
+   "usable_frame_fraction": 0.0,
+   "view_ratio": 0.741
+  },
+  "rejection": {
+   "code": "not_side_view",
+   "message": "The camera doesn't seem to be at the side of the walking path. Place the phone side-on, at right angles to the direction of walking."
+  },
+  "status": "rejected"
+ },
+ "low_fps": {
+  "metrics": {},
+  "model": {
+   "mediapipe": "1.0.1",
+   "name": "pose_landmarker_full",
+   "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
+   "version": "float16/1"
+  },
+  "notes": [],
+  "pipeline_version": "2.0.0",
+  "quality": {
+   "calibrated": false,
+   "duration_s": 15.0,
+   "fps": 15,
+   "frames_total": 225
+  },
+  "rejection": {
+   "code": "low_frame_rate",
+   "message": "The video was recorded at 15 frames per second. Record at 30 frames per second or more (at least 24)."
+  },
+  "status": "rejected"
+ },
+ "noise2px": {
+  "metrics": {
+   "cadence": {
+    "n": 9,
+    "unit": "steps/min",
+    "value": 109.6
+   },
+   "peak_knee_flexion": {
+    "left": {
+     "n": 3,
+     "sd": 0.7,
+     "unit": "deg",
+     "value": 56.4
+    },
+    "right": {
+     "n": 3,
+     "sd": 1.3,
+     "unit": "deg",
+     "value": 56.4
+    }
+   },
+   "step_time": {
+    "n": 9,
+    "sd": 0.005,
+    "unit": "s",
+    "value": 0.547
+   }
+  },
+  "model": {
+   "mediapipe": "1.0.1",
+   "name": "pose_landmarker_full",
+   "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
+   "version": "float16/1"
+  },
+  "notes": [],
+  "pipeline_version": "2.0.0",
+  "quality": {
+   "calibrated": false,
+   "duration_s": 15.0,
+   "feet_visible_fraction": 1.0,
+   "fps": 30.0,
+   "frames_total": 450,
+   "frames_with_pose": 450,
+   "passes": 3,
+   "path_convergence_deg": 0.7,
+   "steady_walking_s": 8.2,
+   "step_time_cv": 0.01,
+   "steps_detected": 9,
+   "strides": {
+    "left": 3,
+    "right": 3
+   },
+   "usable_frame_fraction": 0.547,
+   "view_ratio": 0.01
+  },
+  "rejection": null,
+  "status": "accepted"
+ },
+ "rotated90": {
+  "metrics": {},
+  "model": {
+   "mediapipe": "1.0.1",
+   "name": "pose_landmarker_full",
+   "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
+   "version": "float16/1"
+  },
+  "notes": [],
+  "pipeline_version": "2.0.0",
+  "quality": {
+   "calibrated": false,
+   "duration_s": 15.0,
+   "fps": 30.0,
+   "frames_total": 450,
+   "frames_with_pose": 450
+  },
+  "rejection": {
+   "code": "wrong_orientation",
+   "message": "The person appears sideways or upside down in the video. Hold the phone so the person is upright on screen, and check that the video isn't rotated."
+  },
+  "status": "rejected"
+ },
+ "short": {
+  "metrics": {},
+  "model": {
+   "mediapipe": "1.0.1",
+   "name": "pose_landmarker_full",
+   "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
+   "version": "float16/1"
+  },
+  "notes": [],
+  "pipeline_version": "2.0.0",
+  "quality": {
+   "calibrated": false,
+   "duration_s": 2.5,
+   "fps": 30.0,
+   "frames_total": 75
+  },
+  "rejection": {
+   "code": "too_short",
+   "message": "The video is 2.5 s long. Record at least 3 s of walking; 10-20 s works best. Film from the side with the phone held still at hip height, 3-4 m from the walking line, with the whole body in view, and walk across the frame and back at your usual pace."
+  },
+  "status": "rejected"
+ },
+ "spm110": {
+  "metrics": {
+   "cadence": {
+    "n": 9,
+    "unit": "steps/min",
+    "value": 109.6
+   },
+   "peak_knee_flexion": {
+    "left": {
+     "n": 3,
+     "sd": 0.0,
+     "unit": "deg",
+     "value": 56.7
+    },
+    "right": {
+     "n": 3,
+     "sd": 0.0,
+     "unit": "deg",
+     "value": 56.3
+    }
+   },
+   "step_time": {
+    "n": 9,
+    "sd": 0.004,
+    "unit": "s",
+    "value": 0.547
+   }
+  },
+  "model": {
+   "mediapipe": "1.0.1",
+   "name": "pose_landmarker_full",
+   "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
+   "version": "float16/1"
+  },
+  "notes": [],
+  "pipeline_version": "2.0.0",
+  "quality": {
+   "calibrated": false,
+   "duration_s": 15.0,
+   "feet_visible_fraction": 1.0,
+   "fps": 30.0,
+   "frames_total": 450,
+   "frames_with_pose": 450,
+   "passes": 3,
+   "path_convergence_deg": 0.7,
+   "steady_walking_s": 8.1,
+   "step_time_cv": 0.008,
+   "steps_detected": 9,
+   "strides": {
+    "left": 3,
+    "right": 3
+   },
+   "usable_frame_fraction": 0.54,
+   "view_ratio": 0.0
+  },
+  "rejection": null,
+  "status": "accepted"
+ },
+ "spm125": {
+  "metrics": {
+   "cadence": {
+    "n": 16,
+    "unit": "steps/min",
+    "value": 124.5
+   },
+   "peak_knee_flexion": {
+    "left": {
+     "n": 8,
+     "sd": 0.0,
+     "unit": "deg",
+     "value": 56.9
+    },
+    "right": {
+     "n": 4,
+     "sd": 0.0,
+     "unit": "deg",
+     "value": 56.3
+    }
+   },
+   "step_time": {
+    "n": 16,
+    "sd": 0.003,
+    "unit": "s",
+    "value": 0.482
+   }
+  },
+  "model": {
+   "mediapipe": "1.0.1",
+   "name": "pose_landmarker_full",
+   "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
+   "version": "float16/1"
+  },
+  "notes": [],
+  "pipeline_version": "2.0.0",
+  "quality": {
+   "calibrated": false,
+   "duration_s": 20.5,
+   "feet_visible_fraction": 1.0,
+   "fps": 30.0,
+   "frames_total": 615,
+   "frames_with_pose": 615,
+   "passes": 4,
+   "path_convergence_deg": 0.0,
+   "steady_walking_s": 10.8,
+   "step_time_cv": 0.006,
+   "steps_detected": 16,
+   "strides": {
+    "left": 8,
+    "right": 4
+   },
+   "usable_frame_fraction": 0.527,
+   "view_ratio": 0.0
+  },
+  "rejection": null,
+  "status": "accepted"
+ },
+ "spm90": {
+  "metrics": {
+   "cadence": {
+    "n": 6,
+    "unit": "steps/min",
+    "value": 89.8
+   },
+   "peak_knee_flexion": {
+    "left": {
+     "n": 4,
+     "sd": 0.0,
+     "unit": "deg",
+     "value": 56.6
+    },
+    "right": null
+   },
+   "step_time": {
+    "n": 6,
+    "sd": 0.006,
+    "unit": "s",
+    "value": 0.668
+   }
+  },
+  "model": {
+   "mediapipe": "1.0.1",
+   "name": "pose_landmarker_full",
+   "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
+   "version": "float16/1"
+  },
+  "notes": [],
+  "pipeline_version": "2.0.0",
+  "quality": {
+   "calibrated": false,
+   "duration_s": 20.5,
+   "feet_visible_fraction": 1.0,
+   "fps": 30.0,
+   "frames_total": 615,
+   "frames_with_pose": 615,
+   "passes": 4,
+   "path_convergence_deg": 0.5,
+   "steady_walking_s": 10.8,
+   "step_time_cv": 0.009,
+   "steps_detected": 6,
+   "strides": {
+    "left": 4,
+    "right": 0
+   },
+   "usable_frame_fraction": 0.527,
+   "view_ratio": 0.0
+  },
+  "rejection": null,
+  "status": "accepted"
+ },
+ "two_people": {
+  "metrics": {},
+  "model": {
+   "mediapipe": "1.0.1",
+   "name": "pose_landmarker_full",
+   "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
+   "version": "float16/1"
+  },
+  "notes": [],
+  "pipeline_version": "2.0.0",
+  "quality": {
+   "calibrated": false,
+   "duration_s": 15.0,
+   "fps": 30.0,
+   "frames_total": 450,
+   "frames_with_pose": 450
+  },
+  "rejection": {
+   "code": "multiple_people",
+   "message": "More than one person was detected in 100% of the video. Record with only the person who is walking in view."
+  },
+  "status": "rejected"
+ },
+ "yaw15": {
+  "metrics": {
+   "cadence": {
+    "n": 9,
+    "unit": "steps/min",
+    "value": 109.6
+   },
+   "peak_knee_flexion": {
+    "left": {
+     "n": 3,
+     "sd": 0.0,
+     "unit": "deg",
+     "value": 55.0
+    },
+    "right": {
+     "n": 3,
+     "sd": 0.0,
+     "unit": "deg",
+     "value": 54.7
+    }
+   },
+   "step_time": {
+    "n": 9,
+    "sd": 0.004,
+    "unit": "s",
+    "value": 0.547
+   }
+  },
+  "model": {
+   "mediapipe": "1.0.1",
+   "name": "pose_landmarker_full",
+   "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
+   "version": "float16/1"
+  },
+  "notes": [],
+  "pipeline_version": "2.0.0",
+  "quality": {
+   "calibrated": false,
+   "duration_s": 15.0,
+   "feet_visible_fraction": 1.0,
+   "fps": 30.0,
+   "frames_total": 450,
+   "frames_with_pose": 450,
+   "passes": 3,
+   "path_convergence_deg": 0.8,
+   "steady_walking_s": 8.1,
+   "step_time_cv": 0.007,
+   "steps_detected": 9,
+   "strides": {
+    "left": 3,
+    "right": 3
+   },
+   "usable_frame_fraction": 0.54,
+   "view_ratio": 0.192
+  },
+  "rejection": null,
+  "status": "accepted"
+ }
+}

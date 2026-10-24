@@ -21,18 +21,15 @@ dependencies = [
     # SQLAlchemy 2.1 maps postgresql:// to psycopg 3
     "psycopg[binary]>=3.2",
     # analysis (gaitcore)
-    "mediapipe==0.10.9",
-    "protobuf>=3.20.3,<4",
+    # Same release as @mediapipe/tasks-vision 1.0.1 (Tasks PoseLandmarker; model pinned in gaitcore/model.py)
+    "mediapipe==1.0.1",
     "opencv-python-headless>=4.12",
     "numpy>=2.0",
     "pandas>=2.2",
     "scipy>=1.13",
     # reports
-    "matplotlib>=3.9",
     "reportlab>=4.4",
     "pillow>=13.0.0",
-    # optional LLM phrasing (off unless ENABLE_LLM_EXPLANATIONS)
-    "groq>=0.30",
     # observability
     "structlog>=25.4",
     "sentry-sdk[fastapi]>=2.35",
@@ -56,6 +53,13 @@ dev = [
 package = false
 # Security floors for transitive dependencies (pip-audit in CI).
 constraint-dependencies = ["certifi>=2026.10.19"]
+# mediapipe 1.0.1 declares the GUI build opencv-contrib-python (needs libGL) and sounddevice
+# (PortAudio, audio tasks only). The pose Tasks API needs neither: cv2 comes from
+# opencv-python-headless above. A never-true marker removes them from the lock.
+override-dependencies = [
+    "opencv-contrib-python; sys_platform == 'never'",
+    "sounddevice; sys_platform == 'never'",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -66,7 +70,8 @@ addopts = "-p no:cacheprovider"
 [tool.ruff]
 line-length = 110
 target-version = "py311"
-extend-exclude = ["_audit", "alembic/versions"]
+# tests/test_audit_spec.py is a byte-identical copy of the audit spec (test_audit_spec_is_unchanged).
+extend-exclude = ["_audit", "alembic/versions", "tests/test_audit_spec.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "S", "T20"]
@@ -101,3 +106,8 @@ no_implicit_reexport = true
 strict_equality = true
 warn_return_any = true
 extra_checks = true
+
+# mediapipe 1.0.1 ships neither stubs nor py.typed.
+[[tool.mypy.overrides]]
+module = "mediapipe.*"
+ignore_missing_imports = true

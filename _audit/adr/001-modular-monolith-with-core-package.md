@@ -1,6 +1,6 @@
 # ADR-001: Modular monolith with a framework-independent analysis package
 
-**Status:** Proposed · **Date:** 2026-09-27
+**Status:** Accepted, amended by REBUILD_PLAN_V3.md (2026-10-03): no worker process; results record pipeline_version + model SHA-256 · **Date:** 2026-09-27
 
 ## Context
 Pipeline code (`src/core/*`) is mixed with auth, ORM models and user-facing copy. `risk_scoring.py` holds thresholds, scoring and English text together. `main.py` does orchestration, persistence and serialisation (audit A1). Nothing is typed or versioned, so a stored result can't be traced to the code that produced it (B6). One solo developer maintains everything.

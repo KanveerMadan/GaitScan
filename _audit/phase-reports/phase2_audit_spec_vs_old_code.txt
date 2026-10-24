@@ -1,0 +1,69 @@
+# Amended audit spec vs the PRE-Phase-2 code (commit 2ddd461 tree, mediapipe 0.10.9)
+
+## 1. Direct run (new API names don't exist yet -> import/type errors)
+E         comparison failed
+PASSED _audit/tests/test_angles_audit.py::test_angle_known_values[A0-B0-C0-90.0]
+PASSED _audit/tests/test_angles_audit.py::test_angle_known_values[A1-B1-C1-180.0]
+PASSED _audit/tests/test_angles_audit.py::test_angle_known_values[A2-B2-C2-0.0]
+PASSED _audit/tests/test_angles_audit.py::test_angle_known_values[A3-B3-C3-45.0]
+PASSED _audit/tests/test_angles_audit.py::test_angle_known_values[A4-B4-C4-120.0]
+PASSED _audit/tests/test_angles_audit.py::test_arccos_domain_is_clipped
+PASSED _audit/tests/test_angles_audit.py::test_returns_degrees_not_radians
+PASSED _audit/tests/test_angles_audit.py::test_y_axis_inversion_does_not_change_unsigned_angle
+PASSED _audit/tests/test_angles_audit.py::test_hip_angle_is_trunk_thigh_not_hip_flexion
+FAILED _audit/tests/test_angles_audit.py::test_degenerate_points_should_be_nan
+FAILED _audit/tests/test_angles_audit.py::test_left_knee_uses_mediapipe_left_indices
+FAILED _audit/tests/test_angles_audit.py::test_aspect_ratio_preserves_angle_on_portrait_video
+FAILED _audit/tests/test_angles_audit.py::test_shoulder_tilt_level_shoulders_facing_either_way
+FAILED _audit/tests/test_angles_audit.py::test_cadence_reports_steps_per_minute
+FAILED _audit/tests/test_angles_audit.py::test_cadence_robust_to_jitter[3] - ...
+FAILED _audit/tests/test_angles_audit.py::test_cadence_robust_to_jitter[6] - ...
+FAILED _audit/tests/test_angles_audit.py::test_healthy_walker_measured_without_activity_label
+FAILED _audit/tests/test_angles_audit.py::test_halved_knee_rom_shows_in_per_leg_peak_flexion
+9 failed, 9 passed in 4.71s
+
+## 2. Through old_api_adapter.py (new names mapped onto the old implementation; failures are numeric)
+E       AssertionError: got 90.0
+E       assert False
+E       ImportError: cannot import name 'PoseLandmark' from 'mediapipe.tasks.python.vision' (/Users/kanveermadan/Desktop/gaitscan/.venv/lib/python3.11/site-packages/mediapipe/tasks/python/vision/__init__.py)
+E       AssertionError: true 121.9 vs app 91.1
+E       assert 91.07091785005099 == 121.8907918018373 ± 1
+E         comparison failed
+E       assert 179.94270423242082 == 0 ± 1
+E         comparison failed
+E       AssertionError: np.float64(54.1)
+E       assert np.float64(54.1) == 110 ± 11
+E         comparison failed
+E       AssertionError: (np.float64(54.1), np.float64(60.1))
+E       assert np.float64(60.1) == 54.1 ± 5.41
+E         comparison failed
+E       AssertionError: (np.float64(54.1), np.float64(93.2))
+E       assert np.float64(93.2) == 54.1 ± 5.41
+E         comparison failed
+E       AssertionError: assert ModuleSpec(name='gaitcore.activity', loader=<_frozen_importlib_external.SourceFileLoader object at 0x106265750>, origin='/Users/kanveermadan/Desktop/gaitscan/gaitcore/activity.py') is None
+E       AssertionError: assert not ({'activity', 'asymmetry_index', 'cadence', 'cadence_irregularity', 'confidence', 'description', ...} & {'activity', 'confidence', 'exercises', 'findings', 'hip_si', 'hip_symmetry_index', ...})
+PASSED _audit/tests/test_angles_audit.py::test_angle_known_values[A0-B0-C0-90.0]
+PASSED _audit/tests/test_angles_audit.py::test_angle_known_values[A1-B1-C1-180.0]
+PASSED _audit/tests/test_angles_audit.py::test_angle_known_values[A2-B2-C2-0.0]
+PASSED _audit/tests/test_angles_audit.py::test_angle_known_values[A3-B3-C3-45.0]
+PASSED _audit/tests/test_angles_audit.py::test_angle_known_values[A4-B4-C4-120.0]
+PASSED _audit/tests/test_angles_audit.py::test_arccos_domain_is_clipped
+PASSED _audit/tests/test_angles_audit.py::test_returns_degrees_not_radians
+PASSED _audit/tests/test_angles_audit.py::test_y_axis_inversion_does_not_change_unsigned_angle
+PASSED _audit/tests/test_angles_audit.py::test_hip_angle_is_trunk_thigh_not_hip_flexion
+FAILED _audit/tests/test_angles_audit.py::test_degenerate_points_should_be_nan
+FAILED _audit/tests/test_angles_audit.py::test_left_knee_uses_mediapipe_left_indices
+FAILED _audit/tests/test_angles_audit.py::test_aspect_ratio_preserves_angle_on_portrait_video
+FAILED _audit/tests/test_angles_audit.py::test_shoulder_tilt_level_shoulders_facing_either_way
+FAILED _audit/tests/test_angles_audit.py::test_cadence_reports_steps_per_minute
+FAILED _audit/tests/test_angles_audit.py::test_cadence_robust_to_jitter[3] - ...
+FAILED _audit/tests/test_angles_audit.py::test_cadence_robust_to_jitter[6] - ...
+FAILED _audit/tests/test_angles_audit.py::test_healthy_walker_measured_without_activity_label
+FAILED _audit/tests/test_angles_audit.py::test_halved_knee_rom_shows_in_per_leg_peak_flexion
+9 failed, 9 passed in 4.36s
+
+## 3. Part (b) of the replaced tests evaluated alone on the old code
+healthy walker (b): cadence 54.1 (needs 110 +-11) | peak flexion L,R [52.7, 52.7] (needs 62 +-3)
+halved right ROM (b): L 52.7 (needs 62 +-3) | R 33.4 (needs 32 +-3) | L-R 19.3 (needs >= 25)
+
+## 4. Generator check: pixel-space knee angle equals the original 178 - 60 s^2 to 1.1e-12 deg.

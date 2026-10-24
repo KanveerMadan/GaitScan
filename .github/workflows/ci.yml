@@ -25,13 +25,15 @@ jobs:
       MPLBACKEND: Agg
     steps:
       - uses: actions/checkout@v5
-      - name: System libraries for opencv-contrib (pulled in by mediapipe)
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgl1 libglib2.0-0
+      - name: System libraries for opencv-contrib and mediapipe's native library (as in the Dockerfile)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgl1 libglib2.0-0 libegl1 libgles2
       - uses: astral-sh/setup-uv@v6
         with:
           version: "0.12.11"
           enable-cache: true
       - run: uv sync --frozen
+      - name: Pinned pose model (gitignored; the Docker image fetches it the same way)
+        run: uv run python gaitcore/model.py fetch
       - name: Lint
         run: uv run ruff check . && uv run ruff format --check .
       - name: Typecheck
@@ -39,13 +41,9 @@ jobs:
       - name: Test (SQLite + Postgres)
         run: uv run pytest -q
       - name: Dependency audit
-        # Ignored until Phase 2 upgrades mediapipe (0.10.9 pins protobuf<4).
-        # PYSEC-2026-1805 / -1806: protobuf parsing DoS on untrusted input; we only
-        # parse MediaPipe's own bundled model data. REMOVE both ignores in Phase 2.
         run: |
           uv export --frozen --no-dev --no-hashes --no-emit-project -o requirements-audit.txt
-          uvx pip-audit -r requirements-audit.txt --disable-pip --no-deps \
-            --ignore-vuln PYSEC-2026-1805 --ignore-vuln PYSEC-2026-1806
+          uvx pip-audit -r requirements-audit.txt --disable-pip --no-deps
 
   docker:
     runs-on: ubuntu-24.04

@@ -13,6 +13,13 @@ users get passwords of >= 10 characters so the 10-character minimum doesn't stop
 script; the F03 role check registers with a valid-length password so it still tests
 the role logic, and the 1-character password is a separate F12 password-policy check.
 Every check keeps its v2 pass/fail criterion.
+
+v4 (Plan V3 Phase 2): the quality gate rejects clips it can't measure (walk01 is rejected: no pass
+holds a complete step). When the victim's upload is rejected, the victim's session is stored
+directly through the DB with the v2 result of the synthetic walker (tests/synthetic.py), so the
+access-control checks still have a real session to attack. Run inside the Docker image (MediaPipe
+1.0.1 can't extract on macOS). Every check keeps its pass/fail criterion; the F15 mode check now
+passes trivially because modes no longer exist (reported as such).
 """
 import os, sys, io, contextlib, glob, re, secrets, shutil, subprocess, time
 os.environ.update({"DATABASE_URL": "sqlite:///./probe.db", "ENV": "dev", "MPLBACKEND": "Agg",
@@ -72,7 +79,19 @@ with open(VIDEO, "rb") as f:
     r = c.post("/analyze", headers=H(alice),
                files={"video": ("walk.mp4", f, "video/mp4")}, data={"mode": "Runner", "patient_name": "Alice Patient"})
 job = r.json().get("job_id")
-res["_alice_analyze"] = (r.status_code, {"job_id_len": len(job or ""), "summary": r.json().get("risk_label")})
+res["_alice_analyze"] = (r.status_code, {"job_id_len": len(job or ""), "detail": r.json().get("detail")})
+if job is None and not os.path.isdir("src"):  # v4: rejected by the quality gate -> seed a v2 session
+    import uuid
+    sys.path.insert(0, os.path.join(os.getcwd(), "tests"))
+    from synthetic import synthetic_clip
+    from gaitcore.pipeline import analyse
+    from app.db.models import Session as GaitSession
+    _result = analyse(synthetic_clip()[0]).to_dict()
+    db = SessionLocal(); _uid = db.query(User).filter(User.email == "alice@x.io").first().id
+    job = str(uuid.uuid4())
+    db.add(GaitSession(id=job, patient_name="Alice Patient", user_id=_uid, pipeline_version=_result["pipeline_version"], result=_result))
+    db.commit(); db.close()
+    res["_alice_session_seeded"] = ("v4", f"upload rejected ({r.status_code}); synthetic v2 session {len(job)}-char id stored")
 
 # 4. IDOR: no token at all   [F02]
 r = c.get(f"/sessions/{job}")

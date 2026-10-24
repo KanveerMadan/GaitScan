@@ -1,0 +1,97 @@
+{
+ "determinism": {
+  "same_shape": true,
+  "max_abs_coord_diff": 0.0
+ },
+ "walk01": {
+  "sigma=0.001": {
+   "status_counts": {
+    "too_little_walking": 25
+   },
+   "cadence_min_max": null
+  },
+  "sigma=0.002": {
+   "status_counts": {
+    "too_little_walking": 25
+   },
+   "cadence_min_max": null
+  },
+  "sigma=0.004": {
+   "status_counts": {
+    "too_little_walking": 25
+   },
+   "cadence_min_max": null
+  },
+  "every_other_frame(15fps)": {
+   "status": "rejected",
+   "reason": "low_frame_rate",
+   "cadence": null,
+   "peak_knee_flexion": {}
+  },
+  "baseline": {
+   "status": "rejected",
+   "reason": "too_little_walking",
+   "cadence": null,
+   "peak_knee_flexion": {}
+  },
+  "simulated_60pct_loss_right_knee": {
+   "status": "rejected",
+   "reason": "too_little_walking",
+   "cadence": null,
+   "peak_knee_flexion": {}
+  }
+ },
+ "synthetic": {
+  "sigma=0.001": {
+   "status_counts": {
+    "accepted": 25
+   },
+   "cadence_min_max": [
+    109.1,
+    110.8
+   ]
+  },
+  "sigma=0.002": {
+   "status_counts": {
+    "accepted": 25
+   },
+   "cadence_min_max": [
+    108.5,
+    110.8
+   ]
+  },
+  "sigma=0.004": {
+   "status_counts": {
+    "accepted": 25
+   },
+   "cadence_min_max": [
+    108.0,
+    111.9
+   ]
+  },
+  "every_other_frame(15fps)": {
+   "status": "rejected",
+   "reason": "low_frame_rate",
+   "cadence": null,
+   "peak_knee_flexion": {}
+  },
+  "baseline": {
+   "status": "accepted",
+   "reason": null,
+   "cadence": 109.1,
+   "peak_knee_flexion": {
+    "left": 56.7,
+    "right": 56.3
+   }
+  },
+  "simulated_60pct_loss_right_knee": {
+   "status": "accepted",
+   "reason": null,
+   "cadence": 110.8,
+   "peak_knee_flexion": {
+    "left": 56.7,
+    "right": 22.5
+   }
+  }
+ }
+}

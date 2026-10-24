@@ -1,0 +1,6 @@
+mirror 480 848 505
+dark 480 848 505
+occluded_feet 480 848 505
+two_people 960 848 505
+rotated90 848 480 505
+long_1080p_60s 1080 1920 1800

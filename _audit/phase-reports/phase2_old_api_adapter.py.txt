@@ -1,0 +1,50 @@
+"""pytest plugin: expose the amended-spec API names on top of the PRE-Phase-2 implementation,
+so the amended audit spec fails on assertions (wrong numbers), not on missing imports.
+Mapping:
+  knee_angle_L(row, frame_size)  -> old knee_angle_L(row)   (frame_size ignored: old code has none)
+  gaitcore.clip.Clip              -> plain container
+  gaitcore.gait.measure_walk(c)   -> old add_all_angles + calculate_risk_scores cadence,
+                                     knee_peak_flexion = [180 - min(knee)] per side (old definition)
+  gaitcore.pipeline.analyse(c)    -> old classify_activity + calculate_risk_scores output
+"""
+import sys, types
+from dataclasses import dataclass
+import pandas as pd
+import gaitcore.angles as old_angles
+from gaitcore.activity import classify_activity
+from gaitcore.legacy import calculate_risk_scores
+
+for name in ("knee_angle_L", "knee_angle_R", "hip_angle_L", "hip_angle_R", "shoulder_tilt"):
+    f = getattr(old_angles, name)
+    setattr(old_angles, name, (lambda f: lambda row, frame_size=None: f(row))(f))
+
+@dataclass
+class Clip:
+    landmarks: pd.DataFrame
+    fps: float
+    width: int
+    height: int
+
+@dataclass
+class Walk:
+    cadence: float
+    knee_peak_flexion: dict
+
+def measure_walk(clip):
+    df = old_angles.add_all_angles(clip.landmarks)
+    cad = calculate_risk_scores(df, activity="Walking")["scores"]["cadence"]
+    return Walk(cad, {"L": [180 - df.knee_L.min()], "R": [180 - df.knee_R.min()]})
+
+class Result(dict):
+    def to_dict(self):
+        return dict(self)
+
+def analyse(clip):
+    df = old_angles.add_all_angles(clip.landmarks)
+    act = classify_activity(df)
+    return Result(activity=act, **calculate_risk_scores(df, activity=act["activity"]))
+
+for modname, attrs in (("gaitcore.clip", {"Clip": Clip}),
+                       ("gaitcore.gait", {"measure_walk": measure_walk, "Walk": Walk}),
+                       ("gaitcore.pipeline", {"analyse": analyse})):
+    m = types.ModuleType(modname); m.__dict__.update(attrs); sys.modules[modname] = m

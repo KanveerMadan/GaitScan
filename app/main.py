@@ -41,7 +41,6 @@ app.add_middleware(
 )
 
 os.makedirs("data/raw", exist_ok=True)
-os.makedirs("outputs", exist_ok=True)
 
 
 @app.get("/")

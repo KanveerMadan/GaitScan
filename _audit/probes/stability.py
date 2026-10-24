@@ -1,67 +1,67 @@
 """Determinism + noise sensitivity + sensitivity to a simulated impairment.
-Run from _audit/sandbox after signal_analysis.py (uses its landmark cache).
+
+v1 (audit): pre-Phase-0 src/ code, outputs activity/cadence/risk score.
+v3 (Plan V3 Phase 2): gaitcore v2; reports what a user would see (status/reason, cadence, per-leg
+peak knee flexion). The stiff-knee simulation now also moves the heel and toe with the shank, so the
+foot stays attached (the v1 probe moved only the ankle, which v2's heel-based events would ignore).
+walk01 is rejected by the v2 quality gate (no complete step in any pass), so the noise and impairment
+sections also run on the synthetic overground walker (tests/synthetic.py; synthetic ground truth).
+Usage (repo root, inside the Docker image): python _audit/probes/stability.py <video>
 """
 import os, sys, json, collections
-import numpy as np, pandas as pd
-sys.path.insert(0, os.getcwd())
-from src.core.extract_landmarks import extract_landmarks
-from src.core.calculate_angles import add_all_angles
-from src.core.activity_classifier import classify_activity
-from src.core.risk_scoring import calculate_risk_scores
+import numpy as np
+sys.path.insert(0, os.getcwd()); sys.path.insert(0, os.path.join(os.getcwd(), "tests"))
+from dataclasses import replace
+from gaitcore.landmarks import extract_clip
+from gaitcore.pipeline import analyse
+from synthetic import synthetic_clip
+
+def seen(clip):
+    d = analyse(clip).to_dict(); m = d["metrics"]
+    knee = {k: (v or {}).get("value") for k, v in m.get("peak_knee_flexion", {}).items()}
+    return {"status": d["status"], "reason": (d["rejection"] or {}).get("code"),
+            "cadence": (m.get("cadence") or {}).get("value"), "peak_knee_flexion": knee}
 
 out = {}
 video = sys.argv[1]
-
 # 1. Determinism: two fresh extractions of the same file
-a = extract_landmarks(video); b = extract_landmarks(video)
-xy = [c for c in a.columns if c.endswith(("_x", "_y"))]
-out["determinism"] = {"same_shape": a.shape == b.shape,
-                      "max_abs_coord_diff": float((a[xy] - b[xy]).abs().to_numpy().max())}
+a = extract_clip(video); b = extract_clip(video)
+xy = [c for c in a.landmarks.columns if c.endswith(("_x", "_y"))]
+out["determinism"] = {"same_shape": a.landmarks.shape == b.landmarks.shape,
+                      "max_abs_coord_diff": float(np.nanmax(np.abs(a.landmarks[xy].to_numpy() - b.landmarks[xy].to_numpy())))}
+out["walk01"] = seen(a)
 
-base = pd.read_csv("walk01_landmarks_cache.csv")
+def noisy(clip, sigma, rng):
+    d = clip.landmarks.copy()
+    d[xy] = d[xy] + rng.normal(0, sigma, d[xy].shape)
+    return replace(clip, landmarks=d)
 
-def run(df):
-    df = add_all_angles(df)
-    act = classify_activity(df)
-    r = calculate_risk_scores(df, activity=act["activity"], mode="Clinical")
-    return act["activity"], r["scores"]["cadence"], r["scores"]["overall_risk_score"], r["scores"]
+def stiffen(clip, keep=0.4, side="R"):
+    """Shrink one knee's flexion to `keep` of itself: rotate ankle, heel and toe about the knee."""
+    hip, knee, ankle, heel, toe = (24, 26, 28, 30, 32) if side == "R" else (23, 25, 27, 29, 31)
+    d = clip.landmarks.copy()
+    P = lambda i: np.c_[d[f"lm{i}_x"] * clip.width, d[f"lm{i}_y"] * clip.height]
+    k, h = P(knee), P(hip)
+    ang = lambda v: np.arctan2(v[:, 1], v[:, 0])
+    thigh = ang(k - h); shank = ang(P(ankle) - k)
+    rot = (np.angle(np.exp(1j * (shank - thigh))) * keep) - np.angle(np.exp(1j * (shank - thigh)))
+    for i in (ankle, heel, toe):
+        v = P(i) - k
+        c, s = np.cos(rot), np.sin(rot)
+        n = np.c_[v[:, 0] * c - v[:, 1] * s, v[:, 0] * s + v[:, 1] * c] + k
+        d[f"lm{i}_x"], d[f"lm{i}_y"] = n[:, 0] / clip.width, n[:, 1] / clip.height
+    return replace(clip, landmarks=d)
 
-# 2. Landmark noise (normalised units; 0.002 ~= 1 px wide x 1.7 px tall on this clip)
 rng = np.random.default_rng(42)
-xycols = [c for c in base.columns if c.endswith(("_x", "_y"))]
-out["noise"] = {}
-for sigma in [0.001, 0.002, 0.004]:
-    acts, cads, risks = collections.Counter(), [], []
-    for _ in range(25):
-        d = base.copy()
-        d[xycols] = d[xycols] + rng.normal(0, sigma, d[xycols].shape)
-        act, cad, risk, _ = run(d)
-        acts[act] += 1; cads.append(cad); risks.append(risk)
-    out["noise"][f"sigma={sigma}"] = {"activity_counts": dict(acts),
-                                      "cadence_min_max": [min(cads), max(cads)],
-                                      "risk_scores_seen": sorted(set(risks))}
-
-# 3. Frame-rate: same clip at 15 fps (drop every other frame)
-half = base.iloc[::2].reset_index(drop=True)
-out["every_other_frame"] = run(half)[:3]
-
-# 4. Simulated right-knee impairment: shrink right knee flexion by 60%
-#    (rotate the right ankle about the right knee toward full extension)
-def stiffen(df, keep=0.4):
-    d = df.copy()
-    kx, ky, hx, hy = d.lm26_x, d.lm26_y, d.lm24_x, d.lm24_y
-    ax, ay = d.lm28_x - kx, d.lm28_y - ky
-    # thigh direction (hip->knee) is where a fully extended shank would point
-    tx, ty = kx - hx, ky - hy
-    ang_shank = np.arctan2(ay, ax); ang_thigh = np.arctan2(ty, tx)
-    diff = np.angle(np.exp(1j * (ang_shank - ang_thigh)))
-    new = ang_thigh + diff * keep
-    L = np.hypot(ax, ay)
-    d["lm28_x"] = kx + L * np.cos(new); d["lm28_y"] = ky + L * np.sin(new)
-    return d
-act, cad, risk, sc = run(stiffen(base))
-out["simulated_stiff_right_knee"] = {"activity": act, "risk": risk,
-                                     "knee_flex_L": sc["knee_flexion_range_L"],
-                                     "knee_flex_R": sc["knee_flexion_range_R"],
-                                     "knee_SI": sc["knee_symmetry_index"]}
-print(json.dumps(out))
+for name, base in (("walk01", a), ("synthetic", synthetic_clip(width=1280, height=720)[0])):
+    res = {}
+    for sigma in [0.001, 0.002, 0.004]:
+        outs = [seen(noisy(base, sigma, rng)) for _ in range(25)]
+        cads = [o["cadence"] for o in outs if o["cadence"] is not None]
+        res[f"sigma={sigma}"] = {"status_counts": dict(collections.Counter(o["reason"] or "accepted" for o in outs)),
+                                 "cadence_min_max": [min(cads), max(cads)] if cads else None}
+    res["every_other_frame(15fps)"] = seen(replace(base, landmarks=base.landmarks.iloc[::2].reset_index(drop=True), fps=base.fps / 2))
+    res["baseline"] = seen(base)
+    res["simulated_60pct_loss_right_knee"] = seen(stiffen(base))
+    out[name] = res
+print(json.dumps(out, indent=1))

@@ -1,13 +1,16 @@
 import enum
 from datetime import datetime
+from typing import Any
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.db.database import Base
 
-# Column arguments mirror the pre-Alembic create_all schema exactly; test_migrations diffs them.
+# Column arguments mirror the migrated schema exactly; test_migrations diffs them.
+
+LEGACY = "legacy"
 
 
 class UserRole(enum.StrEnum):
@@ -26,49 +29,33 @@ class User(Base):
 
 
 class Session(Base):
+    """One accepted analysis. pipeline_version 'legacy' = analysed before Plan V3: its values were
+    unreliable and live only in SessionArchive (migration 0003); `result` is NULL."""
+
     __tablename__ = "sessions"
     id: Mapped[str] = mapped_column(String, primary_key=True)
     patient_name: Mapped[str | None] = mapped_column(String, default="Anonymous")
-    # NULL for sessions stored before migration 0002
-    mode: Mapped[str | None] = mapped_column(String, nullable=True)
     user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"), nullable=True)
-    activity: Mapped[str | None] = mapped_column(String)
-    confidence: Mapped[int | None] = mapped_column(Integer)
-    risk_score: Mapped[int | None] = mapped_column(Integer)
-    risk_label: Mapped[str | None] = mapped_column(String)
-    risk_color: Mapped[str | None] = mapped_column(String)
-    risk_meaning: Mapped[str | None] = mapped_column(Text)
-    cadence: Mapped[float | None] = mapped_column(Float)
-    knee_si: Mapped[float | None] = mapped_column(Float)
-    hip_si: Mapped[float | None] = mapped_column(Float)
-    knee_flex_L: Mapped[float | None] = mapped_column(Float)
-    knee_flex_R: Mapped[float | None] = mapped_column(Float)
     created_at: Mapped[datetime | None] = mapped_column(DateTime, default=datetime.utcnow)
-    findings: Mapped[list["Finding"]] = relationship(back_populates="session", cascade="all, delete")
-    exercises: Mapped[list["Exercise"]] = relationship(back_populates="session", cascade="all, delete")
+    pipeline_version: Mapped[str] = mapped_column(String, nullable=False, server_default="legacy")
+    result: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    archive: Mapped["SessionArchive | None"] = relationship(back_populates="session", cascade="all, delete")
+
+    @property
+    def legacy(self) -> bool:
+        return self.pipeline_version == LEGACY
 
 
-class Finding(Base):
-    __tablename__ = "findings"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    session_id: Mapped[str | None] = mapped_column(String, ForeignKey("sessions.id"))
-    metric: Mapped[str | None] = mapped_column(String)
-    value: Mapped[str | None] = mapped_column(String)
-    status: Mapped[str | None] = mapped_column(String)
-    plain_english: Mapped[str | None] = mapped_column(Text)
-    session: Mapped[Session | None] = relationship(back_populates="findings")
+class SessionArchive(Base):
+    """Pre-V3 values that Plan V3 removed from the product (the full list is in migration 0003),
+    kept verbatim for export and deletion; never shown as measurements."""
 
-
-class Exercise(Base):
-    __tablename__ = "exercises"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    session_id: Mapped[str | None] = mapped_column(String, ForeignKey("sessions.id"))
-    name: Mapped[str | None] = mapped_column(String)
-    muscle: Mapped[str | None] = mapped_column(String)
-    difficulty: Mapped[str | None] = mapped_column(String)
-    instructions: Mapped[str | None] = mapped_column(Text)
-    why: Mapped[str | None] = mapped_column(Text)
-    session: Mapped[Session | None] = relationship(back_populates="exercises")
+    __tablename__ = "session_archive"
+    session_id: Mapped[str] = mapped_column(String, ForeignKey("sessions.id"), primary_key=True)
+    archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    source: Mapped[str] = mapped_column(String, nullable=False)
+    data: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    session: Mapped[Session] = relationship(back_populates="archive")
 
 
 class ClinicianInvite(Base):

@@ -1,6 +1,6 @@
 # ADR-006: Measurement pipeline v2 — pixel-space angles, gating, smoothing, gait events
 
-**Status:** Proposed · **Date:** 2026-09-27
+**Status:** Accepted, amended by REBUILD_PLAN_V3.md (2026-10-03): MediaPipe Tasks 1.0.1, masking without interpolation, no ankle/stance %, hip redefined, floor calibration · **Date:** 2026-09-27
 
 ## Context
 The audit found:

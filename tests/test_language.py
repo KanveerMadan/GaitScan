@@ -1,13 +1,12 @@
 """F36: no diagnostic / injury / prescription language reaches users (audit §6 A3)."""
 
 import ast
-import json
 import pathlib
 import re
 
 import pytest
 from conftest import PASSWORD, ROOT, auth, link, promote_to_clinician, register, seed_session
-from synthetic import synthetic_landmarks
+from synthetic import synthetic_clip
 
 BANNED = re.compile(
     r"abnormal|injur|damage|prescri|diagnos|risk score|risk assessment|fall[- ]?risk|\blimp|"
@@ -15,14 +14,14 @@ BANNED = re.compile(
     r"any angle|cctv",
     re.I,
 )
-# Only this module may contain legacy wording, because it exists to translate old DB rows.
-ALLOWED_FILES = {"app/services/display.py"}
+# No module may contain legacy wording: the old rows' text now lives only in session_archive.
+ALLOWED_FILES: set[str] = set()
 
 
 def disclaimer():
     # The disclaimer must say what the tool does NOT do ("does not diagnose"); it is the
     # only string exempt from the scan, and only as this exact constant.
-    from gaitcore.legacy import DISCLAIMER
+    from app.core.copy import DISCLAIMER
 
     return DISCLAIMER
 
@@ -69,21 +68,22 @@ def assert_clean(obj):
     assert not bad, bad
 
 
-@pytest.mark.parametrize("mode", ["Clinical", "Runner", "Athlete", "Elderly"])
-@pytest.mark.parametrize("activity", ["Walking", "Brisk Walking", "Running", "Asymmetric Walking"])
-@pytest.mark.parametrize("knee_scale_R", [1.0, 0.3])
-def test_scoring_output_is_clean(mode, activity, knee_scale_R):
-    from gaitcore.angles import add_all_angles
-    from gaitcore.legacy import calculate_risk_scores
+@pytest.mark.parametrize(
+    "kwargs",
+    [{}, {"people": 2}, {"rotate90": True}, {"feet_visibility": 0.2}, {"yaw_deg": 40},
+     {"passes": 1, "pass_secs": 3.4}, {"fps": 15}, {"passes": 1, "pass_secs": 2.5}],
+)  # fmt: skip
+def test_pipeline_output_is_clean(kwargs):
+    """Accepted results and every rejection message (replaces the old scoring-output scan)."""
+    from gaitcore.pipeline import analyse
 
-    df = add_all_angles(synthetic_landmarks(knee_scale_R=knee_scale_R))
-    assert_clean(calculate_risk_scores(df, activity=activity, mode=mode))
+    assert_clean(analyse(synthetic_clip(**kwargs)[0]).to_dict())
 
 
 def test_analyze_response_is_clean_and_carries_disclaimer(client, monkeypatch):
-    import app.api.analysis as m
+    from conftest import fake_video
 
-    monkeypatch.setattr(m, "extract_landmarks", lambda p: synthetic_landmarks(knee_scale_R=0.3))
+    fake_video(monkeypatch)
     _, t = register(client)
     r = client.post("/analyze", headers=auth(t), files={"video": ("w.mp4", b"x" * 64, "video/mp4")})
     assert r.status_code == 200, r.text
@@ -105,18 +105,7 @@ def test_legacy_rows_are_served_without_legacy_wording(client, monkeypatch):
     pid = client.get("/auth/me", headers=auth(alice_t)).json()["id"]
     assert_clean(client.get(f"/clinician/patients/{pid}/sessions", headers=auth(bob_t)).json())
 
-    captured = {}
-    import app.api.sessions as m
-
-    monkeypatch.setattr(
-        m,
-        "generate_pdf_report",
-        lambda results, output_path, plots_dir: (
-            captured.update(results) or open(output_path, "wb").write(b"%PDF-stub")
-        ),
-    )
-    import shutil
-
-    shutil.rmtree(f"outputs/{sid}", ignore_errors=True)
-    assert client.get(f"/report/{sid}", headers=auth(alice_t)).status_code == 200
-    assert_clean(json.loads(json.dumps(captured, default=str)))
+    # The archived legacy wording is never served: the report for a legacy session is 410.
+    r = client.get(f"/report/{sid}", headers=auth(alice_t))
+    assert r.status_code == 410
+    assert_clean(r.json())

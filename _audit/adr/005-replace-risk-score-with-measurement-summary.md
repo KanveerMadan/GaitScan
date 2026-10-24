@@ -1,6 +1,6 @@
 # ADR-005: Replace the composite "risk score" with a measurement summary + quality gates
 
-**Status:** Proposed · **Date:** 2026-09-27
+**Status:** Accepted, amended by REBUILD_PLAN_V3.md (2026-10-03): metrics per the V3 metric policy; no angle reference ranges · **Date:** 2026-09-27
 
 ## Context
 The 0–100 "risk score" is four additive heuristics with invented weights and thresholds, a max of 80, and no validation (B5). It returned 0 "No issues" for invalid input (two people, occluded feet, rotated) and 20 "Minor" for a simulated 60% knee ROM loss. The user-facing copy makes diagnostic and injury claims (A3), which is a regulatory and liability risk in India, where software making diagnostic claims may fall under medical-device rules.

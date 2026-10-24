@@ -1,59 +1,55 @@
-"""F19, F20: PDF rendering robustness."""
+"""F20: PDF rendering survives markup characters in any interpolated text."""
 
-import os
-import subprocess
-import sys
+import io
 
-from conftest import ROOT
-
-BASE = {
-    "scores": {
-        "overall_risk_score": 0,
-        "knee_symmetry_index": 1.0,
-        "hip_symmetry_index": 1.0,
-        "knee_flexion_range_L": 60.0,
-        "knee_flexion_range_R": 60.0,
-        "cadence": 100.0,
-    },
-    "findings": [
-        {"metric": "Knee <Symmetry>", "value": "1% & <2%", "status": "good", "plain_english": "L<R & R>L"}
-    ],
-    "recommendations": ["Balance <both> sides & more"],
-    "activity": {"activity": "Walking", "confidence": 70},
-    "risk_label": "x",
-    "risk_meaning": "x",
-}
+from pypdf import PdfReader
+from synthetic import synthetic_clip
 
 
-def test_pdf_survives_markup_characters_in_any_text(tmp_path):
-    from app.services.report_pdf import generate_pdf_report
+def test_pdf_survives_markup_characters_in_any_text():
+    from app.services.report_pdf import build_pdf
+    from gaitcore.pipeline import analyse
 
-    data = dict(
-        BASE,
-        exercises=[
-            {
-                "name": "Bridge <1>",
-                "muscle": "a&b",
-                "difficulty": "Easy",
-                "instructions": "Hold <3 s>",
-                "why": "Keeps your L<R imbalance in check",
-            }
-        ],
-    )
-    out = tmp_path / "r.pdf"
-    generate_pdf_report(data, output_path=str(out), plots_dir=str(tmp_path))
-    assert out.read_bytes()[:4] == b"%PDF"
+    result = analyse(synthetic_clip()[0]).to_dict()
+    result["model"]["version"] = "float16/1 <b> & </i>"
+    pdf = build_pdf(result, patient_name="A <b>bold</b> & L<R name", created_at=None)
+    assert pdf[:4] == b"%PDF"
 
 
-def test_plotting_module_selects_agg_backend_itself():
-    env = {k: v for k, v in os.environ.items() if k != "MPLBACKEND"}
-    r = subprocess.run(
-        [sys.executable, "-c", "import app.services.plots, matplotlib; print(matplotlib.get_backend())"],
-        cwd=ROOT,
-        env=env,
-        capture_output=True,
-        text=True,
-        timeout=120,
-    )
-    assert r.returncode == 0, r.stderr[-500:]
-    assert r.stdout.strip().lower() == "agg"
+def test_pdf_never_shows_hip_excursion_even_from_an_older_stored_result():
+    from app.services.report_pdf import build_pdf
+    from gaitcore.pipeline import analyse
+
+    result = analyse(synthetic_clip()[0]).to_dict()
+    result["metrics"]["hip_sagittal_excursion"] = {"left": {"value": 40.2, "sd": 1.0, "n": 3, "unit": "deg"}}
+    pdf = build_pdf(result, patient_name="Anonymous", created_at=None)
+    text = "".join(page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages)
+    assert "Cadence" in text
+    assert "hip" not in text.lower()
+
+
+def test_pdf_shows_the_result_notes():
+    from app.services.report_pdf import build_pdf
+    from gaitcore.pipeline import analyse
+    from gaitcore.result import LEGS_NOT_TOLD_APART
+
+    result = analyse(synthetic_clip()[0]).to_dict()
+    result["notes"] = [LEGS_NOT_TOLD_APART]
+    pdf = build_pdf(result, patient_name="Anonymous", created_at=None)
+    text = " ".join("".join(page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages).split())
+    assert "couldn't be told apart reliably" in text
+
+
+def test_pdf_never_shows_stride_time_even_from_an_older_stored_result():
+    from app.services.report_pdf import build_pdf
+    from gaitcore.pipeline import analyse
+
+    result = analyse(synthetic_clip()[0]).to_dict()
+    result["metrics"]["stride_time"] = {
+        "left": {"value": 1.1, "sd": 0.01, "n": 3, "unit": "s"},
+        "right": None,
+    }
+    pdf = build_pdf(result, patient_name="Anonymous", created_at=None)
+    text = "".join(page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages)
+    assert "Cadence" in text
+    assert "stride time" not in text.lower()

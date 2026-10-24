@@ -3,6 +3,7 @@
 import json
 import logging
 
+import pytest
 from conftest import PASSWORD, register
 
 
@@ -69,7 +70,10 @@ def test_exception_tracebacks_are_redacted(client, capfd, monkeypatch):
     def boom(path):
         raise RuntimeError("failure while processing bob@example.com")
 
-    monkeypatch.setattr(analysis, "extract_landmarks", boom)
+    from conftest import fake_video
+
+    fake_video(monkeypatch)
+    monkeypatch.setattr(analysis, "extract_clip", boom)
     _, t = register(client)
     client.post(
         "/analyze", headers={"Authorization": f"Bearer {t}"}, files={"video": ("v.mp4", b"x", "video/mp4")}
@@ -89,3 +93,16 @@ def test_database_errors_do_not_carry_bound_parameters():
     with pytest.raises(sa.exc.DBAPIError) as e, engine.connect() as conn:
         conn.execute(sa.text("INSERT INTO no_such_table (x) VALUES (:x)"), {"x": "$2b$12$hash-like-value"})
     assert "hash-like-value" not in str(e.value)
+
+
+@pytest.mark.parametrize("enabled", [False, True])
+def test_peak_rss_is_logged_after_analysis_only_when_enabled(monkeypatch, capfd, enabled):
+    from conftest import fake_video
+
+    import app.api.analysis as analysis
+
+    fake_video(monkeypatch)
+    monkeypatch.setattr(analysis.settings, "analysis_log_memory", enabled, raising=False)
+    analysis.run_pipeline("v.mp4", None)
+    err = capfd.readouterr().err
+    assert ("peak_rss_mb=" in err) is enabled

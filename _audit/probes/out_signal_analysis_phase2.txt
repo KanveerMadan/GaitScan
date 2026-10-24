@@ -1,0 +1,114 @@
+{
+ "video_wh": [
+  480,
+  848
+ ],
+ "frames_decoded": 505,
+ "frames_with_pose": 490,
+ "mean_abs_angle_error_norm_vs_px_deg": {
+  "L": 7.39,
+  "R": 8.66
+ },
+ "v2_uses": "pixel space (frame size applied before any angle)",
+ "knee_flexion_pre_v3_180_minus_min_px": {
+  "L": 130.5,
+  "R": 126.2
+ },
+ "knee_flexion_v2_per_stride_peaks": {
+  "L": [],
+  "R": []
+ },
+ "visibility": {
+  "L_knee": {
+   "mean": 0.684,
+   "pct_frames_below_0.5": 26.1
+  },
+  "R_knee": {
+   "mean": 0.723,
+   "pct_frames_below_0.5": 22.0
+  },
+  "L_heel": {
+   "mean": 0.738,
+   "pct_frames_below_0.5": 12.3
+  },
+  "R_heel": {
+   "mean": 0.745,
+   "pct_frames_below_0.5": 11.3
+  }
+ },
+ "knee_L_frame_to_frame_jump_deg": {
+  "raw_pixel": {
+   "median": 3.3,
+   "p95": 17.61,
+   "max": 47.0,
+   "n": 485
+  },
+  "v2_masked_filtered": {
+   "median": 2.5,
+   "p95": 9.26,
+   "max": 21.33,
+   "n": 241
+  }
+ },
+ "steady_passes_s": [
+  [
+   0.27,
+   1.1
+  ],
+  [
+   1.67,
+   2.57
+  ],
+  [
+   3.13,
+   4.17
+  ],
+  [
+   4.87,
+   5.77
+  ],
+  [
+   6.4,
+   7.4
+  ],
+  [
+   8.4,
+   9.33
+  ],
+  [
+   10.3,
+   11.43
+  ],
+  [
+   12.33,
+   13.4
+  ],
+  [
+   14.47,
+   15.17
+  ]
+ ],
+ "heel_strikes_s": {
+  "L": [
+   3.87,
+   7.07,
+   8.9,
+   11.13,
+   13.0
+  ],
+  "R": [
+   0.4,
+   15.0
+  ]
+ },
+ "steps": 0,
+ "v2_result": {
+  "status": "rejected",
+  "rejection": {
+   "code": "too_little_walking",
+   "message": "Only 0 steps of steady walking could be measured; at least 6 are needed. Film from the side with the phone held still at hip height, 3-4 m from the walking line, with the whole body in view, and walk across the frame and back at your usual pace."
+  },
+  "cadence": null
+ },
+ "frames_without_pose_kept_as_gaps": 15
+}

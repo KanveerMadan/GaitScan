@@ -6,3 +6,4 @@
 !gaitcore/
 !app/
 **/__pycache__
+gaitcore/models/
