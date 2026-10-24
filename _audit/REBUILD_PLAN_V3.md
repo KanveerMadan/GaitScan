@@ -3,7 +3,7 @@
 Rules:
 - Every new MEASUREMENT passes the Phase 3 accuracy check (OpenCap public data, or synthetic where no public data exists); a failing measurement is not shipped.
 - No feature introduces a health claim or an unvalidated number.
-- Metrics: KEEP cadence, step/stride time, sagittal knee angle · CONDITIONAL step length + speed (floor calibration only), hip sagittal excursion (must pass Phase 3) · REMOVED risk score, frontal-plane, ankle, L/R angle symmetry, uncalibrated distance/speed, activity classification, modes, exercises, LLM.
+- Metrics: KEEP cadence, step time, sagittal knee angle · CONDITIONAL step length + speed (floor calibration only), hip sagittal excursion (must pass Phase 3), stride time (withheld 2026-10-24: brief L/R flips) · REMOVED risk score, frontal-plane, ankle, L/R angle symmetry, uncalibrated distance/speed, activity classification, modes, exercises, LLM.
 - Priority: [M] Must, [S] Should, [C] Could. Cut [C] first, then [S]; never cut security, correctness or the design foundation.
 - Docs only in Phase 7; during development only this file, REBUILD_PROGRESS.md, commit messages and brief code comments.
 
@@ -22,6 +22,11 @@ Rules:
 - [ ] [S] Five-times sit-to-stand (timing + repetition count), checked against OpenCap sit-to-stand data
 - [ ] [C] 30-second chair stand on the same detector
 - [ ] [C] Step-timing breakdown (stance/swing %, step-time asymmetry), only if the accuracy check supports it
+- [ ] [M] Per-foot heel strikes robust to brief L/R flips (xfail tests in test_measurement.py), then re-show stride time
+- [ ] [M] Re-validate irregular_steps (label-free step-time CV > 0.15, chosen on held-out LJMU) on phone clips, incl. uneven gait
+- [ ] [S] gait.py:110 edge steps: steps at a steady-window edge are lost (e.g. LJMU P34_E1T1 rejected)
+- [ ] [S] gait.py:103 heel visibility: heel separation doesn't require visible heels; check on phone clips
+- [ ] [S] result.py:56 brief flips: labelled step CV <= 0.2 misses 5-10% brief flips (per-leg knee flexion)
 
 ## Phase 3.5 — Design foundation (before any Phase 4 UI)
 - [ ] [M] Design direction
