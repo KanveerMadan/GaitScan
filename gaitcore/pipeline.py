@@ -58,7 +58,11 @@ def analyse(clip: Clip, calibration: Calibration | None = None) -> AnalysisResul
     walk = measure_walk(clip, segments, calibration, tracks=tracks)
     q["steps_detected"] = walk.step_count
     q["strides"] = {"left": len(walk.stride_times["L"]), "right": len(walk.stride_times["R"])}
-    r = quality.enough_walking(walk.step_count, steady_frames / clip.fps)
+    cv = quality.step_time_cv(walk.contact_step_times)
+    q["step_time_cv"] = round(cv, 3) if math.isfinite(cv) else None
+    r = quality.enough_walking(walk.step_count, steady_frames / clip.fps) or quality.regular_steps(
+        walk.contact_step_times
+    )
     if r:
         return _rejected(r, q)
     return AnalysisResult(

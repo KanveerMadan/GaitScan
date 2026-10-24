@@ -32,20 +32,6 @@
     "unit": "s",
     "value": 0.547
    },
-   "stride_time": {
-    "left": {
-     "n": 3,
-     "sd": 0.0,
-     "unit": "s",
-     "value": 1.1
-    },
-    "right": {
-     "n": 3,
-     "sd": 0.0,
-     "unit": "s",
-     "value": 1.1
-    }
-   },
    "walking_speed": {
     "n": 9,
     "unit": "m/s",
@@ -70,6 +56,7 @@
    "passes": 3,
    "path_convergence_deg": 0.7,
    "steady_walking_s": 8.1,
+   "step_time_cv": 0.008,
    "steps_detected": 9,
    "strides": {
     "left": 3,
@@ -125,6 +112,7 @@
    "passes": 1,
    "path_convergence_deg": 3.5,
    "steady_walking_s": 2.1,
+   "step_time_cv": 0.01,
    "steps_detected": 2,
    "strides": {
     "left": 1,
@@ -216,20 +204,6 @@
     "sd": 0.005,
     "unit": "s",
     "value": 0.547
-   },
-   "stride_time": {
-    "left": {
-     "n": 3,
-     "sd": 0.019,
-     "unit": "s",
-     "value": 1.089
-    },
-    "right": {
-     "n": 3,
-     "sd": 0.0,
-     "unit": "s",
-     "value": 1.1
-    }
    }
   },
   "model": {
@@ -250,6 +224,7 @@
    "passes": 3,
    "path_convergence_deg": 0.7,
    "steady_walking_s": 8.2,
+   "step_time_cv": 0.01,
    "steps_detected": 9,
    "strides": {
     "left": 3,
@@ -332,20 +307,6 @@
     "sd": 0.004,
     "unit": "s",
     "value": 0.547
-   },
-   "stride_time": {
-    "left": {
-     "n": 3,
-     "sd": 0.0,
-     "unit": "s",
-     "value": 1.1
-    },
-    "right": {
-     "n": 3,
-     "sd": 0.0,
-     "unit": "s",
-     "value": 1.1
-    }
    }
   },
   "model": {
@@ -366,6 +327,7 @@
    "passes": 3,
    "path_convergence_deg": 0.7,
    "steady_walking_s": 8.1,
+   "step_time_cv": 0.008,
    "steps_detected": 9,
    "strides": {
     "left": 3,
@@ -403,20 +365,6 @@
     "sd": 0.003,
     "unit": "s",
     "value": 0.482
-   },
-   "stride_time": {
-    "left": {
-     "n": 8,
-     "sd": 0.0,
-     "unit": "s",
-     "value": 0.967
-    },
-    "right": {
-     "n": 4,
-     "sd": 0.0,
-     "unit": "s",
-     "value": 0.967
-    }
    }
   },
   "model": {
@@ -437,6 +385,7 @@
    "passes": 4,
    "path_convergence_deg": 0.0,
    "steady_walking_s": 10.8,
+   "step_time_cv": 0.006,
    "steps_detected": 16,
    "strides": {
     "left": 8,
@@ -469,15 +418,6 @@
     "sd": 0.006,
     "unit": "s",
     "value": 0.668
-   },
-   "stride_time": {
-    "left": {
-     "n": 4,
-     "sd": 0.0,
-     "unit": "s",
-     "value": 1.333
-    },
-    "right": null
    }
   },
   "model": {
@@ -498,6 +438,7 @@
    "passes": 4,
    "path_convergence_deg": 0.5,
    "steady_walking_s": 10.8,
+   "step_time_cv": 0.009,
    "steps_detected": 6,
    "strides": {
     "left": 4,
@@ -558,20 +499,6 @@
     "sd": 0.004,
     "unit": "s",
     "value": 0.547
-   },
-   "stride_time": {
-    "left": {
-     "n": 3,
-     "sd": 0.0,
-     "unit": "s",
-     "value": 1.1
-    },
-    "right": {
-     "n": 3,
-     "sd": 0.0,
-     "unit": "s",
-     "value": 1.1
-    }
    }
   },
   "model": {
@@ -592,6 +519,7 @@
    "passes": 3,
    "path_convergence_deg": 0.8,
    "steady_walking_s": 8.1,
+   "step_time_cv": 0.007,
    "steps_detected": 9,
    "strides": {
     "left": 3,

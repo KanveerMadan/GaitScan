@@ -21,7 +21,6 @@ from app.core.copy import DISCLAIMER, NO_ERROR_RANGES
 ROWS = (  # (metric key, label); per-leg metrics have "left"/"right"
     ("cadence", "Cadence"),
     ("step_time", "Step time"),
-    ("stride_time", "Stride time"),
     ("peak_knee_flexion", "Peak knee flexion (per stride)"),
     ("step_length", "Step length (floor calibration)"),
     ("walking_speed", "Walking speed (floor calibration)"),

@@ -14,6 +14,7 @@ specific reason the user can act on. Checks run in this order; the first failure
 | view_unconfirmed | the path angle can't be measured: fewer than MIN_SEGMENT_S (one step) of frames walking across the frame | Without it the side-on view isn't confirmed, so no numbers. |
 | legs_not_tracked | fewer than MIN_STEPS steps although the steady passes last >= MIN_STEADY_FOR_STEPS_S (4 s) | Physical: 4 s of steady walking holds 6 steps even at 90 steps/min (0.67 s per step), the slow end of normal adult walking, so finding fewer means the legs weren't followed, not that the walk was too short. The user is told to fix the lighting / clothing / view, not to walk longer. Checked on LJMU (Topham et al. 2023, CC BY 4.0), 192 side-view clips: it fired on 20, and in all 20 an independent pose model (RTMPose footprint strikes) found 7-13 steps in the steady walking. |
 | too_little_walking | fewer than MIN_STEPS (6) steps in steady passes | Measurement resolution: event timing is quantised to 1 frame; over 6 steps at 30 fps that bounds cadence error to about 1 step/min. |
+| irregular_steps | label-free step times (gait.py) have SD / mean > MAX_STEP_TIME_CV (0.15) | Data: spurious heel-separation peaks between real steps make the step times irregular and the cadence wrong. LJMU held-out set (Topham et al. 2023, CC BY 4.0; 60 accepted clips, 34 participants not in the 28-clip ground-truth set; reference RTMPose footprint strikes, large disagreements settled visually): every cadence error over 6 steps/min had CV > 0.15; at 0.15, 54 clips kept, MAE 2.66 -> 1.70, max 24.4 -> 5.4 steps/min, 2 correct clips lost. Chosen on that set, not on phone clips. |
 """
 
 import math
@@ -38,6 +39,10 @@ MAX_VIEW_RATIO = 0.35
 MAX_PATH_CONVERGENCE = 4.8
 MIN_STEPS = 6
 MIN_STEADY_FOR_STEPS_S = 4.0
+# Chosen on the held-out LJMU set (2026-10-24, table above). Re-validate on real phone clips in
+# Phase 3. A genuinely uneven gait also has a high CV (alternating 0.5 / 0.7 s steps give 0.18), so
+# a limp may be rejected as irregular; also a Phase 3 check.
+MAX_STEP_TIME_CV = 0.15
 
 CAPTURE_TIP = (
     "Film from the side with the phone held still at hip height, 3-4 m from the walking line, "
@@ -210,4 +215,20 @@ def enough_walking(n_steps: int, steady_s: float) -> Rejection | None:
         "too_little_walking",
         f"Only {n_steps} steps of steady walking could be measured; at least {MIN_STEPS} are needed. "
         f"{CAPTURE_TIP}",
+    )
+
+
+def step_time_cv(step_times: list[float]) -> float:
+    t = np.asarray(step_times, dtype=float)
+    return float(np.std(t, ddof=1) / np.mean(t)) if len(t) >= 2 else math.nan
+
+
+def regular_steps(step_times: list[float]) -> Rejection | None:
+    if not step_time_cv(step_times) > MAX_STEP_TIME_CV:
+        return None
+    return Rejection(
+        "irregular_steps",
+        "The steps couldn't be timed consistently. Re-record walking steadily across the frame at your "
+        "usual pace, in even light with the light behind the camera, and keep both legs in view from the "
+        "hips to the heels.",
     )

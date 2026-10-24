@@ -18,7 +18,7 @@ from gaitcore.quality import Rejection
 MIN_STRIDES_PER_LEG = 3  # a median of >= 3 strides can't be set by one bad stride
 LEG = {"L": "left", "R": "right"}
 
-# Per-leg values (stride time, peak knee flexion) need the left/right labels; cadence and step time
+# Per-leg values (peak knee flexion) need the left/right labels; cadence and step time
 # don't (gait.py). When the steps between labelled heel strikes of alternate feet vary by more than
 # MAX_LABELLED_STEP_CV (SD / mean), the labels are taken to be swapping and per-leg values are
 # withheld with a note. Data: on 20 LJMU clips with AI-annotated + cross-checked heel strikes
@@ -29,8 +29,8 @@ LEG = {"L": "left", "R": "right"}
 # check doesn't catch every label problem.
 MAX_LABELLED_STEP_CV = 0.20
 LEGS_NOT_TOLD_APART = (
-    "Left and right legs couldn't be told apart reliably in this video, so stride time and peak knee "
-    "flexion aren't shown for each leg. Cadence and step time don't depend on telling the legs apart."
+    "Left and right legs couldn't be told apart reliably in this video, so peak knee flexion isn't "
+    "shown for each leg. Cadence and step time don't depend on telling the legs apart."
 )
 
 
@@ -64,13 +64,14 @@ def notes_from_walk(walk: Walk) -> list[str]:
 
 def metrics_from_walk(walk: Walk) -> dict[str, Any]:
     # walk.hip_excursion is computed but not returned: CONDITIONAL until it passes Phase 3.
+    # walk.stride_times likewise: brief left/right label flips (5-10% of frames) make it read up to
+    # 26% short on the synthetic walker without tripping legs_told_apart. Phase 3.
     steps = walk.contact_step_times
     per_leg = legs_told_apart(walk)
     no_legs = {"left": None, "right": None}
     m: dict[str, Any] = {
         "cadence": {"value": round(walk.cadence, 1), "n": walk.step_count, "unit": "steps/min"},
         "step_time": {**_summary(steps, "s", 3, "mean"), "value": round(walk.mean_step_time, 3)},
-        "stride_time": _per_leg(walk.stride_times, "s", 3, "mean") if per_leg else no_legs,
         "peak_knee_flexion": _per_leg(walk.knee_peak_flexion, "deg", 1, "median") if per_leg else no_legs,
     }
     if walk.step_lengths_m is not None:
