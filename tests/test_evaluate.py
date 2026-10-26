@@ -53,3 +53,18 @@ def test_reference_file_is_well_formed():
     for r in refs:
         assert r.role in ("tuning", "test") and r.source in ("visual", "visual_coarse", "rtmpose")
         assert r.clip.endswith("_90") and r.strikes == sorted(r.strikes)
+
+
+def test_repeatability_pairs_walks_of_one_person_in_one_session():
+    from evaluation.evaluate import repeatability
+
+    rows = [
+        {"clip": "P1_E1T1_90", "participant": 1, "status": "accepted", "cadence": 110.0, "step_time": 0.545},
+        {"clip": "P1_E1T2_90", "participant": 1, "status": "accepted", "cadence": 112.0, "step_time": 0.536},
+        {"clip": "P1_E2T1_90", "participant": 1, "status": "accepted", "cadence": 130.0, "step_time": 0.46},
+        {"clip": "P2_E1T1_90", "participant": 2, "status": "accepted", "cadence": 100.0, "step_time": 0.6},
+        {"clip": "P2_E1T2_90", "participant": 2, "status": "rejected"},
+    ]
+    r = repeatability(rows)
+    assert r["pairs"] == 1 and r["participants"] == 1  # P1 E1T1-E1T2 only: other sessions/rejected excluded
+    assert r["cadence_steps_per_min"]["mean_abs_diff"] == pytest.approx(2.0)
