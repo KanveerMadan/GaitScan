@@ -583,6 +583,17 @@
       ],
       "title": "Note"
      },
+     "notes": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     },
      "patient_name": {
       "anyOf": [
        {
@@ -607,6 +618,14 @@
         "type": "null"
        }
       ]
+     },
+     "tags": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
      }
     },
     "required": [
@@ -620,6 +639,41 @@
      "disclaimer"
     ],
     "title": "SessionDetail",
+    "type": "object"
+   },
+   "SessionLabels": {
+    "additionalProperties": false,
+    "description": "PATCH /sessions/{id}: fields left out are kept; an empty note clears it. Tags are trimmed,\nlower-cased and de-duplicated in order.",
+    "properties": {
+     "notes": {
+      "anyOf": [
+       {
+        "maxLength": 1000,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     },
+     "tags": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string"
+        },
+        "maxItems": 10,
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Tags"
+     }
+    },
+    "title": "SessionLabels",
     "type": "object"
    },
    "SessionOut": {
@@ -654,6 +708,17 @@
       ],
       "title": "Note"
      },
+     "notes": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     },
      "patient_name": {
       "anyOf": [
        {
@@ -678,6 +743,14 @@
         "type": "null"
        }
       ]
+     },
+     "tags": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
      }
     },
     "required": [
@@ -1371,6 +1444,62 @@
      }
     ],
     "summary": "Get Session",
+    "tags": [
+     "sessions"
+    ]
+   },
+   "patch": {
+    "description": "The owner's notes and tags. Only the owner may edit (a linked clinician sees them).",
+    "operationId": "label_session_sessions__session_id__patch",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "session_id",
+      "required": true,
+      "schema": {
+       "title": "Session Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SessionLabels"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SessionOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Label Session",
     "tags": [
      "sessions"
     ]
