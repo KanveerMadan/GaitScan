@@ -12,7 +12,7 @@ Rules:
 ## Phase 2 — Measurement correctness: done (walk01 rejected: no complete step; needs a protocol-conforming clip)
 
 ## Phase 3 — Honest results + new measurements
-- [ ] [M] Confirm the pipeline supports multiple passes, a second test type, and a user-supplied treadmill speed; refactor if not
+- [x] [M] Confirm the pipeline supports multiple passes, a second test type, and a user-supplied treadmill speed; refactor if not (treadmill: rejected as view_unconfirmed until Phase 4 treadmill mode)
 - [ ] [M] Accuracy check on LJMU (cadence, step time; walking speed from the known 8 m path) via reproducible `make evaluate` → machine-readable JSON/CSV
 - [ ] [M] Peak knee flexion marked "not yet validated" in API, PDF and UI (no knee reference without OpenCap)
 - [ ] [M] Error ranges from that check shown in the app next to each metric
