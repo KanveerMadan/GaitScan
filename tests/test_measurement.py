@@ -556,3 +556,30 @@ def test_metrics_without_a_reference_check_are_marked_not_yet_validated():
         assert acc[name]["status"] == "not_yet_validated", name
         assert "not yet validated" in acc[name]["note"].lower()
     assert analyse(synthetic_clip(fps=15)[0]).to_dict()["accuracy"] == {}  # rejected: no metrics
+
+
+def test_each_pass_gets_its_own_cadence_and_the_spread_between_passes():
+    clip, truth = synthetic_clip(passes=3, pass_secs=6.0, width=2000)
+    d = analyse(clip).to_dict()
+    assert [p["pass"] for p in d["passes"]] == [1, 2, 3]
+    assert [p["direction"] for p in d["passes"]] == ["left_to_right", "right_to_left", "left_to_right"]
+    for p in d["passes"]:
+        assert p["steps"] >= quality.MIN_STEPS
+        assert (
+            p["cadence"]["value"] == pytest.approx(truth.cadence, abs=2)
+            and p["cadence"]["unit"] == "steps/min"
+        )
+        assert (
+            p["step_time"]["value"] == pytest.approx(60 / truth.cadence, abs=0.01)
+            and p["step_time"]["unit"] == "s"
+        )
+    v = d["pass_variability"]
+    assert v["passes"] == 3 and 0 <= v["cadence_sd"]["value"] < 2 and v["cadence_sd"]["unit"] == "steps/min"
+    assert v["step_time_sd"]["unit"] == "s"
+
+
+def test_passes_with_too_few_steps_get_no_values_of_their_own():
+    """Each pass of the default walker holds 3 steps: the clip's cadence pools them, but no pass is
+    timed alone (the same MIN_STEPS resolution bound as the whole clip)."""
+    d = analyse(synthetic_clip()[0]).to_dict()
+    assert d["status"] == "accepted" and d["passes"] == [] and d["pass_variability"] is None
