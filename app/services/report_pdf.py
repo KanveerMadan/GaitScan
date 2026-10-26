@@ -100,6 +100,31 @@ def build_pdf(result: dict[str, Any], patient_name: str | None, created_at: date
             _p("Step length and walking speed need a floor calibration and were not measured.", SMALL)
         )
 
+    passes: list[dict[str, Any]] = result.get("passes") or []
+    if passes:
+        story.append(_p("Each pass", H2))
+        p_rows: list[list[Any]] = [[_p("Pass"), _p("Direction"), _p("Steps"), _p("Cadence"), _p("Step time")]]
+        for p in passes:
+            p_rows.append(
+                [
+                    _p(p["pass"]),
+                    _p(str(p["direction"]).replace("_", " ")),
+                    _p(p["steps"]),
+                    _p(_fmt({**p["cadence"], "n": p["steps"]})),
+                    _p(_fmt(p["step_time"])),
+                ]
+            )
+        story.append(_table(p_rows, [1.5 * cm, 3 * cm, 1.6 * cm, 5.5 * cm, 5.5 * cm]))
+        v = result.get("pass_variability")
+        if v:
+            story.append(
+                _p(
+                    f"Spread between passes (SD): cadence {v['cadence_sd']['value']} steps/min, "
+                    f"step time {v['step_time_sd']['value']} s.",
+                    SMALL,
+                )
+            )
+
     strides = quality.get("strides") or {}
     usable = quality.get("usable_frame_fraction")
     q_rows = [
