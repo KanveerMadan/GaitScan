@@ -88,3 +88,4 @@ requirements-audit.txt
 
 # Pinned pose model, fetched by `python gaitcore/model.py fetch` (9.4 MB; SHA-256 in gaitcore/model.py)
 gaitcore/models/
+loadtest/out/
