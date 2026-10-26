@@ -10,6 +10,7 @@ class Result(BaseModel):
 
     pipeline_version: str
     model: dict[str, str]
+    test: str = "walk"  # absent in results stored before Phase 3 (all walks)
     status: str
     metrics: dict[str, Any]
     quality: dict[str, Any]

@@ -15,6 +15,7 @@ from gaitcore import __version__, model
 from gaitcore.gait import Walk
 from gaitcore.quality import Rejection
 
+WALK = "walk"  # the test type: the only one so far (pipeline.TESTS)
 MIN_STRIDES_PER_LEG = 3  # a median of >= 3 strides can't be set by one bad stride
 LEG = {"L": "left", "R": "right"}
 
@@ -105,6 +106,7 @@ class AnalysisResult:
     metrics: dict[str, Any] = field(default_factory=dict)
     quality: dict[str, Any] = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)  # user-facing caveats about an accepted result
+    test: str = WALK
     pipeline_version: str = __version__
 
     @property
@@ -115,6 +117,7 @@ class AnalysisResult:
         return {
             "pipeline_version": self.pipeline_version,
             "model": model_info(),
+            "test": self.test,
             "status": self.status,
             "rejection": None
             if self.rejection is None

@@ -22,8 +22,8 @@ from app.db.models import User
 from app.schemas import AnalyzeResponse, Result
 from gaitcore.calibration import Calibration, CalibrationError
 from gaitcore.landmarks import VideoReadError, extract_clip
-from gaitcore.pipeline import analyse, precheck, probe
-from gaitcore.result import AnalysisResult
+from gaitcore.pipeline import TESTS, analyse, precheck, probe
+from gaitcore.result import WALK, AnalysisResult
 
 VIDEO_EXTENSIONS = (".mp4", ".mov", ".avi")
 
@@ -53,10 +53,10 @@ def parse_calibration(values: list[float | None], distance_m: float | None) -> C
     return Calibration(x1, y1, x2, y2, float(distance_m or 0.0))
 
 
-def run_pipeline(path: str, calibration: Calibration | None) -> AnalysisResult:
+def run_pipeline(path: str, calibration: Calibration | None, test: str = WALK) -> AnalysisResult:
     with _PIPELINE_LOCK:
         try:
-            return _run_pipeline(path, calibration)
+            return _run_pipeline(path, calibration, test)
         finally:
             if settings.analysis_log_memory:
                 # High-water mark of the whole process so far, in KiB on Linux.
@@ -65,13 +65,13 @@ def run_pipeline(path: str, calibration: Calibration | None) -> AnalysisResult:
                 )
 
 
-def _run_pipeline(path: str, calibration: Calibration | None) -> AnalysisResult:
+def _run_pipeline(path: str, calibration: Calibration | None, test: str) -> AnalysisResult:
     info = probe(path)
-    result = precheck(info)
+    result = precheck(info, test)
     if result is None:
         if calibration is not None:
             calibration.check(info.width, info.height)
-        result = analyse(extract_clip(path), calibration)
+        result = analyse(extract_clip(path), calibration, test)
     return result
 
 
@@ -79,6 +79,7 @@ def _run_pipeline(path: str, calibration: Calibration | None) -> AnalysisResult:
 def analyze(
     video: UploadFile = File(...),
     patient_name: str = Form("Anonymous"),
+    test: str = Form(WALK),
     calib_x1: float | None = Form(None),
     calib_y1: float | None = Form(None),
     calib_x2: float | None = Form(None),
@@ -90,6 +91,10 @@ def analyze(
     ext = os.path.splitext((video.filename or "").lower())[1]
     if ext not in VIDEO_EXTENSIONS:
         raise HTTPException(400, "Only .mp4, .mov, .avi files accepted")
+    if test not in TESTS:
+        raise rejected(
+            "unsupported_test", f"That test isn't available. Tests you can run: {', '.join(TESTS)}."
+        )
     calibration = parse_calibration([calib_x1, calib_y1, calib_x2, calib_y2], calib_distance_m)
 
     job_id = str(uuid.uuid4())
@@ -97,7 +102,7 @@ def analyze(
     try:
         save_upload(video.file, video_path, settings.max_upload_bytes)
         try:
-            result = run_pipeline(video_path, calibration)
+            result = run_pipeline(video_path, calibration, test)
         except VideoReadError:
             raise HTTPException(
                 422, "We couldn't read this file as a video. Please upload an .mp4, .mov or .avi recording."

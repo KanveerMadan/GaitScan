@@ -44,6 +44,7 @@ class Segment:
     start: int  # first frame
     end: int  # one past the last frame
     direction: float  # +1: walking towards image +x; -1: towards -x
+    pass_index: int = 0  # which walk across the frame; a pass can hold several steady segments
 
     def seconds(self, fps: float) -> float:
         return (self.end - self.start) / fps
@@ -68,15 +69,18 @@ def steady_segments(clip: Clip, tracks: Tracks, leg_px: float) -> list[Segment]:
     v = pelvis_speed(tracks, leg_px)
     with np.errstate(invalid="ignore"):
         moving = pelvis_in_view(clip) & (np.abs(v) >= V_MIN)
-    out: list[Segment] = []
+    crossings: list[tuple[int, int, float]] = []  # one per walk across: moving one way, unbroken
     for sign in (1.0, -1.0):
         with np.errstate(invalid="ignore"):
             same = moving & (np.sign(v) == sign)
-        for s, e in runs(same):
-            speed = np.abs(v[s:e])
-            med = float(np.median(speed))
-            steady = (speed >= (1 - STEADY_BAND) * med) & (speed <= (1 + STEADY_BAND) * med)
-            for a, b in runs(steady):
-                if b - a >= MIN_SEGMENT_S * tracks.fps:
-                    out.append(Segment(s + a, s + b, sign))
-    return sorted(out, key=lambda g: g.start)
+        crossings.extend((s, e, sign) for s, e in runs(same))
+    out: list[Segment] = []
+    for s, e, sign in sorted(crossings):
+        speed = np.abs(v[s:e])
+        med = float(np.median(speed))
+        steady = (speed >= (1 - STEADY_BAND) * med) & (speed <= (1 + STEADY_BAND) * med)
+        k = len({g.pass_index for g in out})
+        out.extend(
+            Segment(s + a, s + b, sign, k) for a, b in runs(steady) if b - a >= MIN_SEGMENT_S * tracks.fps
+        )
+    return out
