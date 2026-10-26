@@ -121,5 +121,19 @@
     11.82
    ]
   }
+ },
+ "repeatability": {
+  "pairs": 25,
+  "participants": 16,
+  "cadence_steps_per_min": {
+   "mean_abs_diff": 1.89,
+   "sd_diff": 2.23,
+   "mdc_95": 4.36
+  },
+  "step_time_ms": {
+   "mean_abs_diff": 9.04,
+   "sd_diff": 11.53,
+   "mdc_95": 22.61
+  }
  }
 }

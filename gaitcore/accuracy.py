@@ -16,9 +16,12 @@ VALIDATED_STATUS = "validated"
 # AI-annotated + cross-checked, or from an independent pose model (RTMPose), settled visually where
 # they disagreed with the pipeline by > 5 steps/min. Cadence: all p95 4.67, test p95 2.36 steps/min;
 # step time: all p95 23.5 ms, test p95 16.9 ms.
+# mdc_95, the minimal detectable change: 1.96 x the SD of the difference between two walks of the same
+# person in the same session (25 pairs, 16 participants): cadence 4.36 steps/min, step time 22.6 ms.
+# Same-session only; day-to-day variation is likely larger and isn't in it.
 VALIDATED: dict[str, dict[str, Any]] = {
-    "cadence": {"error_95": 4.7, "unit": "steps/min", "clips": 97, "test_clips": 21},
-    "step_time": {"error_95": 0.024, "unit": "s", "clips": 97, "test_clips": 21},
+    "cadence": {"error_95": 4.7, "mdc_95": 4.4, "unit": "steps/min", "clips": 97, "test_clips": 21},
+    "step_time": {"error_95": 0.024, "mdc_95": 0.023, "unit": "s", "clips": 97, "test_clips": 21},
 }
 
 _KNEE = (
@@ -42,6 +45,7 @@ def _validated(name: str) -> dict[str, Any]:
     return {
         "status": VALIDATED_STATUS,
         "error_95": v["error_95"],
+        "mdc_95": v["mdc_95"],
         "unit": v["unit"],
         "note": (
             f"In an accuracy check on {v['clips']} side-view walks from a public dataset (LJMU), 95% of "
