@@ -12,8 +12,9 @@ from synthetic import LEG, M_PER_PX, knee_flexion_truth, synthetic_clip
 
 from gaitcore import quality
 from gaitcore.calibration import Calibration, CalibrationError
-from gaitcore.gait import leg_length, measure_walk
-from gaitcore.pipeline import analyse
+from gaitcore.clip import Clip
+from gaitcore.gait import leg_length, measure_passes, measure_walk
+from gaitcore.pipeline import UnsupportedTest, analyse
 from gaitcore.segments import steady_segments
 from gaitcore.signals import build_tracks, lowpass, masked_xy
 
@@ -469,3 +470,78 @@ def test_only_kept_metrics_are_returned():
     time is withheld until Phase 3: brief left/right flips make it wrong without any warning."""
     metrics = analyse(synthetic_clip()[0]).to_dict()["metrics"]
     assert set(metrics) == {"cadence", "step_time", "peak_knee_flexion"}
+
+
+# ---- passes, test types, treadmill (Phase 3) ---------------------------------------------------
+def surge(clip, start_s, secs=0.6, px=60.0):
+    """The walker speeds up briefly mid-pass: every landmark moves px further over secs."""
+    t = np.arange(clip.n_frames) / clip.fps
+    u = np.clip((t - start_s) / secs, 0, 1)
+    shift = px * (1 - np.cos(np.pi * u)) / 2 / clip.width
+    lm = clip.landmarks.copy()
+    for c in lm:
+        if c.endswith("_x"):
+            lm[c] = lm[c] + shift
+    return Clip(lm, clip.fps, clip.width, clip.height)
+
+
+def on_treadmill(clip):
+    """The same walker on a treadmill: the pelvis held still mid-frame, the feet carried back."""
+    lm = clip.landmarks.copy()
+    pelvis = (lm["lm23_x"] + lm["lm24_x"]) / 2
+    for c in lm:
+        if c.endswith("_x"):
+            lm[c] = lm[c] - pelvis + 0.5
+    return Clip(lm, clip.fps, clip.width, clip.height)
+
+
+def test_each_steady_segment_knows_its_walk_across():
+    _, segs = walk_of(synthetic_clip(passes=3)[0])
+    assert [s.pass_index for s in segs] == [0, 1, 2]
+
+
+def test_a_speed_change_mid_pass_splits_the_segment_not_the_pass():
+    clip = surge(synthetic_clip(passes=2, pass_secs=6.0, width=2000)[0], 2.5)
+    _, segs = walk_of(clip)
+    assert len(segs) > 2  # the surge isn't steady walking
+    assert sorted({s.pass_index for s in segs}) == [0, 1]
+    assert analyse(clip).quality["passes"] == 2
+
+
+def test_per_pass_walks_pool_to_the_whole_walk():
+    clip, truth = synthetic_clip(passes=3, pass_secs=6.0, width=2000)
+    tracks = build_tracks(clip)
+    segs = steady_segments(clip, tracks, leg_length(tracks))
+    passes = measure_passes(clip, segs, tracks=tracks)
+    whole = measure_walk(clip, segs, tracks=tracks)
+    assert len(passes) == 3
+    for p in passes:
+        assert p.step_count >= 6 and p.cadence == pytest.approx(truth.cadence, abs=2)
+    for name in ("contact_runs", "step_times", "step_ends"):
+        assert [x for p in passes for x in getattr(p, name)] == getattr(whole, name)
+    for name in ("heel_strikes", "stride_times", "knee_peak_flexion", "hip_excursion"):
+        for s in ("L", "R"):
+            assert [x for p in passes for x in getattr(p, name)[s]] == getattr(whole, name)[s]
+
+
+def test_result_names_its_test():
+    assert analyse(synthetic_clip()[0]).to_dict()["test"] == "walk"
+    assert analyse(synthetic_clip(fps=15)[0]).to_dict()["test"] == "walk"  # rejected ones too
+
+
+def test_a_test_without_a_validated_analysis_is_refused():
+    with pytest.raises(UnsupportedTest):
+        analyse(synthetic_clip()[0], test="sit_to_stand")
+
+
+def test_treadmill_walk_is_rejected_until_treadmill_mode_has_its_own_view_check():
+    clip = on_treadmill(synthetic_clip(passes=1, pass_secs=12.0, ramp_secs=0.3)[0])
+    assert analyse(clip).rejection.code == "view_unconfirmed"
+
+
+def test_event_timing_works_for_a_walker_who_never_crosses_the_frame():
+    """What treadmill mode can build on: steps are timed without the pelvis moving across the image."""
+    clip, truth = synthetic_clip(passes=1, pass_secs=12.0, ramp_secs=0.3)
+    walk = measure_walk(on_treadmill(clip))
+    assert walk.step_count >= 15
+    assert walk.cadence == pytest.approx(truth.cadence, abs=2)

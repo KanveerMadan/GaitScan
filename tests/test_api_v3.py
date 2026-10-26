@@ -43,7 +43,7 @@ def test_accepted_analysis_returns_and_stores_measurements(client, monkeypatch):
     assert r.status_code == 200, r.text
     body = r.json()
     res = body["result"]
-    assert res["pipeline_version"] == "2.0.0" and res["status"] == "accepted"
+    assert res["pipeline_version"] == "2.0.0" and res["status"] == "accepted" and res["test"] == "walk"
     assert res["metrics"]["cadence"]["value"] == pytest.approx(110, abs=2)
     assert res["metrics"]["cadence"]["unit"] == "steps/min"
     assert res["metrics"]["peak_knee_flexion"]["left"]["unit"] == "deg"
@@ -75,6 +75,18 @@ def test_rejected_clips_get_a_reason_and_are_not_stored(client, monkeypatch, cod
     assert r.status_code == 422
     detail = r.json()["detail"]
     assert detail["code"] == code and len(detail["message"]) > 40
+    assert client.get("/sessions", headers=auth(t)).json() == []
+
+
+def test_a_test_without_a_validated_analysis_is_422_before_the_pose_model_runs(client, monkeypatch):
+    import app.api.analysis as m
+
+    ran = []
+    monkeypatch.setattr(m, "extract_clip", ran.append)
+    _, t = register(client)
+    r = upload(client, t, data={"test": "sit_to_stand"})
+    assert r.status_code == 422
+    assert r.json()["detail"]["code"] == "unsupported_test" and not ran
     assert client.get("/sessions", headers=auth(t)).json() == []
 
 
