@@ -86,3 +86,15 @@ def test_pdf_shows_each_pass_and_the_spread_between_passes():
     assert "Each pass" in text and "left to right" in text and "right to left" in text
     sd = result["pass_variability"]["cadence_sd"]["value"]
     assert f"Spread between passes (SD): cadence {sd} steps/min" in text
+
+
+def test_pdf_shows_the_error_range_next_to_each_validated_metric():
+    from app.services.report_pdf import build_pdf
+    from gaitcore.accuracy import VALIDATED
+    from gaitcore.pipeline import analyse
+
+    pdf = build_pdf(analyse(synthetic_clip()[0]).to_dict(), patient_name="Anonymous", created_at=None)
+    text = " ".join("".join(page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages).split())
+    assert f"± {VALIDATED['cadence']['error_95']} steps/min" in text.split("Cadence")[1][:200]
+    assert f"± {VALIDATED['step_time']['error_95']} s" in text.split("Step time")[1][:200]
+    assert "have not been measured yet" not in text
