@@ -28,6 +28,12 @@ Rules:
 - [ ] [S] gait.py:103 heel visibility: heel separation doesn't require visible heels; check on phone clips
 - [ ] [S] result.py:56 brief flips: labelled step CV <= 0.2 misses 5-10% brief flips (per-leg knee flexion)
 
+## Phase 3.2 — Reliability engine
+- [ ] [M] Degradation curves on LJMU (resolution, fps, compression, low light, camera yaw/roll): how each gait metric's error grows
+- [ ] [M] Learned reliability model: per-clip expected error / reject (gradient boosting or small MLP, conformal intervals), leave-participant-out evaluation
+- [ ] [M] Ship it in the app: learned ± error next to each metric, learned rejections with reasons
+- [ ] [S] arXiv-style write-up (deferred to Phase 7)
+
 ## Phase 3.5 — Design foundation (before any Phase 4 UI)
 - [ ] [M] Design direction
 - [ ] [M] Design system: color, typography, spacing tokens, light/dark themes
@@ -49,6 +55,7 @@ Rules:
 - [ ] [S] Demo mode (sample video, no signup; synthetic or explicitly consented clip)
 - [ ] [S] Visual explanations: keyframes with skeleton + heel strikes, knee curve with gait cycles, offending frame on rejection (server-rendered images, no video stored)
 - [ ] [S] Knee-angle curve with a published normative band
+- [ ] [S] Ghost replay: today's walk overlaid on a past session as skeletons, aligned by gait cycle (DTW), differences highlighted
 - [ ] [S] Installable PWA
 - [ ] [S] Goals with progress tracking
 - [ ] [S] k6 or Locust load test (capacity in the terminal summary)
