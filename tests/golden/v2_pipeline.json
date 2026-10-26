@@ -1,6 +1,12 @@
 {
  "calibrated": {
   "accuracy": {
+   "cadence": {
+    "error_95": 4.7,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.7 steps/min of the reference.",
+    "status": "validated",
+    "unit": "steps/min"
+   },
    "peak_knee_flexion": {
     "note": "Not yet validated: there is no knee-angle reference to check it against yet. Use it to compare your own recordings, not as an exact angle.",
     "status": "not_yet_validated"
@@ -8,6 +14,12 @@
    "step_length": {
     "note": "Not yet validated on real recordings: checked only on simulated walking, and its accuracy depends on where the two floor points were marked.",
     "status": "not_yet_validated"
+   },
+   "step_time": {
+    "error_95": 0.024,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b10.024 s of the reference.",
+    "status": "validated",
+    "unit": "s"
    },
    "walking_speed": {
     "note": "Not yet validated on real recordings: checked only on simulated walking, and its accuracy depends on where the two floor points were marked.",
@@ -213,9 +225,21 @@
  },
  "noise2px": {
   "accuracy": {
+   "cadence": {
+    "error_95": 4.7,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.7 steps/min of the reference.",
+    "status": "validated",
+    "unit": "steps/min"
+   },
    "peak_knee_flexion": {
     "note": "Not yet validated: there is no knee-angle reference to check it against yet. Use it to compare your own recordings, not as an exact angle.",
     "status": "not_yet_validated"
+   },
+   "step_time": {
+    "error_95": 0.024,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b10.024 s of the reference.",
+    "status": "validated",
+    "unit": "s"
    }
   },
   "metrics": {
@@ -333,9 +357,21 @@
  },
  "spm110": {
   "accuracy": {
+   "cadence": {
+    "error_95": 4.7,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.7 steps/min of the reference.",
+    "status": "validated",
+    "unit": "steps/min"
+   },
    "peak_knee_flexion": {
     "note": "Not yet validated: there is no knee-angle reference to check it against yet. Use it to compare your own recordings, not as an exact angle.",
     "status": "not_yet_validated"
+   },
+   "step_time": {
+    "error_95": 0.024,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b10.024 s of the reference.",
+    "status": "validated",
+    "unit": "s"
    }
   },
   "metrics": {
@@ -400,9 +436,21 @@
  },
  "spm125": {
   "accuracy": {
+   "cadence": {
+    "error_95": 4.7,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.7 steps/min of the reference.",
+    "status": "validated",
+    "unit": "steps/min"
+   },
    "peak_knee_flexion": {
     "note": "Not yet validated: there is no knee-angle reference to check it against yet. Use it to compare your own recordings, not as an exact angle.",
     "status": "not_yet_validated"
+   },
+   "step_time": {
+    "error_95": 0.024,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b10.024 s of the reference.",
+    "status": "validated",
+    "unit": "s"
    }
   },
   "metrics": {
@@ -467,9 +515,21 @@
  },
  "spm90": {
   "accuracy": {
+   "cadence": {
+    "error_95": 4.7,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.7 steps/min of the reference.",
+    "status": "validated",
+    "unit": "steps/min"
+   },
    "peak_knee_flexion": {
     "note": "Not yet validated: there is no knee-angle reference to check it against yet. Use it to compare your own recordings, not as an exact angle.",
     "status": "not_yet_validated"
+   },
+   "step_time": {
+    "error_95": 0.024,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b10.024 s of the reference.",
+    "status": "validated",
+    "unit": "s"
    }
   },
   "metrics": {
@@ -556,9 +616,21 @@
  },
  "yaw15": {
   "accuracy": {
+   "cadence": {
+    "error_95": 4.7,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.7 steps/min of the reference.",
+    "status": "validated",
+    "unit": "steps/min"
+   },
    "peak_knee_flexion": {
     "note": "Not yet validated: there is no knee-angle reference to check it against yet. Use it to compare your own recordings, not as an exact angle.",
     "status": "not_yet_validated"
+   },
+   "step_time": {
+    "error_95": 0.024,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b10.024 s of the reference.",
+    "status": "validated",
+    "unit": "s"
    }
   },
   "metrics": {
