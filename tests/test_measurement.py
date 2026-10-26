@@ -435,6 +435,17 @@ def test_per_leg_values_are_hidden_when_a_legs_strides_are_not_two_steps_long():
     assert notes_from_walk(halved) == [LEGS_NOT_TOLD_APART]
 
 
+@pytest.mark.parametrize("seed", range(8))
+def test_knee_values_under_brief_leg_flips_are_hidden_or_right(seed):
+    """10% of frames flipped: the stride check hides the per-leg values whenever a leg's strides come
+    out short. (At 5%, 2 of 8 seeds still show a left knee 4-6 deg low with normal strides: Phase 8.)"""
+    base = analyse(synthetic_clip()[0]).metrics["peak_knee_flexion"]
+    knee = analyse(flip_legs(synthetic_clip()[0], 0.10, seed)).metrics["peak_knee_flexion"]
+    for side in ("left", "right"):
+        if knee[side] is not None:
+            assert knee[side]["value"] == pytest.approx(base[side]["value"], abs=1.0), side
+
+
 def test_result_carries_user_facing_notes():
     assert analyse(synthetic_clip()[0]).to_dict()["notes"] == []
 
