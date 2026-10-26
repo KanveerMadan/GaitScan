@@ -8,7 +8,6 @@ import math
 
 import numpy as np
 import pytest
-from gaitcore.legs import correct_leg_flips
 from synthetic import LEG, M_PER_PX, knee_flexion_truth, synthetic_clip
 
 from gaitcore import quality
@@ -188,31 +187,25 @@ def test_cadence_and_step_time_do_not_depend_on_the_left_right_labels():
         assert r.metrics["step_time"] == base.metrics["step_time"], fraction
 
 
-@pytest.mark.parametrize("seed", [0, 1, 2, 3])
+# A continuity correction (two-state Viterbi per pass, _audit/sandbox/ljmu_cache/scripts/legfix.py)
+# passes this on the synthetic walker, but on LJMU (Topham et al. 2023, CC BY 4.0; 77 accepted clips,
+# 2026-10-26) it left per-leg stride time as wrong as before (MAE 241 -> 246 ms vs 2x the reference
+# step time): there the labels mostly follow the legs' position, so 37/110 legs read one step as a
+# stride. Not shipped; stride time stays withheld.
+LEG_FLIPS_UNFIXED = pytest.mark.xfail(
+    strict=True, reason="per-foot heel strikes follow the leg labels; no label correction is shipped"
+)
+
+
+@pytest.mark.parametrize("seed", [pytest.param(s, marks=LEG_FLIPS_UNFIXED) for s in (0, 1, 2, 3)])
 def test_heel_strikes_are_found_on_the_right_foot_despite_leg_flips(seed):
     clip, truth = synthetic_clip()
-    walk, _ = walk_of(correct_leg_flips(flip_legs(clip, 0.10, seed)))
+    walk, _ = walk_of(flip_legs(clip, 0.10, seed))
     for side in "LR":
         det = np.array(walk.heel_strikes[side]) / clip.fps
         assert len(det) >= 4, side
         err = np.array([np.min(np.abs(np.array(truth.heel_strikes[side]) - d)) for d in det])
         assert (err <= 2 / clip.fps).all(), (side, err)
-
-
-@pytest.mark.parametrize(
-    "kw",
-    [
-        {},
-        {"steps_per_min": 90, "passes": 4},
-        {"steps_per_min": 125, "passes": 4},
-        {"noise_px": 2.0, "seed": 3},
-        {"yaw_deg": 15},
-    ],
-)
-def test_leg_labels_that_never_flipped_are_left_alone(kw):
-    clip = synthetic_clip(**kw)[0]
-    before = clip.landmarks.copy()
-    assert correct_leg_flips(clip).landmarks.equals(before)
 
 
 def test_step_and_stride_times():
@@ -418,6 +411,28 @@ def test_per_leg_values_are_hidden_when_left_and_right_steps_are_too_variable():
     assert notes_from_walk(erratic) == [LEGS_NOT_TOLD_APART]
     assert "left and right legs" in LEGS_NOT_TOLD_APART.lower()
     assert "stride" not in LEGS_NOT_TOLD_APART.lower()  # stride time isn't shown at all
+
+
+def test_per_leg_values_are_hidden_when_a_legs_strides_are_not_two_steps_long():
+    """On LJMU the labels often follow the legs' position in the image, and a 'stride' of one label is
+    then one step. A leg's median stride time must be within MAX_STRIDE_MISMATCH of twice the
+    label-free step time, or per-leg values are withheld."""
+    from gaitcore.gait import Walk
+    from gaitcore.result import LEGS_NOT_TOLD_APART, metrics_from_walk, notes_from_walk
+
+    def walk(left_strides):
+        return Walk(
+            fps=30.0,
+            contact_runs=[[0.0, 0.55, 1.1, 1.65, 2.2, 2.75, 3.3]],
+            step_times=[0.55, 0.56, 0.54, 0.55, 0.55, 0.56],
+            stride_times={"L": left_strides, "R": [1.1, 1.1, 1.1]},
+            knee_peak_flexion={"L": [60.0, 61.0, 59.0], "R": [58.0, 60.0, 59.0]},
+        )
+
+    assert metrics_from_walk(walk([1.05, 1.1, 1.15]))["peak_knee_flexion"]["left"] is not None
+    halved = walk([0.55, 0.55, 1.1])
+    assert metrics_from_walk(halved)["peak_knee_flexion"] == {"left": None, "right": None}
+    assert notes_from_walk(halved) == [LEGS_NOT_TOLD_APART]
 
 
 def test_result_carries_user_facing_notes():
