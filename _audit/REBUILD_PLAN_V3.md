@@ -45,20 +45,20 @@ Rules:
 - [ ] [M] All Phase 4–5 screens built with this system (ongoing rule)
 
 ## Phase 4 — Usability + app features
-- [ ] [M] Non-blocking analysis: FastAPI background task + status endpoint + polling (no Redis/Celery)
-- [ ] [M] In-browser recording with live framing guidance (MediaPipe Tasks for Web, same pinned model; analysis server-side)
-- [ ] [M] Guided first-test onboarding (setup steps + demo + recording)
-- [ ] [M] Personal dashboard: latest results, trends, last test date
-- [ ] [M] Session comparison: side by side, overlaid knee curves, "real change" vs "within measurement error"
-- [ ] [M] Session notes/tags
-- [ ] [M] Split App.jsx per ADR-008 with a typed API client (split done in Phase 3.5; typed client remains)
-- [ ] [M] One Playwright e2e test of the main flow, in CI
-- [ ] [S] Demo mode (sample video, no signup; synthetic or explicitly consented clip)
-- [ ] [S] Visual explanations: keyframes with skeleton + heel strikes, knee curve with gait cycles, offending frame on rejection (server-rendered images, no video stored)
-- [ ] [S] Knee-angle curve with a published normative band
-- [ ] [S] Ghost replay: today's walk overlaid on a past session as skeletons, aligned by gait cycle (DTW), differences highlighted
-- [ ] [S] Installable PWA
-- [ ] [S] Goals with progress tracking
+- [x] [M] Non-blocking analysis: FastAPI background task + status endpoint + polling (no Redis/Celery)
+- [ ] [M] In-browser recording with live framing guidance (MediaPipe Tasks for Web, same pinned model; analysis server-side) (framing guidance done: /setup; recording blocked: MediaRecorder frame timing must be checked on real phones)
+- [x] [M] Guided first-test onboarding (setup steps + demo + recording) (recording step waits with the item above)
+- [x] [M] Personal dashboard: latest results, trends, last test date
+- [x] [M] Session comparison: side by side, overlaid knee curves, "real change" vs "within measurement error" (vs same-session repeatability from LJMU; day-to-day variation stated as unknown)
+- [x] [M] Session notes/tags
+- [x] [M] Split App.jsx per ADR-008 with a typed API client (contract + generated types, drift-checked in both CIs)
+- [x] [M] One Playwright e2e test of the main flow, in CI
+- [x] [S] Demo mode (sample video, no signup; synthetic or explicitly consented clip) (/demo: the simulated walker's result)
+- [ ] [S] Visual explanations: keyframes with skeleton + heel strikes, knee curve with gait cycles, offending frame on rejection (server-rendered images, no video stored) (cut for time; the knee curve per stride is shown)
+- [ ] [S] Knee-angle curve with a published normative band (blocked: no verified normative band yet; knee itself awaits Phase 8)
+- [ ] [S] Ghost replay: today's walk overlaid on a past session as skeletons, aligned by gait cycle (DTW), differences highlighted (needs per-frame landmarks stored: a privacy decision for the owner)
+- [x] [S] Installable PWA (manifest; no service worker on purpose)
+- [ ] [S] Goals with progress tracking (cut for time)
 - [ ] [S] k6 or Locust load test (capacity in the terminal summary)
 - [ ] [C] "Analysis done" notification
 - [ ] [C] Profile settings: height, units, language, dark mode
