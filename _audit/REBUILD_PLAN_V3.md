@@ -35,14 +35,14 @@ Rules:
 - [ ] [M] Ship it in the app: learned ± error next to each metric, learned rejections with reasons
 - [ ] [S] arXiv-style write-up (deferred to Phase 7)
 
-## Phase 3.5 — Design foundation (before any Phase 4 UI)
-- [ ] [M] Design direction
-- [ ] [M] Design system: color, typography, spacing tokens, light/dark themes
-- [ ] [M] Tailwind + shadcn/ui (Radix)
-- [ ] [M] App shell: navigation and layout
-- [ ] [M] Migrate existing screens into the shell
-- [ ] [M] Use design-taste-frontend, frontend-design-toolkit, web-design-guidelines; no generic template look
-- [ ] [M] All Phase 4–5 screens built with this system
+## Phase 3.5 — Design foundation (before any Phase 4 UI): done (frontend #12)
+- [x] [M] Design direction
+- [x] [M] Design system: color, typography, spacing tokens, light/dark themes
+- [x] [M] Tailwind + shadcn/ui (Radix)
+- [x] [M] App shell: navigation and layout
+- [x] [M] Migrate existing screens into the shell
+- [x] [M] Use design-taste-frontend, frontend-design-toolkit, web-design-guidelines; no generic template look
+- [x] [M] All Phase 4–5 screens built with this system
 
 ## Phase 4 — Usability + app features
 - [ ] [M] Non-blocking analysis: FastAPI background task + status endpoint + polling (no Redis/Celery)
@@ -51,7 +51,7 @@ Rules:
 - [ ] [M] Personal dashboard: latest results, trends, last test date
 - [ ] [M] Session comparison: side by side, overlaid knee curves, "real change" vs "within measurement error"
 - [ ] [M] Session notes/tags
-- [ ] [M] Split App.jsx per ADR-008 with a typed API client
+- [ ] [M] Split App.jsx per ADR-008 with a typed API client (split done in Phase 3.5; typed client remains)
 - [ ] [M] One Playwright e2e test of the main flow, in CI
 - [ ] [S] Demo mode (sample video, no signup; synthetic or explicitly consented clip)
 - [ ] [S] Visual explanations: keyframes with skeleton + heel strikes, knee curve with gait cycles, offending frame on rejection (server-rendered images, no video stored)
