@@ -477,6 +477,12 @@
       "title": "Accuracy",
       "type": "object"
      },
+     "curves": {
+      "additionalProperties": true,
+      "default": {},
+      "title": "Curves",
+      "type": "object"
+     },
      "metrics": {
       "additionalProperties": true,
       "title": "Metrics",

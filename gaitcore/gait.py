@@ -66,6 +66,7 @@ MIN_STRIDE_S = 0.5
 PROMINENCE = 0.1
 STEP_S_RANGE = (0.25, 2.0)
 STRIDE_S_RANGE = (0.5, 4.0)
+CURVE_POINTS = 101  # 0-100% of the stride
 
 
 def leg_length(tracks: Tracks) -> float:
@@ -138,6 +139,8 @@ class Walk:
     stride_times: dict[str, list[float]] = field(default_factory=lambda: {"L": [], "R": []})
     knee_peak_flexion: dict[str, list[float]] = field(default_factory=lambda: {"L": [], "R": []})
     hip_excursion: dict[str, list[float]] = field(default_factory=lambda: {"L": [], "R": []})
+    # Knee flexion over each stride, resampled to CURVE_POINTS samples from heel strike to heel strike.
+    knee_curves: dict[str, list[list[float]]] = field(default_factory=lambda: {"L": [], "R": []})
     step_lengths_m: list[float] | None = None
     step_length_times: list[float] = field(default_factory=list)  # step times of the measured lengths
 
@@ -270,6 +273,9 @@ def _measure_segment(
         sl = slice(f0, f1 + 1)
         hip, knee, ankle = (tracks[(s0, n)][sl] for n in ("hip", "knee", "ankle"))
         if np.isfinite(np.c_[hip, knee, ankle]).all():
-            walk.knee_peak_flexion[s0].append(float(np.max(knee_flexion(hip, knee, ankle, seg.direction))))
+            flex = knee_flexion(hip, knee, ankle, seg.direction)
+            walk.knee_peak_flexion[s0].append(float(np.max(flex)))
+            u = np.linspace(0, 1, len(flex))
+            walk.knee_curves[s0].append(np.interp(np.linspace(0, 1, CURVE_POINTS), u, flex).tolist())
             th = thigh_angle(hip, knee, seg.direction)
             walk.hip_excursion[s0].append(float(np.max(th) - np.min(th)))

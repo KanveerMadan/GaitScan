@@ -18,6 +18,7 @@ class Result(BaseModel):
     notes: list[str] = []  # user-facing caveats; absent in results stored before 2026-10-24
     passes: list[dict[str, Any]] = []  # per walk across the frame; absent before Phase 3
     pass_variability: dict[str, Any] | None = None
+    curves: dict[str, Any] = {}  # absent before Phase 4
 
 
 class AnalyzeResponse(BaseModel):
