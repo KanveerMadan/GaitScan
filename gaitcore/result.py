@@ -30,6 +30,12 @@ LEG = {"L": "left", "R": "right"}
 # synthetic walker keep the CV at 0.06-0.11 while per-leg stride times read up to 26% short, so this
 # check doesn't catch every label problem.
 MAX_LABELLED_STEP_CV = 0.20
+# A leg's median stride time must also be within MAX_STRIDE_MISMATCH of twice the label-free mean
+# step time. On LJMU the labels often follow the legs' position in the image rather than the leg, and
+# one label's "stride" is then a single step. Data (2026-10-26, 77 accepted LJMU clips, 110 legs
+# with >= 3 strides, vs twice the reference step time): stride / reference was 0.91-1.05 for 56
+# legs and <= 0.88 for the rest (37 at 0.48-0.62: one step), so +-10% keeps every correct leg.
+MAX_STRIDE_MISMATCH = 0.10
 LEGS_NOT_TOLD_APART = (
     "Left and right legs couldn't be told apart reliably in this video, so peak knee flexion isn't "
     "shown for each leg. Cadence and step time don't depend on telling the legs apart."
@@ -57,7 +63,14 @@ def _per_leg(values: dict[str, list[float]], unit: str, digits: int, centre: str
 
 def legs_told_apart(walk: Walk) -> bool:
     t = np.asarray(walk.step_times, dtype=float)
-    return len(t) < 2 or float(np.std(t, ddof=1) / np.mean(t)) <= MAX_LABELLED_STEP_CV
+    if len(t) >= 2 and float(np.std(t, ddof=1) / np.mean(t)) > MAX_LABELLED_STEP_CV:
+        return False
+    stride = 2 * walk.mean_step_time
+    return all(
+        abs(float(np.median(walk.stride_times[s])) / stride - 1) <= MAX_STRIDE_MISMATCH
+        for s in ("L", "R")
+        if len(walk.stride_times[s]) >= MIN_STRIDES_PER_LEG and math.isfinite(stride)
+    )
 
 
 def notes_from_walk(walk: Walk) -> list[str]:
