@@ -91,6 +91,37 @@ def metrics_from_walk(walk: Walk) -> dict[str, Any]:
     return m
 
 
+def pass_results(walks: list[tuple[int, float, Walk]], min_steps: int) -> list[dict[str, Any]]:
+    """Cadence and step time of each walk across the frame (pass_index, direction, walk) that holds
+    at least `min_steps` steps (quality.MIN_STEPS, the same resolution bound as the whole clip)."""
+    return [
+        {
+            "pass": k + 1,
+            "direction": "left_to_right" if direction > 0 else "right_to_left",
+            "steps": w.step_count,
+            "cadence": {"value": round(w.cadence, 1), "unit": "steps/min"},
+            "step_time": {
+                **_summary(w.contact_step_times, "s", 3, "mean"),
+                "value": round(w.mean_step_time, 3),
+            },
+        }
+        for k, direction, w in walks
+        if w.step_count >= min_steps
+    ]
+
+
+def pass_variability(passes: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """SD of the per-pass values between passes; None with fewer than two timed passes."""
+    if len(passes) < 2:
+        return None
+    sd = {m: float(np.std([p[m]["value"] for p in passes], ddof=1)) for m in ("cadence", "step_time")}
+    return {
+        "passes": len(passes),
+        "cadence_sd": {"value": round(sd["cadence"], 1), "unit": "steps/min"},
+        "step_time_sd": {"value": round(sd["step_time"], 3), "unit": "s"},
+    }
+
+
 def model_info() -> dict[str, str]:
     return {
         "name": model.NAME,
@@ -108,6 +139,8 @@ class AnalysisResult:
     quality: dict[str, Any] = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)  # user-facing caveats about an accepted result
     test: str = WALK
+    passes: list[dict[str, Any]] = field(default_factory=list)  # per walk across the frame
+    pass_variability: dict[str, Any] | None = None
     pipeline_version: str = __version__
 
     @property
@@ -127,6 +160,8 @@ class AnalysisResult:
             "accuracy": accuracy_for(self.metrics),
             "quality": _clean(self.quality),
             "notes": list(self.notes),
+            "passes": self.passes,
+            "pass_variability": self.pass_variability,
         }
 
 

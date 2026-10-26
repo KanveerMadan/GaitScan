@@ -9,8 +9,15 @@ import cv2
 from gaitcore import quality
 from gaitcore.calibration import Calibration
 from gaitcore.clip import Clip
-from gaitcore.gait import leg_length, measure_walk
-from gaitcore.result import WALK, AnalysisResult, metrics_from_walk, notes_from_walk
+from gaitcore.gait import leg_length, measure_passes, measure_walk
+from gaitcore.result import (
+    WALK,
+    AnalysisResult,
+    metrics_from_walk,
+    notes_from_walk,
+    pass_results,
+    pass_variability,
+)
 from gaitcore.segments import steady_segments
 from gaitcore.signals import build_tracks
 
@@ -79,8 +86,18 @@ def _analyse_walk(clip: Clip, calibration: Calibration | None, q: dict[str, obje
     )
     if r:
         return _rejected(r, q)
+    direction = {s.pass_index: s.direction for s in segments}
+    walks = measure_passes(clip, segments, calibration, tracks=tracks)
+    passes = pass_results(
+        [(k, direction[k], w) for k, w in zip(sorted(direction), walks, strict=True)], quality.MIN_STEPS
+    )
     return AnalysisResult(
-        status="accepted", metrics=metrics_from_walk(walk), quality=q, notes=notes_from_walk(walk)
+        status="accepted",
+        metrics=metrics_from_walk(walk),
+        quality=q,
+        notes=notes_from_walk(walk),
+        passes=passes,
+        pass_variability=pass_variability(passes),
     )
 
 
