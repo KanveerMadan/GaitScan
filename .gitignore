@@ -74,6 +74,7 @@ dist/
 outputs/
 data/raw/
 data/processed/
+data/ljmu/
 
 # Audit scratch (contains derived biometric video and local builds)
 _audit/sandbox/
