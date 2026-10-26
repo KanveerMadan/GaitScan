@@ -1,5 +1,19 @@
 {
  "calibrated": {
+  "accuracy": {
+   "peak_knee_flexion": {
+    "note": "Not yet validated: there is no knee-angle reference to check it against yet. Use it to compare your own recordings, not as an exact angle.",
+    "status": "not_yet_validated"
+   },
+   "step_length": {
+    "note": "Not yet validated on real recordings: checked only on simulated walking, and its accuracy depends on where the two floor points were marked.",
+    "status": "not_yet_validated"
+   },
+   "walking_speed": {
+    "note": "Not yet validated on real recordings: checked only on simulated walking, and its accuracy depends on where the two floor points were marked.",
+    "status": "not_yet_validated"
+   }
+  },
   "metrics": {
    "cadence": {
     "n": 9,
@@ -70,6 +84,7 @@
   "test": "walk"
  },
  "feet_hidden": {
+  "accuracy": {},
   "metrics": {},
   "model": {
    "mediapipe": "1.0.1",
@@ -95,6 +110,7 @@
   "test": "walk"
  },
  "few_steps": {
+  "accuracy": {},
   "metrics": {},
   "model": {
    "mediapipe": "1.0.1",
@@ -131,6 +147,7 @@
   "test": "walk"
  },
  "frontal": {
+  "accuracy": {},
   "metrics": {},
   "model": {
    "mediapipe": "1.0.1",
@@ -161,6 +178,7 @@
   "test": "walk"
  },
  "low_fps": {
+  "accuracy": {},
   "metrics": {},
   "model": {
    "mediapipe": "1.0.1",
@@ -184,6 +202,12 @@
   "test": "walk"
  },
  "noise2px": {
+  "accuracy": {
+   "peak_knee_flexion": {
+    "note": "Not yet validated: there is no knee-angle reference to check it against yet. Use it to compare your own recordings, not as an exact angle.",
+    "status": "not_yet_validated"
+   }
+  },
   "metrics": {
    "cadence": {
     "n": 9,
@@ -243,6 +267,7 @@
   "test": "walk"
  },
  "rotated90": {
+  "accuracy": {},
   "metrics": {},
   "model": {
    "mediapipe": "1.0.1",
@@ -267,6 +292,7 @@
   "test": "walk"
  },
  "short": {
+  "accuracy": {},
   "metrics": {},
   "model": {
    "mediapipe": "1.0.1",
@@ -290,6 +316,12 @@
   "test": "walk"
  },
  "spm110": {
+  "accuracy": {
+   "peak_knee_flexion": {
+    "note": "Not yet validated: there is no knee-angle reference to check it against yet. Use it to compare your own recordings, not as an exact angle.",
+    "status": "not_yet_validated"
+   }
+  },
   "metrics": {
    "cadence": {
     "n": 9,
@@ -349,6 +381,12 @@
   "test": "walk"
  },
  "spm125": {
+  "accuracy": {
+   "peak_knee_flexion": {
+    "note": "Not yet validated: there is no knee-angle reference to check it against yet. Use it to compare your own recordings, not as an exact angle.",
+    "status": "not_yet_validated"
+   }
+  },
   "metrics": {
    "cadence": {
     "n": 16,
@@ -408,6 +446,12 @@
   "test": "walk"
  },
  "spm90": {
+  "accuracy": {
+   "peak_knee_flexion": {
+    "note": "Not yet validated: there is no knee-angle reference to check it against yet. Use it to compare your own recordings, not as an exact angle.",
+    "status": "not_yet_validated"
+   }
+  },
   "metrics": {
    "cadence": {
     "n": 6,
@@ -462,6 +506,7 @@
   "test": "walk"
  },
  "two_people": {
+  "accuracy": {},
   "metrics": {},
   "model": {
    "mediapipe": "1.0.1",
@@ -486,6 +531,12 @@
   "test": "walk"
  },
  "yaw15": {
+  "accuracy": {
+   "peak_knee_flexion": {
+    "note": "Not yet validated: there is no knee-angle reference to check it against yet. Use it to compare your own recordings, not as an exact angle.",
+    "status": "not_yet_validated"
+   }
+  },
   "metrics": {
    "cadence": {
     "n": 9,

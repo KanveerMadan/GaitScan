@@ -12,6 +12,7 @@ from typing import Any
 import numpy as np
 
 from gaitcore import __version__, model
+from gaitcore.accuracy import accuracy_for
 from gaitcore.gait import Walk
 from gaitcore.quality import Rejection
 
@@ -123,6 +124,7 @@ class AnalysisResult:
             if self.rejection is None
             else {"code": self.rejection.code, "message": self.rejection.message},
             "metrics": self.metrics,
+            "accuracy": accuracy_for(self.metrics),
             "quality": _clean(self.quality),
             "notes": list(self.notes),
         }

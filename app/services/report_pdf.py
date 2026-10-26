@@ -17,6 +17,7 @@ from reportlab.lib.units import cm
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from app.core.copy import DISCLAIMER, NO_ERROR_RANGES
+from gaitcore.accuracy import NOT_YET_VALIDATED, accuracy_for
 
 ROWS = (  # (metric key, label); per-leg metrics have "left"/"right"
     ("cadence", "Cadence"),
@@ -62,6 +63,8 @@ def _table(rows: list[list[Any]], widths: list[float]) -> Table:
 
 def build_pdf(result: dict[str, Any], patient_name: str | None, created_at: datetime | None) -> bytes:
     metrics: dict[str, Any] = result.get("metrics", {})
+    # Results stored before the accuracy block existed get today's labels.
+    accuracy: dict[str, Any] = result.get("accuracy") or accuracy_for(metrics)
     quality: dict[str, Any] = result.get("quality", {})
     model: dict[str, str] = result.get("model", {})
     story: list[Any] = [
@@ -77,12 +80,20 @@ def build_pdf(result: dict[str, Any], patient_name: str | None, created_at: date
         if key not in metrics:
             continue
         m = metrics[key]
+        name: list[Any] = [_p(label)]
+        if accuracy.get(key, {}).get("status") == NOT_YET_VALIDATED:
+            name.append(_p("Not yet validated", SMALL))
         if isinstance(m, dict) and ("left" in m or "right" in m):
-            rows.append([_p(label), _p(_fmt(m.get("left"))), _p(_fmt(m.get("right"))), _p("")])
+            rows.append([name, _p(_fmt(m.get("left"))), _p(_fmt(m.get("right"))), _p("")])
         else:
-            rows.append([_p(label), _p(""), _p(""), _p(_fmt(m))])
+            rows.append([name, _p(""), _p(""), _p(_fmt(m))])
     story += [_table(rows, [6 * cm, 3.7 * cm, 3.7 * cm, 3.7 * cm]), Spacer(1, 4)]
     story += [_p(note) for note in result.get("notes") or []]
+    story += [
+        _p(f"{label}: {accuracy[key]['note']}", SMALL)
+        for key, label in ROWS
+        if key in metrics and key in accuracy and accuracy[key].get("status") == NOT_YET_VALIDATED
+    ]
     story.append(_p(NO_ERROR_RANGES, SMALL))
     if "step_length" not in metrics:
         story.append(

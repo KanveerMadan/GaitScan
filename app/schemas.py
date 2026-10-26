@@ -13,6 +13,7 @@ class Result(BaseModel):
     test: str = "walk"  # absent in results stored before Phase 3 (all walks)
     status: str
     metrics: dict[str, Any]
+    accuracy: dict[str, Any] = {}  # per metric; absent in results stored before Phase 3
     quality: dict[str, Any]
     notes: list[str] = []  # user-facing caveats; absent in results stored before 2026-10-24
 
