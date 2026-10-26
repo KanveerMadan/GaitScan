@@ -74,3 +74,15 @@ def test_pdf_marks_older_stored_knee_values_not_yet_validated():
     pdf = build_pdf(result, patient_name="Anonymous", created_at=None)
     text = " ".join("".join(page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages).split())
     assert "Not yet validated" in text.split("Peak knee flexion")[1][:200]
+
+
+def test_pdf_shows_each_pass_and_the_spread_between_passes():
+    from app.services.report_pdf import build_pdf
+    from gaitcore.pipeline import analyse
+
+    result = analyse(synthetic_clip(passes=3, pass_secs=6.0, width=2000)[0]).to_dict()
+    pdf = build_pdf(result, patient_name="Anonymous", created_at=None)
+    text = " ".join("".join(page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages).split())
+    assert "Each pass" in text and "left to right" in text and "right to left" in text
+    sd = result["pass_variability"]["cadence_sd"]["value"]
+    assert f"Spread between passes (SD): cadence {sd} steps/min" in text
