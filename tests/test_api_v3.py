@@ -47,6 +47,7 @@ def test_accepted_analysis_returns_and_stores_measurements(client, monkeypatch):
     assert res["metrics"]["cadence"]["value"] == pytest.approx(110, abs=2)
     assert res["metrics"]["cadence"]["unit"] == "steps/min"
     assert res["metrics"]["peak_knee_flexion"]["left"]["unit"] == "deg"
+    assert res["accuracy"]["peak_knee_flexion"]["status"] == "not_yet_validated"
     assert res["quality"]["steps_detected"] >= 6
     assert "step_length" not in res["metrics"]  # no calibration -> absent, not estimated
     assert not keys(body) & REMOVED_KEYS

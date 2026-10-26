@@ -545,3 +545,14 @@ def test_event_timing_works_for_a_walker_who_never_crosses_the_frame():
     walk = measure_walk(on_treadmill(clip))
     assert walk.step_count >= 15
     assert walk.cadence == pytest.approx(truth.cadence, abs=2)
+
+
+def test_metrics_without_a_reference_check_are_marked_not_yet_validated():
+    """No knee-angle reference without OpenCap (Phase 8); calibrated distances are checked on the
+    synthetic walker only."""
+    clip, truth = synthetic_clip()
+    acc = analyse(clip, floor_calibration(truth)).to_dict()["accuracy"]
+    for name in ("peak_knee_flexion", "step_length", "walking_speed"):
+        assert acc[name]["status"] == "not_yet_validated", name
+        assert "not yet validated" in acc[name]["note"].lower()
+    assert analyse(synthetic_clip(fps=15)[0]).to_dict()["accuracy"] == {}  # rejected: no metrics
