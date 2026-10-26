@@ -8,6 +8,7 @@ import math
 
 import numpy as np
 import pytest
+from gaitcore.legs import correct_leg_flips
 from synthetic import LEG, M_PER_PX, knee_flexion_truth, synthetic_clip
 
 from gaitcore import quality
@@ -168,11 +169,6 @@ def flip_legs(clip, fraction, seed):
     return clip
 
 
-LEG_FLIPS_UNFIXED = pytest.mark.xfail(
-    strict=True, reason="per-foot heel strikes still follow the leg labels; label flips not handled yet"
-)
-
-
 @pytest.mark.parametrize("seed", [0, 1, 2, 3])
 def test_brief_left_right_leg_flips_never_give_a_wrong_cadence(seed):
     r = analyse(flip_legs(synthetic_clip(steps_per_min=110)[0], 0.10, seed))
@@ -192,15 +188,31 @@ def test_cadence_and_step_time_do_not_depend_on_the_left_right_labels():
         assert r.metrics["step_time"] == base.metrics["step_time"], fraction
 
 
-@pytest.mark.parametrize("seed", [pytest.param(s, marks=LEG_FLIPS_UNFIXED) for s in (0, 1, 2, 3)])
+@pytest.mark.parametrize("seed", [0, 1, 2, 3])
 def test_heel_strikes_are_found_on_the_right_foot_despite_leg_flips(seed):
     clip, truth = synthetic_clip()
-    walk, _ = walk_of(flip_legs(clip, 0.10, seed))
+    walk, _ = walk_of(correct_leg_flips(flip_legs(clip, 0.10, seed)))
     for side in "LR":
         det = np.array(walk.heel_strikes[side]) / clip.fps
         assert len(det) >= 4, side
         err = np.array([np.min(np.abs(np.array(truth.heel_strikes[side]) - d)) for d in det])
         assert (err <= 2 / clip.fps).all(), (side, err)
+
+
+@pytest.mark.parametrize(
+    "kw",
+    [
+        {},
+        {"steps_per_min": 90, "passes": 4},
+        {"steps_per_min": 125, "passes": 4},
+        {"noise_px": 2.0, "seed": 3},
+        {"yaw_deg": 15},
+    ],
+)
+def test_leg_labels_that_never_flipped_are_left_alone(kw):
+    clip = synthetic_clip(**kw)[0]
+    before = clip.landmarks.copy()
+    assert correct_leg_flips(clip).landmarks.equals(before)
 
 
 def test_step_and_stride_times():
