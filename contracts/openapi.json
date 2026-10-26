@@ -1,0 +1,1396 @@
+{
+ "components": {
+  "schemas": {
+   "AnalyzeResponse": {
+    "properties": {
+     "disclaimer": {
+      "title": "Disclaimer",
+      "type": "string"
+     },
+     "job_id": {
+      "title": "Job Id",
+      "type": "string"
+     },
+     "report_url": {
+      "title": "Report Url",
+      "type": "string"
+     },
+     "result": {
+      "$ref": "#/components/schemas/Result"
+     }
+    },
+    "required": [
+     "job_id",
+     "result",
+     "report_url",
+     "disclaimer"
+    ],
+    "title": "AnalyzeResponse",
+    "type": "object"
+   },
+   "Body_analyze_analyze_post": {
+    "properties": {
+     "calib_distance_m": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Calib Distance M"
+     },
+     "calib_x1": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Calib X1"
+     },
+     "calib_x2": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Calib X2"
+     },
+     "calib_y1": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Calib Y1"
+     },
+     "calib_y2": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Calib Y2"
+     },
+     "patient_name": {
+      "default": "Anonymous",
+      "title": "Patient Name",
+      "type": "string"
+     },
+     "test": {
+      "default": "walk",
+      "title": "Test",
+      "type": "string"
+     },
+     "video": {
+      "contentMediaType": "application/octet-stream",
+      "title": "Video",
+      "type": "string"
+     }
+    },
+    "required": [
+     "video"
+    ],
+    "title": "Body_analyze_analyze_post",
+    "type": "object"
+   },
+   "Body_submit_analysis_analyses_post": {
+    "properties": {
+     "calib_distance_m": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Calib Distance M"
+     },
+     "calib_x1": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Calib X1"
+     },
+     "calib_x2": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Calib X2"
+     },
+     "calib_y1": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Calib Y1"
+     },
+     "calib_y2": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Calib Y2"
+     },
+     "patient_name": {
+      "default": "Anonymous",
+      "title": "Patient Name",
+      "type": "string"
+     },
+     "test": {
+      "default": "walk",
+      "title": "Test",
+      "type": "string"
+     },
+     "video": {
+      "contentMediaType": "application/octet-stream",
+      "title": "Video",
+      "type": "string"
+     }
+    },
+    "required": [
+     "video"
+    ],
+    "title": "Body_submit_analysis_analyses_post",
+    "type": "object"
+   },
+   "ChangePasswordRequest": {
+    "properties": {
+     "current_password": {
+      "title": "Current Password",
+      "type": "string"
+     },
+     "new_password": {
+      "title": "New Password",
+      "type": "string"
+     }
+    },
+    "required": [
+     "current_password",
+     "new_password"
+    ],
+    "title": "ChangePasswordRequest",
+    "type": "object"
+   },
+   "HTTPValidationError": {
+    "properties": {
+     "detail": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationError"
+      },
+      "title": "Detail",
+      "type": "array"
+     }
+    },
+    "title": "HTTPValidationError",
+    "type": "object"
+   },
+   "JobQueued": {
+    "properties": {
+     "job_id": {
+      "title": "Job Id",
+      "type": "string"
+     },
+     "status": {
+      "title": "Status",
+      "type": "string"
+     },
+     "status_url": {
+      "title": "Status Url",
+      "type": "string"
+     }
+    },
+    "required": [
+     "job_id",
+     "status",
+     "status_url"
+    ],
+    "title": "JobQueued",
+    "type": "object"
+   },
+   "JobStatus": {
+    "description": "status: queued | running | done | rejected | failed.",
+    "properties": {
+     "analysis": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/AnalyzeResponse"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "error": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Error"
+     },
+     "job_id": {
+      "title": "Job Id",
+      "type": "string"
+     },
+     "rejection": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Rejection"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "status": {
+      "title": "Status",
+      "type": "string"
+     }
+    },
+    "required": [
+     "job_id",
+     "status",
+     "rejection",
+     "error",
+     "analysis"
+    ],
+    "title": "JobStatus",
+    "type": "object"
+   },
+   "JoinRequest": {
+    "properties": {
+     "code": {
+      "title": "Code",
+      "type": "string"
+     }
+    },
+    "required": [
+     "code"
+    ],
+    "title": "JoinRequest",
+    "type": "object"
+   },
+   "LoginRequest": {
+    "properties": {
+     "email": {
+      "format": "email",
+      "title": "Email",
+      "type": "string"
+     },
+     "password": {
+      "title": "Password",
+      "type": "string"
+     }
+    },
+    "required": [
+     "email",
+     "password"
+    ],
+    "title": "LoginRequest",
+    "type": "object"
+   },
+   "PatientRef": {
+    "properties": {
+     "email": {
+      "title": "Email",
+      "type": "string"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "email"
+    ],
+    "title": "PatientRef",
+    "type": "object"
+   },
+   "PatientSessions": {
+    "properties": {
+     "patient": {
+      "$ref": "#/components/schemas/PatientRef"
+     },
+     "sessions": {
+      "items": {
+       "$ref": "#/components/schemas/SessionOut"
+      },
+      "title": "Sessions",
+      "type": "array"
+     }
+    },
+    "required": [
+     "patient",
+     "sessions"
+    ],
+    "title": "PatientSessions",
+    "type": "object"
+   },
+   "PatientSummary": {
+    "properties": {
+     "email": {
+      "title": "Email",
+      "type": "string"
+     },
+     "latest_session_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Latest Session At"
+     },
+     "linked_since": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Linked Since"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "patient_id": {
+      "title": "Patient Id",
+      "type": "integer"
+     },
+     "session_count": {
+      "title": "Session Count",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "patient_id",
+     "name",
+     "email",
+     "session_count",
+     "latest_session_at",
+     "linked_since"
+    ],
+    "title": "PatientSummary",
+    "type": "object"
+   },
+   "RegisterRequest": {
+    "properties": {
+     "email": {
+      "format": "email",
+      "title": "Email",
+      "type": "string"
+     },
+     "full_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Full Name"
+     },
+     "password": {
+      "title": "Password",
+      "type": "string"
+     }
+    },
+    "required": [
+     "email",
+     "password"
+    ],
+    "title": "RegisterRequest",
+    "type": "object"
+   },
+   "Rejection": {
+    "properties": {
+     "code": {
+      "title": "Code",
+      "type": "string"
+     },
+     "message": {
+      "title": "Message",
+      "type": "string"
+     }
+    },
+    "required": [
+     "code",
+     "message"
+    ],
+    "title": "Rejection",
+    "type": "object"
+   },
+   "Result": {
+    "description": "gaitcore.result.AnalysisResult.to_dict() of an accepted analysis.",
+    "properties": {
+     "accuracy": {
+      "additionalProperties": true,
+      "default": {},
+      "title": "Accuracy",
+      "type": "object"
+     },
+     "metrics": {
+      "additionalProperties": true,
+      "title": "Metrics",
+      "type": "object"
+     },
+     "model": {
+      "additionalProperties": {
+       "type": "string"
+      },
+      "title": "Model",
+      "type": "object"
+     },
+     "notes": {
+      "default": [],
+      "items": {
+       "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+     },
+     "pass_variability": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pass Variability"
+     },
+     "passes": {
+      "default": [],
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "title": "Passes",
+      "type": "array"
+     },
+     "pipeline_version": {
+      "title": "Pipeline Version",
+      "type": "string"
+     },
+     "quality": {
+      "additionalProperties": true,
+      "title": "Quality",
+      "type": "object"
+     },
+     "status": {
+      "title": "Status",
+      "type": "string"
+     },
+     "test": {
+      "default": "walk",
+      "title": "Test",
+      "type": "string"
+     }
+    },
+    "required": [
+     "pipeline_version",
+     "model",
+     "status",
+     "metrics",
+     "quality"
+    ],
+    "title": "Result",
+    "type": "object"
+   },
+   "SessionDetail": {
+    "properties": {
+     "created_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created At"
+     },
+     "disclaimer": {
+      "title": "Disclaimer",
+      "type": "string"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "legacy": {
+      "title": "Legacy",
+      "type": "boolean"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "patient_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Patient Name"
+     },
+     "pipeline_version": {
+      "title": "Pipeline Version",
+      "type": "string"
+     },
+     "result": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Result"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "required": [
+     "id",
+     "patient_name",
+     "created_at",
+     "pipeline_version",
+     "legacy",
+     "result",
+     "note",
+     "disclaimer"
+    ],
+    "title": "SessionDetail",
+    "type": "object"
+   },
+   "SessionOut": {
+    "properties": {
+     "created_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created At"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "legacy": {
+      "title": "Legacy",
+      "type": "boolean"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "patient_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Patient Name"
+     },
+     "pipeline_version": {
+      "title": "Pipeline Version",
+      "type": "string"
+     },
+     "result": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Result"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "required": [
+     "id",
+     "patient_name",
+     "created_at",
+     "pipeline_version",
+     "legacy",
+     "result",
+     "note"
+    ],
+    "title": "SessionOut",
+    "type": "object"
+   },
+   "TokenResponse": {
+    "properties": {
+     "access_token": {
+      "title": "Access Token",
+      "type": "string"
+     },
+     "full_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Full Name"
+     },
+     "role": {
+      "title": "Role",
+      "type": "string"
+     },
+     "token_type": {
+      "default": "bearer",
+      "title": "Token Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "access_token",
+     "role"
+    ],
+    "title": "TokenResponse",
+    "type": "object"
+   },
+   "ValidationError": {
+    "properties": {
+     "ctx": {
+      "title": "Context",
+      "type": "object"
+     },
+     "input": {
+      "title": "Input"
+     },
+     "loc": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "integer"
+        }
+       ]
+      },
+      "title": "Location",
+      "type": "array"
+     },
+     "msg": {
+      "title": "Message",
+      "type": "string"
+     },
+     "type": {
+      "title": "Error Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "loc",
+     "msg",
+     "type"
+    ],
+    "title": "ValidationError",
+    "type": "object"
+   }
+  },
+  "securitySchemes": {
+   "OAuth2PasswordBearer": {
+    "flows": {
+     "password": {
+      "scopes": {},
+      "tokenUrl": "/auth/login"
+     }
+    },
+    "type": "oauth2"
+   }
+  }
+ },
+ "info": {
+  "title": "GaitScan API",
+  "version": "2.1.0"
+ },
+ "openapi": "3.1.0",
+ "paths": {
+  "/": {
+   "get": {
+    "operationId": "root__get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Root"
+   }
+  },
+  "/analyses": {
+   "post": {
+    "description": "Queue an analysis and return at once; poll the status_url (Plan V3 Phase 4). Checks that need\nno pose model (file type, test, calibration, length, frame rate) answer here, straight away.",
+    "operationId": "submit_analysis_analyses_post",
+    "requestBody": {
+     "content": {
+      "multipart/form-data": {
+       "schema": {
+        "$ref": "#/components/schemas/Body_submit_analysis_analyses_post"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "202": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobQueued"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Submit Analysis",
+    "tags": [
+     "analysis"
+    ]
+   }
+  },
+  "/analyses/{job_id}": {
+   "get": {
+    "operationId": "analysis_status_analyses__job_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "job_id",
+      "required": true,
+      "schema": {
+       "title": "Job Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobStatus"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Analysis Status",
+    "tags": [
+     "analysis"
+    ]
+   }
+  },
+  "/analyze": {
+   "post": {
+    "description": "Synchronous analysis (kept until every client uses POST /analyses).",
+    "operationId": "analyze_analyze_post",
+    "requestBody": {
+     "content": {
+      "multipart/form-data": {
+       "schema": {
+        "$ref": "#/components/schemas/Body_analyze_analyze_post"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/AnalyzeResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Analyze",
+    "tags": [
+     "analysis"
+    ]
+   }
+  },
+  "/auth/change-password": {
+   "post": {
+    "operationId": "change_password_auth_change_password_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ChangePasswordRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Change Password",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/auth/login": {
+   "post": {
+    "operationId": "login_auth_login_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/LoginRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TokenResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Login",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/auth/me": {
+   "get": {
+    "operationId": "get_me_auth_me_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Me",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/auth/register": {
+   "post": {
+    "operationId": "register_auth_register_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RegisterRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TokenResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Register",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/clinician/invite": {
+   "post": {
+    "operationId": "create_invite_clinician_invite_post",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Create Invite",
+    "tags": [
+     "clinician"
+    ]
+   }
+  },
+  "/clinician/patients": {
+   "get": {
+    "operationId": "get_patients_clinician_patients_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/PatientSummary"
+         },
+         "title": "Response Get Patients Clinician Patients Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Patients",
+    "tags": [
+     "clinician"
+    ]
+   }
+  },
+  "/clinician/patients/{patient_id}/sessions": {
+   "get": {
+    "operationId": "get_patient_sessions_clinician_patients__patient_id__sessions_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "patient_id",
+      "required": true,
+      "schema": {
+       "title": "Patient Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PatientSessions"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Patient Sessions",
+    "tags": [
+     "clinician"
+    ]
+   }
+  },
+  "/healthz": {
+   "get": {
+    "description": "Render health check: the process is up and the database answers.",
+    "operationId": "healthz_healthz_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Healthz"
+   }
+  },
+  "/patient/join": {
+   "post": {
+    "operationId": "join_clinician_patient_join_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/JoinRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Join Clinician",
+    "tags": [
+     "clinician"
+    ]
+   }
+  },
+  "/report/{job_id}": {
+   "get": {
+    "operationId": "get_report_report__job_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "job_id",
+      "required": true,
+      "schema": {
+       "title": "Job Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Report",
+    "tags": [
+     "sessions"
+    ]
+   }
+  },
+  "/sessions": {
+   "get": {
+    "operationId": "list_sessions_sessions_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/SessionOut"
+         },
+         "title": "Response List Sessions Sessions Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "List Sessions",
+    "tags": [
+     "sessions"
+    ]
+   }
+  },
+  "/sessions/{session_id}": {
+   "get": {
+    "operationId": "get_session_sessions__session_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "session_id",
+      "required": true,
+      "schema": {
+       "title": "Session Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SessionDetail"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Session",
+    "tags": [
+     "sessions"
+    ]
+   }
+  },
+  "/status": {
+   "get": {
+    "operationId": "status_status_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Status"
+   }
+  }
+ }
+}
