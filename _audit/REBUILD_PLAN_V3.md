@@ -1,9 +1,9 @@
 # GaitScan — Rebuild Plan V3 (checklist)
 
 Rules:
-- Every new MEASUREMENT passes the Phase 3 accuracy check (OpenCap public data, or synthetic where no public data exists); a failing measurement is not shipped.
+- Every new MEASUREMENT passes the Phase 3 accuracy check (LJMU, Topham et al. 2023, CC BY 4.0; synthetic where no public data exists); a failing measurement is not shipped. No OpenCap before Phase 8 (decided 2026-10-26).
 - No feature introduces a health claim or an unvalidated number.
-- Metrics: KEEP cadence, step time, sagittal knee angle · CONDITIONAL step length + speed (floor calibration only), hip sagittal excursion (must pass Phase 3), stride time (withheld 2026-10-24: brief L/R flips) · REMOVED risk score, frontal-plane, ankle, L/R angle symmetry, uncalibrated distance/speed, activity classification, modes, exercises, LLM.
+- Metrics: KEEP cadence, step time, sagittal knee angle (shown as "not yet validated" until Phase 8) · CONDITIONAL step length + speed (floor calibration only), hip sagittal excursion (must pass Phase 3), stride time (withheld 2026-10-24: brief L/R flips) · REMOVED risk score, frontal-plane, ankle, L/R angle symmetry, uncalibrated distance/speed, activity classification, modes, exercises, LLM.
 - Priority: [M] Must, [S] Should, [C] Could. Cut [C] first, then [S]; never cut security, correctness or the design foundation.
 - Docs only in Phase 7; during development only this file, REBUILD_PROGRESS.md, commit messages and brief code comments.
 
@@ -13,14 +13,15 @@ Rules:
 
 ## Phase 3 — Honest results + new measurements
 - [ ] [M] Confirm the pipeline supports multiple passes, a second test type, and a user-supplied treadmill speed; refactor if not
-- [ ] [M] Accuracy check vs public OpenCap lab data via reproducible `make evaluate` → machine-readable JSON/CSV
+- [ ] [M] Accuracy check on LJMU (cadence, step time; walking speed from the known 8 m path) via reproducible `make evaluate` → machine-readable JSON/CSV
+- [ ] [M] Peak knee flexion marked "not yet validated" in API, PDF and UI (no knee reference without OpenCap)
 - [ ] [M] Error ranges from that check shown in the app next to each metric
 - [ ] [M] Published reference norms (cited in code comments) only where they exist
 - [ ] [M] Results page and PDF show units, error ranges, quality indicator
 - [ ] [M] Multiple passes per session: per-pass results, mean, between-pass variability
 - [ ] [S] Floor calibration UI (two tapped markers, known distance) → step length, walking speed
-- [ ] [S] Five-times sit-to-stand (timing + repetition count), checked against OpenCap sit-to-stand data
-- [ ] [C] 30-second chair stand on the same detector
+- [ ] [S] Five-times sit-to-stand (timing + repetition count), checked against OpenCap sit-to-stand data (blocked: no OpenCap until Phase 8)
+- [ ] [C] 30-second chair stand on the same detector (blocked with sit-to-stand)
 - [ ] [C] Step-timing breakdown (stance/swing %, step-time asymmetry), only if the accuracy check supports it
 - [ ] [M] Per-foot heel strikes robust to brief L/R flips (xfail tests in test_measurement.py), then re-show stride time
 - [ ] [M] Re-validate irregular_steps (label-free step-time CV > 0.15, chosen on held-out LJMU) on phone clips, incl. uneven gait
@@ -103,3 +104,10 @@ Rules:
 - [ ] Changelog of all phases
 - [ ] Final findings table (F01–F44)
 - [ ] Case-study write-up
+
+## Phase 8 — OpenCap knee-angle validation (optional)
+- [ ] Verify a side-on camera exists in the OpenCap data
+- [ ] Validate peak knee flexion (and hip sagittal excursion) against its marker data
+- [ ] Extend the reliability model to knee angles
+- [ ] Update the model card
+- [ ] Sit-to-stand / 30-second chair stand against OpenCap sit-to-stand data
