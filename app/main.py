@@ -1,11 +1,14 @@
 import logging
 import os
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
+from app.api.analysis import recover_unfinished_jobs
 from app.api.analysis import router as analysis_router
 from app.api.auth import router as auth_router
 from app.api.clinician import router as clinician_router
@@ -18,9 +21,17 @@ from app.db import database
 configure_logging()
 init_sentry(settings.sentry_dsn, settings.env)
 
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    recover_unfinished_jobs()
+    yield
+
+
 # Interactive docs and the OpenAPI schema are only exposed in dev.
 _docs = settings.docs_enabled
 app = FastAPI(
+    lifespan=lifespan,
     title="GaitScan API",
     version="2.1.0",
     docs_url="/docs" if _docs else None,

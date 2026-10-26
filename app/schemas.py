@@ -27,6 +27,27 @@ class AnalyzeResponse(BaseModel):
     disclaimer: str
 
 
+class JobQueued(BaseModel):
+    job_id: str
+    status: str
+    status_url: str
+
+
+class Rejection(BaseModel):
+    code: str
+    message: str
+
+
+class JobStatus(BaseModel):
+    """status: queued | running | done | rejected | failed."""
+
+    job_id: str
+    status: str
+    rejection: Rejection | None
+    error: str | None
+    analysis: AnalyzeResponse | None
+
+
 class SessionOut(BaseModel):
     id: str
     patient_name: str | None

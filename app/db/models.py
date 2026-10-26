@@ -46,6 +46,24 @@ class Session(Base):
         return self.pipeline_version == LEGACY
 
 
+class AnalysisJob(Base):
+    """One uploaded video being analysed in the background (Plan V3 Phase 4). status: queued |
+    running | done (session_id set) | rejected (error_code/message: the quality gate's reason) |
+    failed (error_message: user-facing, with a log reference). Holds no measurements itself."""
+
+    __tablename__ = "analysis_jobs"
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"), nullable=True)
+    status: Mapped[str] = mapped_column(String, nullable=False)
+    test: Mapped[str] = mapped_column(String, nullable=False, server_default="walk")
+    patient_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    session_id: Mapped[str | None] = mapped_column(String, ForeignKey("sessions.id"), nullable=True)
+    error_code: Mapped[str | None] = mapped_column(String, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(String, nullable=True)
+    created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
 class SessionArchive(Base):
     """Pre-V3 values that Plan V3 removed from the product (the full list is in migration 0003),
     kept verbatim for export and deletion; never shown as measurements."""
