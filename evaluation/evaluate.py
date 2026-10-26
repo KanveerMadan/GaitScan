@@ -32,7 +32,6 @@ import csv
 import json
 import math
 import os
-import subprocess
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
@@ -40,6 +39,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from gaitcore import __version__ as gaitcore_version
 from gaitcore.clip import Clip
 from gaitcore.gait import leg_length
 from gaitcore.pipeline import analyse
@@ -205,15 +205,6 @@ def summarise(rows: list[dict[str, Any]]) -> dict[str, Any]:
     return {"all": block(rows), **{role: block([r for r in rows if r["role"] == role]) for role in ROLES}}
 
 
-def git_commit() -> str:
-    try:
-        return subprocess.run(
-            ["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True
-        ).stdout.strip()
-    except (OSError, subprocess.CalledProcessError):
-        return "unknown"
-
-
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument(
@@ -246,7 +237,7 @@ def main() -> None:
         "reference": "heel strikes: AI-annotated + cross-checked (visual), or RTMPose-x footprints; see evaluate.py",
         "notes": NOTES,
         "generated": datetime.now(UTC).strftime("%Y-%m-%d"),
-        "git_commit": git_commit(),
+        "pipeline_version": gaitcore_version,
         "model": model_info(),
         **summarise(rows),
     }

@@ -45,6 +45,10 @@ dist/
 *.pkl
 *.joblib
 *.csv
+# Exception: our own reference strike frames and per-clip results for make evaluate (no video,
+# landmarks or personal data; LJMU, Topham et al. 2023, CC BY 4.0).
+!evaluation/ljmu_reference.csv
+!evaluation/results/*.csv
 *.zip
 *.tar.gz
 
