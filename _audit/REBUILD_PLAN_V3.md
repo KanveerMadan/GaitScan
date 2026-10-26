@@ -41,8 +41,8 @@ Rules:
 - [x] [M] Tailwind + shadcn/ui (Radix)
 - [x] [M] App shell: navigation and layout
 - [x] [M] Migrate existing screens into the shell
-- [x] [M] Use design-taste-frontend, frontend-design-toolkit, web-design-guidelines; no generic template look
-- [x] [M] All Phase 4–5 screens built with this system
+- [x] [M] Use design-taste-frontend, frontend-design-toolkit, web-design-guidelines; no generic template look (design-taste-frontend and web-design-guidelines used; frontend-design-toolkit not yet)
+- [ ] [M] All Phase 4–5 screens built with this system (ongoing rule)
 
 ## Phase 4 — Usability + app features
 - [ ] [M] Non-blocking analysis: FastAPI background task + status endpoint + polling (no Redis/Celery)
