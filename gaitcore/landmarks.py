@@ -1,10 +1,11 @@
 import logging
-from collections.abc import Sequence
+from collections.abc import Iterable, Iterator, Sequence
 from typing import Protocol
 
 import cv2
 import mediapipe as mp
 import pandas as pd
+from cv2.typing import MatLike
 from mediapipe.tasks.python import BaseOptions
 from mediapipe.tasks.python.vision import PoseLandmarker, PoseLandmarkerOptions, RunningMode
 
@@ -67,16 +68,31 @@ def extract_clip(video_path: str) -> Clip:
     if fps <= 0:
         cap.release()
         raise VideoReadError(f"No frame rate in: {video_path}")
+
+    def frames() -> Iterator[MatLike]:
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                return
+            yield frame
+
+    try:
+        clip = clip_from_frames(frames(), fps)
+    finally:
+        cap.release()
+    if clip is None:
+        raise VideoReadError(f"No frames decoded from: {video_path}")
+    return clip
+
+
+def clip_from_frames(frames: Iterable[MatLike], fps: float) -> Clip | None:
+    """extract_clip on BGR frames already decoded (evaluation/degrade.py feeds altered ones)."""
     rows: list[dict[str, float]] = []
     width = height = 0
     options = _options()
     options.num_poses = 2
     with PoseLandmarker.create_from_options(options) as landmarker:
-        idx = 0
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
+        for idx, frame in enumerate(frames):
             height, width = frame.shape[:2]
             scale = MAX_SIDE / max(width, height)
             if scale < 1:  # same aspect ratio, so normalised landmarks still map onto the original frame
@@ -92,10 +108,8 @@ def extract_clip(video_path: str) -> Clip:
                     row[f"lm{i}_x"], row[f"lm{i}_y"] = lm.x, lm.y
                     row[f"lm{i}_z"], row[f"lm{i}_vis"] = lm.z, lm.visibility
             rows.append(row)
-            idx += 1
-    cap.release()
     if not rows:
-        raise VideoReadError(f"No frames decoded from: {video_path}")
+        return None
     cols = [f"lm{i}_{k}" for i in range(33) for k in ("x", "y", "z", "vis")] + ["n_poses"]
     df = pd.DataFrame(rows).reindex(columns=cols)
     log.info(f"Landmarks: {int((df['n_poses'] > 0).sum())}/{len(df)} frames with a pose")
