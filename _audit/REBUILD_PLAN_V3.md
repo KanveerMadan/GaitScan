@@ -29,10 +29,10 @@ Rules:
 - [ ] [S] gait.py:103 heel visibility: heel separation doesn't require visible heels; check on phone clips (blocked: needs real phone clips)
 - [x] [S] result.py:56 brief flips: labelled step CV <= 0.2 misses 5-10% brief flips (per-leg knee flexion) (stride check hides all 10% cases; at 5%, 2/8 synthetic seeds still show a knee 4-6 deg low)
 
-## Phase 3.2 — Reliability engine
-- [ ] [M] Degradation curves on LJMU (resolution, fps, compression, low light, camera yaw/roll): how each gait metric's error grows
-- [ ] [M] Learned reliability model: per-clip expected error / reject (gradient boosting or small MLP, conformal intervals), leave-participant-out evaluation
-- [ ] [M] Ship it in the app: learned ± error next to each metric, learned rejections with reasons
+## Phase 3.2 — Reliability engine: done (learned model evaluated, not shipped)
+- [x] [M] Degradation curves on LJMU (resolution, fps, compression, low light, camera yaw/roll): how each gait metric's error grows (evaluation/results/degradation_*; yaw = the simultaneous 45 deg clips)
+- [x] [M] Learned reliability model: per-clip expected error / reject (gradient boosting or small MLP, conformal intervals), leave-participant-out evaluation (negative result: Spearman 0.11 with real error, rejecting the worst-predicted 20% doesn't reduce large errors; evaluation/results/reliability.json)
+- [ ] [M] Ship it in the app: learned ± error next to each metric, learned rejections with reasons (not shipped: the model doesn't beat a constant range; the LJMU range stays)
 - [ ] [S] arXiv-style write-up (deferred to Phase 7)
 
 ## Phase 3.5 — Design foundation (before any Phase 4 UI): done (frontend #12)

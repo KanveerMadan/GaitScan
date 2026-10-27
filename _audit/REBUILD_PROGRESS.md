@@ -19,3 +19,5 @@ Plan: [REBUILD_PLAN_V3.md](REBUILD_PLAN_V3.md). Full history of Phases 0–2 is 
   - Stride time stays withheld (labels follow position: 37/110 legs read one step as a stride); per-leg values need strides two steps long
   - Blocked: walking-speed reference (no 8 m start/end in clips), norms (no age/sex), sit-to-stand (OpenCap, Phase 8), irregular_steps + heel visibility (phone clips)
 - Phase 3.5 (frontend #12, stacked on #11): Tailwind v4 + owned shadcn/ui, tokens (light/dark, one teal accent), app shell, all screens migrated, App.jsx split
+- Phase 3.2 (2026-10-27): degradation curves on LJMU (54 participants, 896 runs): the gate's acceptance falls steeply as quality drops; some accepted degraded clips reach 9 steps/min error (published range 4.7)
+  - Learned per-clip error model (GBM + conformal, leave-participant-out): coverage OK but no discrimination (Spearman 0.11); not shipped

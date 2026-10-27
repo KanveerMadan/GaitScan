@@ -12,6 +12,12 @@ seen in training or calibration. Reported per model: coverage, mean interval wid
 a constant interval (the calibration quantile of |error|), which is what the app shows today.
 
 Run: uv run --group evaluate python -m evaluation.reliability  (writes results/reliability.json)
+
+Result (2026-10-27, 527 accepted runs, 54 participants): not shipped. The intervals reach their
+coverage, but the predicted error barely ranks clips by real error (Spearman ~0.1), and rejecting the
+worst-predicted 10-20% leaves the share of large errors where random rejection would. Within what the
+gate accepts, the remaining error is close to the reference's own noise and not predictable from these
+quality measures.
 """
 
 import argparse
@@ -114,6 +120,33 @@ def evaluate_model(
     }
 
 
+def discrimination(
+    x: npt.NDArray[np.float64], err: npt.NDArray[np.float64], groups: npt.NDArray[Any], eps: float
+) -> dict[str, Any]:
+    """Does the predicted error rank clips by their real error? Leave-participant-out predictions:
+    Spearman correlation with |error|, and what rejecting the worst-predicted share does to the share
+    of errors beyond `limit` compared with rejecting the same share at random."""
+    from scipy.stats import spearmanr
+
+    pred = np.zeros(len(err))
+    for train, test in GroupKFold(n_splits=5).split(x, err, groups):
+        m = scale_model("gbm").fit(x[train], np.log(np.abs(err[train]) + eps))
+        pred[test] = np.exp(m.predict(x[test]))
+    a = np.abs(err)
+    limit = float(np.quantile(a, 0.95))
+    order = np.argsort(-pred)
+    curve = []
+    for frac in (0.0, 0.1, 0.2):
+        keep = order[int(frac * len(a)) :]
+        curve.append({"rejected": frac, "share_beyond_limit": round(float((a[keep] > limit).mean()), 3)})
+    return {
+        "spearman": round(float(spearmanr(pred, a).statistic), 3),
+        "limit_p95_abs": round(limit, 2),
+        "share_beyond_limit_if_random": round(float((a > limit).mean()), 3),
+        "rejecting_worst_predicted": curve,
+    }
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--runs", default=os.path.join(HERE, "results", "degradation_runs.csv"))
@@ -132,6 +165,7 @@ def main() -> None:
     for metric in METRICS:
         err = np.array([float(r[metric]) for r in rows])
         out[metric] = {kind: evaluate_model(x, err, groups, kind, EPS[metric]) for kind in ("gbm", "ridge")}
+        out[metric]["discrimination"] = discrimination(x, err, groups, EPS[metric])
         print(metric, out[metric])
     with open(args.out, "w") as f:
         json.dump(out, f, indent=1)
