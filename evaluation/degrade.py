@@ -17,7 +17,8 @@ Degradations (level 0 = original):
 Outputs (--out): degradation_runs.csv (one row per clip x degradation, with the quality features
 the reliability model uses) and degradation_summary.json (per degradation and level: acceptance and
 cadence / step-time error statistics). Runs already in degradation_runs.csv are skipped, so an
-interrupted run can resume.
+interrupted run can resume. Several workers (e.g. one per degradation, in Docker: MediaPipe needs the
+Linux image on macOS) write separate files; --merge combines them.
 """
 
 import argparse
@@ -173,6 +174,24 @@ def summarise(rows: list[dict[str, Any]]) -> dict[str, Any]:
     return out
 
 
+def merge(paths: list[str]) -> list[dict[str, Any]]:
+    """Runs from several workers (each a degradation_runs.csv), earliest file first: one row per
+    (clip, kind, level), and for each degradation one clip per participant (the earliest file's)."""
+    rows: list[dict[str, Any]] = []
+    seen: set[tuple[str, str, float]] = set()
+    clip_for: dict[tuple[str, str], str] = {}
+    for path in paths:
+        with open(path) as f:
+            for r in csv.DictReader(f):
+                key = (r["clip"], r["kind"], float(r["level"]))
+                owner = clip_for.setdefault((r["participant"], r["kind"]), r["clip"])
+                if key in seen or owner != r["clip"]:
+                    continue
+                seen.add(key)
+                rows.append(r)
+    return rows
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--landmarks", nargs="+", required=True)
@@ -180,7 +199,19 @@ def main() -> None:
     ap.add_argument("--out", default=os.path.join(HERE, "results"))
     ap.add_argument("--kinds", nargs="+", default=list(LEVELS))
     ap.add_argument("--per-participant", type=int, default=1, help="clips per participant (first by name)")
+    ap.add_argument("--merge", nargs="+", help="merge these runs files (earliest first) into --out instead")
     args = ap.parse_args()
+    if args.merge:
+        rows = merge(args.merge)
+        os.makedirs(args.out, exist_ok=True)
+        cols = list(dict.fromkeys(k for r in rows for k in r))
+        with open(os.path.join(args.out, "degradation_runs.csv"), "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=cols)
+            w.writeheader()
+            w.writerows(rows)
+        with open(os.path.join(args.out, "degradation_summary.json"), "w") as f:
+            json.dump(summarise(rows), f, indent=1)
+        return
     os.makedirs(args.out, exist_ok=True)
     path = os.path.join(args.out, "degradation_runs.csv")
     done: list[dict[str, Any]] = list(csv.DictReader(open(path))) if os.path.exists(path) else []
