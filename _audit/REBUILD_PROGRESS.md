@@ -21,3 +21,5 @@ Plan: [REBUILD_PLAN_V3.md](REBUILD_PLAN_V3.md). Full history of Phases 0–2 is 
 - Phase 3.5 (frontend #12, stacked on #11): Tailwind v4 + owned shadcn/ui, tokens (light/dark, one teal accent), app shell, all screens migrated, App.jsx split
 - Phase 3.2 (2026-10-27): degradation curves on LJMU (54 participants, 896 runs): the gate's acceptance falls steeply as quality drops; some accepted degraded clips reach 9 steps/min error (published range 4.7)
   - Learned per-clip error model (GBM + conformal, leave-participant-out): coverage OK but no discrimination (Spearman 0.11); not shipped
+- Phase 4 (backend #16, frontend #13; stacked): background analysis + polling, typed client from a drift-checked contract, router, dashboard, notes/tags, comparison vs LJMU repeatability (MDC95 4.4 steps/min), knee curves, live framing check, onboarding, demo, PWA manifest, Playwright e2e, Locust
+  - Blocked: in-browser recording (frame timing on real phones); cut: goals, visual explanations; normative knee band and ghost replay need decisions/data

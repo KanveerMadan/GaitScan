@@ -59,7 +59,7 @@ Rules:
 - [ ] [S] Ghost replay: today's walk overlaid on a past session as skeletons, aligned by gait cycle (DTW), differences highlighted (needs per-frame landmarks stored: a privacy decision for the owner)
 - [x] [S] Installable PWA (manifest; no service worker on purpose)
 - [ ] [S] Goals with progress tracking (cut for time)
-- [ ] [S] k6 or Locust load test (capacity in the terminal summary)
+- [x] [S] k6 or Locust load test (capacity in the terminal summary) (loadtest/: local 150 users 117 req/s p95 55 ms, collapse by 300 (DB pool < threadpool); analysis ~1 s per s of video)
 - [ ] [C] "Analysis done" notification
 - [ ] [C] Profile settings: height, units, language, dark mode
 - [ ] [C] Timeline search/filters
