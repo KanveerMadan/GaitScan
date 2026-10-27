@@ -1,0 +1,116 @@
+/Users/kanveermadan/Desktop/gaitscan/.venv/lib/python3.11/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+{"method": "POST", "path": "/auth/register", "status": 409, "duration_ms": 1.1, "event": "request", "request_id": "d56e15f1b7cb4795869783d985e97511", "level": "info", "timestamp": "2026-10-27T08:47:32.502924Z"}
+{"event": "HTTP Request: POST http://testserver/auth/register \"HTTP/1.1 409 Conflict\"", "level": "info", "timestamp": "2026-10-27T08:47:32.503193Z"}
+{"method": "POST", "path": "/auth/register", "status": 201, "duration_ms": 212.2, "event": "request", "request_id": "79e4273d8d0740829e22f05fd0b770b2", "level": "info", "timestamp": "2026-10-27T08:47:32.715911Z"}
+{"event": "HTTP Request: POST http://testserver/auth/register \"HTTP/1.1 201 Created\"", "level": "info", "timestamp": "2026-10-27T08:47:32.716377Z"}
+{"method": "POST", "path": "/analyze", "status": 403, "duration_ms": 8.1, "event": "request", "request_id": "a1a0275472a9466092b6966c692ae09c", "level": "info", "timestamp": "2026-10-27T08:47:32.725009Z"}
+{"event": "HTTP Request: POST http://testserver/analyze \"HTTP/1.1 403 Forbidden\"", "level": "info", "timestamp": "2026-10-27T08:47:32.725349Z"}
+{"method": "GET", "path": "/sessions/a86e9d96-a8ef-4827-9065-eb00ea1ad486", "status": 401, "duration_ms": 2.2, "event": "request", "request_id": "fb4af83b0b454b4bb382342459b48947", "level": "info", "timestamp": "2026-10-27T08:47:32.758560Z"}
+{"event": "HTTP Request: GET http://testserver/sessions/a86e9d96-a8ef-4827-9065-eb00ea1ad486 \"HTTP/1.1 401 Unauthorized\"", "level": "info", "timestamp": "2026-10-27T08:47:32.758867Z"}
+{"method": "GET", "path": "/report/a86e9d96-a8ef-4827-9065-eb00ea1ad486", "status": 401, "duration_ms": 0.4, "event": "request", "request_id": "6a55dd410e7a477ea74dd0bbfd3b7e4c", "level": "info", "timestamp": "2026-10-27T08:47:32.759550Z"}
+{"event": "HTTP Request: GET http://testserver/report/a86e9d96-a8ef-4827-9065-eb00ea1ad486 \"HTTP/1.1 401 Unauthorized\"", "level": "info", "timestamp": "2026-10-27T08:47:32.759778Z"}
+/Users/kanveermadan/Desktop/gaitscan/.venv/lib/python3.11/site-packages/jwt/api_jwt.py:149: InsecureKeyLengthWarning: The HMAC key is 28 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  return self._jws.encode(
+{"method": "GET", "path": "/auth/me", "status": 401, "duration_ms": 1.2, "event": "request", "request_id": "c35437a1a59e423ba52f10933c5ab6cd", "level": "info", "timestamp": "2026-10-27T08:47:32.794799Z"}
+{"event": "HTTP Request: GET http://testserver/auth/me \"HTTP/1.1 401 Unauthorized\"", "level": "info", "timestamp": "2026-10-27T08:47:32.795173Z"}
+{"method": "GET", "path": "/sessions", "status": 401, "duration_ms": 0.7, "event": "request", "request_id": "54f8f116a07f4be2a4a483b61ea48838", "level": "info", "timestamp": "2026-10-27T08:47:32.796108Z"}
+{"event": "HTTP Request: GET http://testserver/sessions \"HTTP/1.1 401 Unauthorized\"", "level": "info", "timestamp": "2026-10-27T08:47:32.796321Z"}
+{"method": "POST", "path": "/auth/register", "status": 201, "duration_ms": 210.3, "event": "request", "request_id": "7157f46a803f47edbf72f1fc8ad252c9", "level": "info", "timestamp": "2026-10-27T08:47:33.007089Z"}
+{"event": "HTTP Request: POST http://testserver/auth/register \"HTTP/1.1 201 Created\"", "level": "info", "timestamp": "2026-10-27T08:47:33.007582Z"}
+{"method": "POST", "path": "/auth/login", "status": 200, "duration_ms": 210.4, "event": "request", "request_id": "84c11e07b8c54d70b3e51fe783fa72b6", "level": "info", "timestamp": "2026-10-27T08:47:33.219652Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 200 OK\"", "level": "info", "timestamp": "2026-10-27T08:47:33.220092Z"}
+{"method": "POST", "path": "/clinician/invite", "status": 200, "duration_ms": 4.2, "event": "request", "request_id": "803c95a1fd264134b8eb8fe15bdbce10", "level": "info", "timestamp": "2026-10-27T08:47:33.224626Z"}
+{"event": "HTTP Request: POST http://testserver/clinician/invite \"HTTP/1.1 200 OK\"", "level": "info", "timestamp": "2026-10-27T08:47:33.224969Z"}
+{"method": "POST", "path": "/patient/join", "status": 200, "duration_ms": 2.9, "event": "request", "request_id": "4301fb48a35840178896bce27098bddd", "level": "info", "timestamp": "2026-10-27T08:47:33.228180Z"}
+{"event": "HTTP Request: POST http://testserver/patient/join \"HTTP/1.1 200 OK\"", "level": "info", "timestamp": "2026-10-27T08:47:33.228473Z"}
+{"method": "GET", "path": "/debug/links", "status": 404, "duration_ms": 3.0, "event": "request", "request_id": "b26141a37bb7426c94e02d2b4bdd10da", "level": "info", "timestamp": "2026-10-27T08:47:33.231678Z"}
+{"event": "HTTP Request: GET http://testserver/debug/links \"HTTP/1.1 404 Not Found\"", "level": "info", "timestamp": "2026-10-27T08:47:33.231879Z"}
+{"method": "POST", "path": "/analyze", "status": 403, "duration_ms": 1.3, "event": "request", "request_id": "5b1c99134e284e33a36e8569d5b55266", "level": "info", "timestamp": "2026-10-27T08:47:33.233540Z"}
+{"event": "HTTP Request: POST http://testserver/analyze \"HTTP/1.1 403 Forbidden\"", "level": "info", "timestamp": "2026-10-27T08:47:33.233758Z"}
+{"method": "POST", "path": "/analyze", "status": 403, "duration_ms": 1.6, "event": "request", "request_id": "7f8c1860ccee4becac83226c8baada6c", "level": "info", "timestamp": "2026-10-27T08:47:33.235778Z"}
+{"event": "HTTP Request: POST http://testserver/analyze \"HTTP/1.1 403 Forbidden\"", "level": "info", "timestamp": "2026-10-27T08:47:33.236023Z"}
+{"method": "GET", "path": "/status", "status": 200, "duration_ms": 0.6, "event": "request", "request_id": "7f8a0ca4f4b148158142f29e83ac9181", "level": "info", "timestamp": "2026-10-27T08:47:33.236862Z"}
+{"event": "HTTP Request: GET http://testserver/status \"HTTP/1.1 200 OK\"", "level": "info", "timestamp": "2026-10-27T08:47:33.237079Z"}
+{"method": "GET", "path": "/report/a86e9d96-a8ef-4827-9065-eb00ea1ad486", "status": 200, "duration_ms": 6.6, "event": "request", "request_id": "8e7a3f697f064cafa0462c1530e4c40d", "level": "info", "timestamp": "2026-10-27T08:47:33.243975Z"}
+{"event": "HTTP Request: GET http://testserver/report/a86e9d96-a8ef-4827-9065-eb00ea1ad486 \"HTTP/1.1 200 OK\"", "level": "info", "timestamp": "2026-10-27T08:47:33.244356Z"}
+{"method": "POST", "path": "/auth/login", "status": 401, "duration_ms": 213.9, "event": "request", "request_id": "eff38511fd814eb6bfa82d86c93384e1", "level": "info", "timestamp": "2026-10-27T08:47:33.506559Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 401 Unauthorized\"", "level": "info", "timestamp": "2026-10-27T08:47:33.506903Z"}
+{"method": "POST", "path": "/auth/login", "status": 401, "duration_ms": 210.4, "event": "request", "request_id": "eb648cc025a74d35bd2ec77c45037c8d", "level": "info", "timestamp": "2026-10-27T08:47:33.717858Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 401 Unauthorized\"", "level": "info", "timestamp": "2026-10-27T08:47:33.718180Z"}
+{"method": "POST", "path": "/auth/login", "status": 401, "duration_ms": 207.2, "event": "request", "request_id": "3de42a0fcd854376bb8384ae56306f42", "level": "info", "timestamp": "2026-10-27T08:47:33.925866Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 401 Unauthorized\"", "level": "info", "timestamp": "2026-10-27T08:47:33.926154Z"}
+{"method": "POST", "path": "/auth/login", "status": 401, "duration_ms": 209.3, "event": "request", "request_id": "3771c11213de4e17bd0d3291c7b3adb5", "level": "info", "timestamp": "2026-10-27T08:47:34.135884Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 401 Unauthorized\"", "level": "info", "timestamp": "2026-10-27T08:47:34.136177Z"}
+{"method": "POST", "path": "/auth/login", "status": 401, "duration_ms": 210.1, "event": "request", "request_id": "bff2990f5b7043e7a03bf610e0cf5989", "level": "info", "timestamp": "2026-10-27T08:47:34.346693Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 401 Unauthorized\"", "level": "info", "timestamp": "2026-10-27T08:47:34.346987Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.7, "event": "request", "request_id": "b7d88405265646f89312a9138b3e0598", "level": "info", "timestamp": "2026-10-27T08:47:34.347954Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.348170Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.6, "event": "request", "request_id": "1f8f1c74a6bf4984a4d77ed6862f77c3", "level": "info", "timestamp": "2026-10-27T08:47:34.348946Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.349143Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.7, "event": "request", "request_id": "c88c395908844b229ffcfab820aed142", "level": "info", "timestamp": "2026-10-27T08:47:34.350003Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.350197Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.5, "event": "request", "request_id": "d0c60f80ea004b5e9b9a351e72e85ecb", "level": "info", "timestamp": "2026-10-27T08:47:34.350917Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.351111Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.6, "event": "request", "request_id": "0c369996eb75450ba650931c2e50658d", "level": "info", "timestamp": "2026-10-27T08:47:34.351867Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.352059Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.6, "event": "request", "request_id": "b5d3f6d3ab0e4eb6ac1b317c83b112cf", "level": "info", "timestamp": "2026-10-27T08:47:34.352882Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.353075Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.5, "event": "request", "request_id": "188dbaeb09d442e99287008556c652be", "level": "info", "timestamp": "2026-10-27T08:47:34.353779Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.353965Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.5, "event": "request", "request_id": "c4aa99cb8e6e485e8043513b65046df7", "level": "info", "timestamp": "2026-10-27T08:47:34.354655Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.354840Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.6, "event": "request", "request_id": "b62fc06aecb54d2d8ac34d8338110caf", "level": "info", "timestamp": "2026-10-27T08:47:34.355600Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.355784Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.5, "event": "request", "request_id": "1eb534a5522749099157ae0aaa0a321c", "level": "info", "timestamp": "2026-10-27T08:47:34.356448Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.356625Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.5, "event": "request", "request_id": "503d5941b08b4ac89845a22d68603cfb", "level": "info", "timestamp": "2026-10-27T08:47:34.357307Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.357487Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 1.3, "event": "request", "request_id": "e3079b455e8240bdacaa4ad55ac9443e", "level": "info", "timestamp": "2026-10-27T08:47:34.358986Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.359189Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.5, "event": "request", "request_id": "b5146f31d712479f848faea1172fe382", "level": "info", "timestamp": "2026-10-27T08:47:34.359856Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.360030Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.5, "event": "request", "request_id": "eb8bf0c37f374094ad6acef1feb8dc1a", "level": "info", "timestamp": "2026-10-27T08:47:34.360685Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.360858Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.6, "event": "request", "request_id": "3f7db185154447898492626c10a637bd", "level": "info", "timestamp": "2026-10-27T08:47:34.361589Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.361779Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.5, "event": "request", "request_id": "74edea30194b40b88d230974eb5418d3", "level": "info", "timestamp": "2026-10-27T08:47:34.362502Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.362712Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.5, "event": "request", "request_id": "83241c69acfa42a0b3c1f6e7124e5adc", "level": "info", "timestamp": "2026-10-27T08:47:34.363471Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.363677Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.6, "event": "request", "request_id": "9ae832455f8e4e1e89014bc86bbcdeb8", "level": "info", "timestamp": "2026-10-27T08:47:34.364469Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.364650Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.6, "event": "request", "request_id": "f8071cb24e984511b27265656b446e3a", "level": "info", "timestamp": "2026-10-27T08:47:34.365403Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.365603Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.5, "event": "request", "request_id": "bd8cc35562ee44c4b6038a5140f4a646", "level": "info", "timestamp": "2026-10-27T08:47:34.366328Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.366525Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.6, "event": "request", "request_id": "2b44cbe6e6824042b9cd7c91dfc5c1be", "level": "info", "timestamp": "2026-10-27T08:47:34.367371Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.367570Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.5, "event": "request", "request_id": "260e590399124b43a89b82941637c074", "level": "info", "timestamp": "2026-10-27T08:47:34.368268Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.368460Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.5, "event": "request", "request_id": "9c17f684dd01438abe727f3f84cfd02f", "level": "info", "timestamp": "2026-10-27T08:47:34.369159Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.369373Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.6, "event": "request", "request_id": "a2c406671ec94777933436dbfb893f52", "level": "info", "timestamp": "2026-10-27T08:47:34.370189Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.370383Z"}
+{"method": "POST", "path": "/auth/login", "status": 429, "duration_ms": 0.5, "event": "request", "request_id": "1ddf659fc5cd4cf78db22eb9f358ec81", "level": "info", "timestamp": "2026-10-27T08:47:34.371064Z"}
+{"event": "HTTP Request: POST http://testserver/auth/login \"HTTP/1.1 429 Too Many Requests\"", "level": "info", "timestamp": "2026-10-27T08:47:34.371244Z"}
+PASS  | F12 1-character password accepted at registration | 422
+PASS  | F03 register_self_assign_clinician | 201 role=patient
+PASS  | F04 plaintext_password_logged | ['{"method": "POST", "path": "/auth/register", "status": 422, "duration_ms": 3.8, "event": "request", "request_id": "3c2c1753f0924f0bb80be2e54a0e598d", "level": "info", "timestamp": "2026-10-27T08:47:32.286388Z"}', '{"event": "HTTP Request: POST http://testserver/auth/register \\"HTTP/1.1 422 Unprocessable Entity\\"", "level": "info", "timestamp": "2026-10-27T08:47:32.286797Z"}']
+FAIL  | F12 email_enumeration_via_register | 409 {'detail': 'Could not create an account with these details.'}
+  403 | _alice_analyze | {'job_id_len': 0, 'detail': {'code': 'consent_required', 'message': 'Please read and accept the consent before analysing a video.'}}
+v4    | _alice_session_seeded | upload rejected (403); synthetic v2 session 36-char id stored
+PASS  | F02 GET /sessions/{id} without auth returns another user's health data | 401 patient_name=None findings=0
+PASS  | F02 GET /report/{id} without auth returns PDF | 401 application/json 30 bytes
+PASS  | F01 forged JWT with committed secret impersonates any email | {'detail': 'Invalid or expired token'}
+PASS  | F01 forged JWT reads victim session list | 401 n=-
+PASS  | F03 /debug/links exposes other clinicians' links | {'detail': 'Not Found'}
+PASS  | F08 access token lifetime > 1 day | 0.5 days
+PASS  | F06/F07 non-video bytes left on disk | left on disk: []
+PASS  | F09 internal error detail returned to client | 403 {"detail":{"code":"consent_required","message":"Please read and accept the consent before analysing a video."}}
+  403 | _uppercase_extension | {"detail":{"code":"consent_required","message":"Please read and accept the conse
+PASS  | F08 CORS allows arbitrary origins | access-control-allow-origin=None
+PASS  | F15 regenerated PDF reports wrong mode (Runner -> Clinical) | 'Runner' in pdf=False; 'Clinical Mode' in pdf=False
+PASS  | F40 patient name absent from PDF | 'Alice' in pdf=True
+PASS  | F10 no login rate limiting (30 bad attempts) | status codes: [401, 429]
+SUMMARY: 15/16 PASS, 1/16 FAIL

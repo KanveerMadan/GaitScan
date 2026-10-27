@@ -23,3 +23,6 @@ Plan: [REBUILD_PLAN_V3.md](REBUILD_PLAN_V3.md). Full history of Phases 0–2 is 
   - Learned per-clip error model (GBM + conformal, leave-participant-out): coverage OK but no discrimination (Spearman 0.11); not shipped
 - Phase 4 (backend #16, frontend #13; stacked): background analysis + polling, typed client from a drift-checked contract, router, dashboard, notes/tags, comparison vs LJMU repeatability (MDC95 4.4 steps/min), knee curves, live framing check, onboarding, demo, PWA manifest, Playwright e2e, Locust
   - Blocked: in-browser recording (frame timing on real phones); cut: goals, visual explanations; normative knee band and ghost replay need decisions/data
+- Phase 5 (backend #17, frontend #14; stacked): consent, privacy center, password reset + verification (mailer: console/none), share links, F40 name, F10 invite expiry + join limit
+  - Audit re-run (probes out_*_phase5): API probe 15 PASS / 1 FAIL (F12 enumeration: accepted until an email provider enables verified sign-up); F13 /status max 0.03 s during an analysis
+  - F01-F44: closed except accepted F12 (enumeration), F21 (Render cold start), F40 part (clinicians can't upload for a patient), F05 part (token in localStorage, not an httpOnly cookie), F06 part (no scheduled retention purge: data kept until the user deletes it)
