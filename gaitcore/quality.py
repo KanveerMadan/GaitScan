@@ -52,7 +52,7 @@ MIN_STEADY_FOR_STEPS_S = 4.0
 MAX_STEP_TIME_CV = 0.15
 
 CAPTURE_TIP = (
-    "Film from the side with the phone held still at hip height, 3-4 m from the walking line, "
+    "Film from the side with the phone held still at waist height, 3-4 m from the walking line, "
     "with the whole body in view, and walk across the frame and back at your usual pace."
 )
 

@@ -389,7 +389,7 @@
   },
   "rejection": {
    "code": "too_little_walking",
-   "message": "Only 2 steps of steady walking could be measured; at least 6 are needed. Film from the side with the phone held still at hip height, 3-4 m from the walking line, with the whole body in view, and walk across the frame and back at your usual pace."
+   "message": "Only 2 steps of steady walking could be measured; at least 6 are needed. Film from the side with the phone held still at waist height, 3-4 m from the walking line, with the whole body in view, and walk across the frame and back at your usual pace."
   },
   "status": "rejected",
   "test": "walk"
@@ -804,7 +804,7 @@
   },
   "rejection": {
    "code": "too_short",
-   "message": "The video is 2.5 s long. Record at least 3 s of walking; 10-20 s works best. Film from the side with the phone held still at hip height, 3-4 m from the walking line, with the whole body in view, and walk across the frame and back at your usual pace."
+   "message": "The video is 2.5 s long. Record at least 3 s of walking; 10-20 s works best. Film from the side with the phone held still at waist height, 3-4 m from the walking line, with the whole body in view, and walk across the frame and back at your usual pace."
   },
   "status": "rejected",
   "test": "walk"
