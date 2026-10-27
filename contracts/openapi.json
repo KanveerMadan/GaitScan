@@ -86,9 +86,15 @@
       "title": "Calib Y2"
      },
      "patient_name": {
-      "default": "Anonymous",
-      "title": "Patient Name",
-      "type": "string"
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Patient Name"
      },
      "test": {
       "default": "walk",
@@ -165,9 +171,15 @@
       "title": "Calib Y2"
      },
      "patient_name": {
-      "default": "Anonymous",
-      "title": "Patient Name",
-      "type": "string"
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Patient Name"
      },
      "test": {
       "default": "walk",

@@ -118,6 +118,11 @@ def _store(
     )
 
 
+def _name(given: str | None, user: User) -> str:
+    """The name on the session and its report: the one sent, else the account holder's (F40)."""
+    return (given or "").strip() or (user.full_name or "").strip() or "Anonymous"
+
+
 def _remove(path: str) -> None:
     # The raw video is never kept, whatever happened.
     if os.path.exists(path):
@@ -127,7 +132,7 @@ def _remove(path: str) -> None:
 @router.post("/analyze", response_model=AnalyzeResponse)
 def analyze(
     video: UploadFile = File(...),
-    patient_name: str = Form("Anonymous"),
+    patient_name: str | None = Form(None),
     test: str = Form(WALK),
     calib_x1: float | None = Form(None),
     calib_y1: float | None = Form(None),
@@ -153,7 +158,7 @@ def analyze(
         if not result.accepted:
             assert result.rejection is not None
             raise rejected(result.rejection.code, result.rejection.message)
-        return _store(db, job_id, current_user.id, patient_name, result)
+        return _store(db, job_id, current_user.id, _name(patient_name, current_user), result)
     except HTTPException:
         raise
     except Exception:
@@ -168,7 +173,7 @@ def analyze(
 def submit_analysis(
     background: BackgroundTasks,
     video: UploadFile = File(...),
-    patient_name: str = Form("Anonymous"),
+    patient_name: str | None = Form(None),
     test: str = Form(WALK),
     calib_x1: float | None = Form(None),
     calib_y1: float | None = Form(None),
@@ -202,7 +207,11 @@ def submit_analysis(
                 raise rejected("bad_calibration", str(e)) from None
         db.add(
             AnalysisJob(
-                id=job_id, user_id=current_user.id, status="queued", test=test, patient_name=patient_name
+                id=job_id,
+                user_id=current_user.id,
+                status="queued",
+                test=test,
+                patient_name=_name(patient_name, current_user),
             )
         )
         db.commit()
