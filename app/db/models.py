@@ -94,6 +94,19 @@ class Consent(Base):
     withdrawn_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
+class ShareLink(Base):
+    """A read-only link to one session (Plan V3 Phase 5). Only the token's SHA-256 is stored."""
+
+    __tablename__ = "share_links"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    session_id: Mapped[str] = mapped_column(String, ForeignKey("sessions.id"), nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    token_hash: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class SessionArchive(Base):
     """Pre-V3 values that Plan V3 removed from the product (the full list is in migration 0003),
     kept verbatim for export and deletion; never shown as measurements."""

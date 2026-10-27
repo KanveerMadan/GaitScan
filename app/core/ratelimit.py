@@ -71,6 +71,8 @@ registrations_per_ip = SlidingWindowLimiter(limit=10, window_s=60 * 60)
 # Password-reset emails: a few per address and per client an hour (no inbox flooding, no probing).
 reset_requests_per_email = SlidingWindowLimiter(limit=3, window_s=60 * 60)
 reset_requests_per_ip = SlidingWindowLimiter(limit=10, window_s=60 * 60)
+# Opening shared links: generous for a person, a wall for token guessing.
+shared_link_opens_per_ip = SlidingWindowLimiter(limit=60, window_s=60 * 60)
 
 ALL = (
     login_failures_per_email,
@@ -78,6 +80,7 @@ ALL = (
     registrations_per_ip,
     reset_requests_per_email,
     reset_requests_per_ip,
+    shared_link_opens_per_ip,
 )
 
 

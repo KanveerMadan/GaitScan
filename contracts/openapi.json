@@ -938,6 +938,138 @@
     "title": "SessionOut",
     "type": "object"
    },
+   "ShareCreate": {
+    "properties": {
+     "days": {
+      "default": 7,
+      "maximum": 30.0,
+      "minimum": 1.0,
+      "title": "Days",
+      "type": "integer"
+     }
+    },
+    "title": "ShareCreate",
+    "type": "object"
+   },
+   "ShareCreated": {
+    "properties": {
+     "created_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created At"
+     },
+     "expires_at": {
+      "title": "Expires At",
+      "type": "string"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "revoked": {
+      "title": "Revoked",
+      "type": "boolean"
+     },
+     "url": {
+      "title": "Url",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "created_at",
+     "expires_at",
+     "revoked",
+     "url"
+    ],
+    "title": "ShareCreated",
+    "type": "object"
+   },
+   "ShareOut": {
+    "properties": {
+     "created_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created At"
+     },
+     "expires_at": {
+      "title": "Expires At",
+      "type": "string"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "revoked": {
+      "title": "Revoked",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "id",
+     "created_at",
+     "expires_at",
+     "revoked"
+    ],
+    "title": "ShareOut",
+    "type": "object"
+   },
+   "SharedSession": {
+    "properties": {
+     "created_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created At"
+     },
+     "disclaimer": {
+      "title": "Disclaimer",
+      "type": "string"
+     },
+     "result": {
+      "$ref": "#/components/schemas/Result"
+     }
+    },
+    "required": [
+     "created_at",
+     "result",
+     "disclaimer"
+    ],
+    "title": "SharedSession",
+    "type": "object"
+   },
+   "SharedToken": {
+    "properties": {
+     "token": {
+      "maxLength": 200,
+      "minLength": 20,
+      "title": "Token",
+      "type": "string"
+     }
+    },
+    "required": [
+     "token"
+    ],
+    "title": "SharedToken",
+    "type": "object"
+   },
    "TokenResponse": {
     "properties": {
      "access_token": {
@@ -2011,6 +2143,193 @@
     "summary": "Label Session",
     "tags": [
      "sessions"
+    ]
+   }
+  },
+  "/sessions/{session_id}/shares": {
+   "get": {
+    "operationId": "list_shares_sessions__session_id__shares_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "session_id",
+      "required": true,
+      "schema": {
+       "title": "Session Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/ShareOut"
+         },
+         "title": "Response List Shares Sessions  Session Id  Shares Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "List Shares",
+    "tags": [
+     "sharing"
+    ]
+   },
+   "post": {
+    "operationId": "create_share_sessions__session_id__shares_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "session_id",
+      "required": true,
+      "schema": {
+       "title": "Session Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ShareCreate"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ShareCreated"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Create Share",
+    "tags": [
+     "sharing"
+    ]
+   }
+  },
+  "/shared": {
+   "post": {
+    "operationId": "open_shared_shared_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SharedToken"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SharedSession"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Open Shared",
+    "tags": [
+     "sharing"
+    ]
+   }
+  },
+  "/shares/{share_id}": {
+   "delete": {
+    "operationId": "revoke_share_shares__share_id__delete",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "share_id",
+      "required": true,
+      "schema": {
+       "title": "Share Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Revoke Share",
+    "tags": [
+     "sharing"
     ]
    }
   },

@@ -19,6 +19,7 @@ from app.db.models import (
     ClinicianPatient,
     Consent,
     SessionArchive,
+    ShareLink,
     User,
 )
 from app.db.models import Session as SessionModel
@@ -32,6 +33,7 @@ def _iso(d: datetime | None) -> str | None:
 
 
 def delete_session_rows(db: DBSession, session_id: str) -> None:
+    db.query(ShareLink).filter(ShareLink.session_id == session_id).delete()
     db.query(AnalysisJob).filter(AnalysisJob.session_id == session_id).delete()
     db.query(SessionArchive).filter(SessionArchive.session_id == session_id).delete()
     db.query(SessionModel).filter(SessionModel.id == session_id).delete()
