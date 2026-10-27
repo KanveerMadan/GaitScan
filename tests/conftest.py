@@ -20,6 +20,8 @@ os.environ.update(
         "DATABASE_URL": f"sqlite:///{TMP}/test.db",
         "JWT_SECRET": secrets.token_urlsafe(48),
         "CORS_ORIGINS": "http://localhost:3000",
+        "MAIL_BACKEND": "console",
+        "FRONTEND_URL": "http://app.test",
     }
 )
 
@@ -40,6 +42,15 @@ def migrate(url, rev="head"):
 migrate(os.environ["DATABASE_URL"])
 
 PASSWORD = "correct-horse-battery"
+
+
+@pytest.fixture
+def outbox():
+    """Emails 'sent' by the console mailer during the test."""
+    from app.services import mailer
+
+    mailer.OUTBOX.clear()
+    return mailer.OUTBOX
 
 
 @pytest.fixture(autouse=True)
