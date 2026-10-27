@@ -193,3 +193,15 @@ def test_analyses_run_one_at_a_time(client, monkeypatch):
     for th in threads:
         th.join()
     assert peak[0] == 1
+
+
+def test_the_report_names_the_account_holder_when_no_name_is_sent(client, monkeypatch):
+    """F40: the patient's name was never sent, so every report said 'Anonymous'."""
+    fake_video(monkeypatch)
+    _, t = register(client, full_name="Asha Rao")
+    job = client.post(
+        "/analyses", headers=auth(t), files={"video": ("walk.mp4", b"x" * 64, "video/mp4")}
+    ).json()
+    sid = client.get(job["status_url"], headers=auth(t)).json()["analysis"]["job_id"]
+    assert client.get(f"/sessions/{sid}", headers=auth(t)).json()["patient_name"] == "Asha Rao"
+    assert "Name: Asha Rao" in pdf_text(client.get(f"/report/{sid}", headers=auth(t)).content)
