@@ -67,6 +67,7 @@ def synthetic_clip(
     far_visibility=0.8,
     camera_distance=None,  # px from the walking line; None = orthographic (no perspective)
     camera_height=None,  # px above the floor; default: hip height
+    pelvis_surge=(0.0, 0.0),  # pelvis speed ripple: amplitude (fraction of the speed) per step, per stride
 ) -> tuple[Clip, Truth]:
     rng = np.random.default_rng(seed)
     step_t = 60.0 / steps_per_min
@@ -80,7 +81,14 @@ def synthetic_clip(
     # Pelvis path: integrate the speed profile on a fine grid.
     fine = np.arange(0, total + 1, 1e-3)
     prof, _, _ = _profile(fine, pass_secs, ramp_secs, turn_secs)
-    x_fine = np.cumsum(prof * v) * 1e-3
+    # Real walkers speed up and slow down once per step (and a little once per stride); on phone
+    # clips the hip midpoint ripples by ~20% of the speed per step and ~8% per stride.
+    surge = (
+        1
+        + pelvis_surge[0] * np.sin(2 * np.pi * fine / step_t)
+        + pelvis_surge[1] * np.sin(np.pi * fine / step_t)
+    )
+    x_fine = np.cumsum(prof * v * surge) * 1e-3
     x_fine += (width - (x_fine.max() - x_fine.min())) / 2 - x_fine.min()
     px = np.interp(t, fine, x_fine)
     prof_t, k_t, _ = _profile(t, pass_secs, ramp_secs, turn_secs)

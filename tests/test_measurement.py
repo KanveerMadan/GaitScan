@@ -338,6 +338,105 @@ def test_side_view_decision_is_unaffected_by_camera_roll(deg):
     assert oblique.rejection is not None and oblique.rejection.code == "not_side_view"
 
 
+# ---- real-world recordings ---------------------------------------------------------------------
+# On three phone clips the hip midpoint sped up and slowed down by ~20% of the walking speed once per
+# step and ~8% once per stride (up to 27% / 12% in one pass). At a slow cadence a fixed half-second
+# average leaves that ripple in and chops every pass into pieces too short to hold a step.
+REAL_SURGE = (0.27, 0.12)
+
+
+@pytest.mark.parametrize("spm", [80, 85])
+def test_a_slow_walker_with_a_real_hip_ripple_is_measured(spm):
+    clip, truth = synthetic_clip(
+        steps_per_min=spm, pass_secs=6.0, pelvis_surge=REAL_SURGE, noise_px=1.0, seed=1
+    )
+    r = analyse(clip)
+    assert r.accepted, r.rejection
+    assert r.metrics["cadence"]["value"] == pytest.approx(truth.cadence, abs=1)
+    assert r.quality["steadiness_window_s"] == pytest.approx(60 / spm, abs=0.05)
+
+
+def test_the_steadiness_window_is_one_step_kept_within_half_a_second_and_a_second():
+    assert analyse(synthetic_clip(steps_per_min=130)[0]).quality["steadiness_window_s"] == 0.5
+    slow = analyse(synthetic_clip(steps_per_min=50, pass_secs=8.0, width=2000)[0])
+    assert slow.quality["steadiness_window_s"] == 1.0
+
+
+def with_second_person(clip, start_s, end_s):
+    """Someone else walks into view from start_s to end_s (the pose model sees two people)."""
+    lm = clip.landmarks.copy()
+    lm.loc[int(start_s * clip.fps) : int(end_s * clip.fps) - 1, "n_poses"] = 2
+    return Clip(lm, clip.fps, clip.width, clip.height)
+
+
+def with_feet_cut_off(clip, start_s, end_s):
+    """From start_s to end_s the feet are below the bottom edge of the frame."""
+    lm = clip.landmarks.copy()
+    rows = slice(int(start_s * clip.fps), int(end_s * clip.fps) - 1)
+    for i in range(27, 33):
+        lm.loc[rows, f"lm{i}_y"] = 1.05
+    return Clip(lm, clip.fps, clip.width, clip.height)
+
+
+# Three 8 s passes with 1.5 s turns: pass k runs from 9.5k to 9.5k + 8 s.
+THREE_PASSES = {"passes": 3, "pass_secs": 8.0}
+
+
+def test_a_second_person_in_part_of_the_video_drops_only_that_part():
+    clip, truth = synthetic_clip(**THREE_PASSES)
+    r = analyse(with_second_person(clip, 0, 9.5))  # the whole first pass: 35% of the video
+    assert r.accepted, r.rejection
+    assert r.quality["passes"] == 2
+    assert r.quality["second_person_s"] == pytest.approx(9.5, abs=0.1)
+    assert r.metrics["cadence"]["value"] == pytest.approx(truth.cadence, abs=1)
+
+
+def test_feet_cut_off_in_part_of_the_video_drop_only_that_part():
+    clip, truth = synthetic_clip(**THREE_PASSES)
+    r = analyse(with_feet_cut_off(clip, 0, 19.0))  # the first two passes: 70% of the video
+    assert r.accepted, r.rejection
+    assert r.quality["feet_visible_fraction"] < 0.5  # used to reject the whole video
+    assert r.quality["passes"] == 1
+    assert r.quality["heels_hidden_s"] == pytest.approx(19.0, abs=0.5)
+    assert r.metrics["cadence"]["value"] == pytest.approx(truth.cadence, abs=1)
+
+
+def test_a_second_person_and_cut_off_feet_together_drop_only_those_parts():
+    clip, truth = synthetic_clip(**THREE_PASSES)
+    r = analyse(with_feet_cut_off(with_second_person(clip, 0, 9.5), 9.5, 19.0))
+    assert r.accepted, r.rejection
+    assert r.quality["passes"] == 1
+    assert r.metrics["cadence"]["value"] == pytest.approx(truth.cadence, abs=1)
+
+
+def test_feet_hidden_for_less_than_a_step_are_kept():
+    clip, _ = synthetic_clip(**THREE_PASSES)
+    clean = analyse(clip)
+    r = analyse(with_feet_cut_off(clip, 3.0, 3.3))  # 0.3 s: shorter than one step
+    assert r.quality["heels_hidden_s"] == 0
+    assert r.quality["steady_walking_s"] == clean.quality["steady_walking_s"]
+
+
+def test_the_rejection_names_a_second_person_who_left_too_little_walking():
+    clip, _ = synthetic_clip(passes=3, pass_secs=4.0)
+    r = analyse(with_second_person(clip, 0, 11.0))  # two of three short passes
+    assert r.rejection is not None and r.rejection.code == "multiple_people"
+    assert "11 s" in r.rejection.message and "only the person who is walking" in r.rejection.message
+
+
+def test_the_rejection_names_feet_out_of_view_that_left_too_little_walking():
+    clip, _ = synthetic_clip(passes=3, pass_secs=4.0)
+    r = analyse(with_feet_cut_off(clip, 0, 11.0))
+    assert r.rejection is not None and r.rejection.code == "feet_not_visible"
+    assert "11 s" in r.rejection.message and "both feet" in r.rejection.message
+
+
+def test_too_little_walking_with_nothing_dropped_still_says_so():
+    r = analyse(synthetic_clip(**GATE_CASES["too_little_walking"])[0])
+    assert r.rejection.code == "too_little_walking"
+    assert r.quality["second_person_s"] == 0 and r.quality["heels_hidden_s"] == 0
+
+
 def test_view_unconfirmed_message_asks_for_a_walk_across_the_frame():
     r = analyse(synthetic_clip(**GATE_CASES["view_unconfirmed"])[0])
     assert "side-on" in r.rejection.message and "across the frame" in r.rejection.message
