@@ -204,6 +204,99 @@
     "title": "ChangePasswordRequest",
     "type": "object"
    },
+   "ConsentAccept": {
+    "properties": {
+     "version": {
+      "title": "Version",
+      "type": "string"
+     }
+    },
+    "required": [
+     "version"
+    ],
+    "title": "ConsentAccept",
+    "type": "object"
+   },
+   "ConsentRecord": {
+    "properties": {
+     "accepted_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Accepted At"
+     },
+     "version": {
+      "title": "Version",
+      "type": "string"
+     },
+     "withdrawn_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Withdrawn At"
+     }
+    },
+    "required": [
+     "version",
+     "accepted_at",
+     "withdrawn_at"
+    ],
+    "title": "ConsentRecord",
+    "type": "object"
+   },
+   "ConsentStatus": {
+    "properties": {
+     "accepted_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Accepted At"
+     },
+     "active": {
+      "title": "Active",
+      "type": "boolean"
+     },
+     "history": {
+      "items": {
+       "$ref": "#/components/schemas/ConsentRecord"
+      },
+      "title": "History",
+      "type": "array"
+     },
+     "text": {
+      "title": "Text",
+      "type": "string"
+     },
+     "version": {
+      "title": "Version",
+      "type": "string"
+     }
+    },
+    "required": [
+     "active",
+     "version",
+     "text",
+     "accepted_at",
+     "history"
+    ],
+    "title": "ConsentStatus",
+    "type": "object"
+   },
    "HTTPValidationError": {
     "properties": {
      "detail": {
@@ -1269,6 +1362,100 @@
     "summary": "Get Patient Sessions",
     "tags": [
      "clinician"
+    ]
+   }
+  },
+  "/consent": {
+   "delete": {
+    "operationId": "withdraw_consent_consent_delete",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ConsentStatus"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Withdraw Consent",
+    "tags": [
+     "consent"
+    ]
+   },
+   "get": {
+    "operationId": "get_consent_consent_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ConsentStatus"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Consent",
+    "tags": [
+     "consent"
+    ]
+   },
+   "post": {
+    "operationId": "accept_consent_consent_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ConsentAccept"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ConsentStatus"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Accept Consent",
+    "tags": [
+     "consent"
     ]
    }
   },

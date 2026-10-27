@@ -16,6 +16,7 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session as DBSession
 
+from app.api.consent import require_consent
 from app.core.config import settings
 from app.core.copy import DISCLAIMER
 from app.core.security import get_current_user
@@ -137,6 +138,7 @@ def analyze(
     db: DBSession = Depends(get_db),
 ) -> AnalyzeResponse:
     """Synchronous analysis (kept until every client uses POST /analyses)."""
+    require_consent(db, current_user)
     ext, calibration = _form_checks(video, test, [calib_x1, calib_y1, calib_x2, calib_y2], calib_distance_m)
     job_id = str(uuid.uuid4())
     video_path = f"data/raw/{job_id}{ext}"
@@ -178,6 +180,7 @@ def submit_analysis(
 ) -> JobQueued:
     """Queue an analysis and return at once; poll the status_url (Plan V3 Phase 4). Checks that need
     no pose model (file type, test, calibration, length, frame rate) answer here, straight away."""
+    require_consent(db, current_user)
     ext, calibration = _form_checks(video, test, [calib_x1, calib_y1, calib_x2, calib_y2], calib_distance_m)
     job_id = str(uuid.uuid4())
     video_path = f"data/raw/{job_id}{ext}"

@@ -66,6 +66,18 @@ class AnalysisJob(Base):
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
+class Consent(Base):
+    """One acceptance of the consent text (ADR-007). Withdrawal sets withdrawn_at; rows are kept as
+    the record. Active = the latest row for the user, current version, not withdrawn."""
+
+    __tablename__ = "consents"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    version: Mapped[str] = mapped_column(String, nullable=False)
+    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    withdrawn_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
 class SessionArchive(Base):
     """Pre-V3 values that Plan V3 removed from the product (the full list is in migration 0003),
     kept verbatim for export and deletion; never shown as measurements."""
