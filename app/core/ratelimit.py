@@ -68,8 +68,17 @@ login_failures_per_email = SlidingWindowLimiter(limit=5, window_s=15 * 60)
 login_attempts_per_ip = SlidingWindowLimiter(limit=20, window_s=5 * 60)
 # Registrations per client address (slows email enumeration via sign-up).
 registrations_per_ip = SlidingWindowLimiter(limit=10, window_s=60 * 60)
+# Password-reset emails: a few per address and per client an hour (no inbox flooding, no probing).
+reset_requests_per_email = SlidingWindowLimiter(limit=3, window_s=60 * 60)
+reset_requests_per_ip = SlidingWindowLimiter(limit=10, window_s=60 * 60)
 
-ALL = (login_failures_per_email, login_attempts_per_ip, registrations_per_ip)
+ALL = (
+    login_failures_per_email,
+    login_attempts_per_ip,
+    registrations_per_ip,
+    reset_requests_per_email,
+    reset_requests_per_ip,
+)
 
 
 def client_ip(request: Request) -> str:

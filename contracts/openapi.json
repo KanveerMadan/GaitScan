@@ -322,6 +322,20 @@
     "title": "DeleteAccount",
     "type": "object"
    },
+   "EmailRequest": {
+    "properties": {
+     "email": {
+      "format": "email",
+      "title": "Email",
+      "type": "string"
+     }
+    },
+    "required": [
+     "email"
+    ],
+    "title": "EmailRequest",
+    "type": "object"
+   },
    "HTTPValidationError": {
     "properties": {
      "detail": {
@@ -422,6 +436,21 @@
      "code"
     ],
     "title": "JoinRequest",
+    "type": "object"
+   },
+   "LinkToken": {
+    "properties": {
+     "token": {
+      "maxLength": 200,
+      "minLength": 20,
+      "title": "Token",
+      "type": "string"
+     }
+    },
+    "required": [
+     "token"
+    ],
+    "title": "LinkToken",
     "type": "object"
    },
    "LoginRequest": {
@@ -584,6 +613,26 @@
      "message"
     ],
     "title": "Rejection",
+    "type": "object"
+   },
+   "ResetConfirm": {
+    "properties": {
+     "new_password": {
+      "title": "New Password",
+      "type": "string"
+     },
+     "token": {
+      "maxLength": 200,
+      "minLength": 20,
+      "title": "Token",
+      "type": "string"
+     }
+    },
+    "required": [
+     "token",
+     "new_password"
+    ],
+    "title": "ResetConfirm",
     "type": "object"
    },
    "Result": {
@@ -1248,6 +1297,84 @@
     ]
    }
   },
+  "/auth/password-reset": {
+   "post": {
+    "operationId": "request_password_reset_auth_password_reset_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/EmailRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "202": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Request Password Reset",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/auth/password-reset/confirm": {
+   "post": {
+    "operationId": "confirm_password_reset_auth_password_reset_confirm_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ResetConfirm"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Confirm Password Reset",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
   "/auth/register": {
    "post": {
     "operationId": "register_auth_register_post",
@@ -1284,6 +1411,69 @@
      }
     },
     "summary": "Register",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/auth/verify-email": {
+   "post": {
+    "operationId": "verify_email_auth_verify_email_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/LinkToken"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Verify Email",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/auth/verify-email/request": {
+   "post": {
+    "operationId": "request_email_verification_auth_verify_email_request_post",
+    "responses": {
+     "202": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Request Email Verification",
     "tags": [
      "auth"
     ]

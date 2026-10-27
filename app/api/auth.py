@@ -1,11 +1,17 @@
+import hashlib
+import secrets
+from datetime import UTC, datetime, timedelta
+
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session
 
 from app.core import ratelimit
+from app.core.config import settings
 from app.core.security import create_access_token, get_current_user, hash_password, verify_password
 from app.db.database import get_db
-from app.db.models import User, UserRole
+from app.db.models import AuthToken, User, UserRole
+from app.services import mailer
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -106,8 +112,10 @@ def change_password(
         raise HTTPException(status_code=400, detail="Current password is incorrect.")
     require_new_password(payload.new_password)
     current_user.hashed_password = hash_password(payload.new_password)
+    current_user.password_changed_at = datetime.now(UTC)  # ends every other login
     db.commit()
-    return {"message": "Password changed."}
+    # A fresh token for this session, issued after the change, so it stays signed in.
+    return {"message": "Password changed.", **_token_response(current_user).model_dump()}
 
 
 @router.get("/me")
@@ -117,4 +125,121 @@ def get_me(current_user: User = Depends(get_current_user)):
         "email": current_user.email,
         "role": current_user.role,
         "full_name": current_user.full_name,
+        "email_verified": current_user.email_verified_at is not None,
     }
+
+
+# ---- Password reset and email verification (Plan V3 Phase 5) -----------------------------------
+RESET_TTL = timedelta(minutes=30)
+VERIFY_TTL = timedelta(hours=24)
+NO_MAIL = (
+    "Sending email isn't available yet, so this can't be done by email. "
+    "Please contact the GaitScan team for help with your account."
+)
+RESET_SENT = "If an account uses this email address, we've sent it a link to choose a new password."
+
+
+class EmailRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetConfirm(BaseModel):
+    token: str = Field(min_length=20, max_length=200)
+    new_password: str
+
+
+class LinkToken(BaseModel):
+    token: str = Field(min_length=20, max_length=200)
+
+
+def _hash(raw: str) -> str:
+    return hashlib.sha256(raw.encode()).hexdigest()
+
+
+def _issue(db: Session, user: User, purpose: str, ttl: timedelta) -> str:
+    raw = secrets.token_urlsafe(32)
+    db.add(
+        AuthToken(user_id=user.id, purpose=purpose, token_hash=_hash(raw), expires_at=datetime.now(UTC) + ttl)
+    )
+    return raw
+
+
+def _redeem(db: Session, raw: str, purpose: str) -> AuthToken:
+    row = db.query(AuthToken).filter(AuthToken.token_hash == _hash(raw), AuthToken.purpose == purpose).first()
+    expires = None if row is None else row.expires_at
+    if expires is not None and expires.tzinfo is None:
+        expires = expires.replace(tzinfo=UTC)  # SQLite: naive, stored in UTC
+    if row is None or row.used_at is not None or expires is None or expires < datetime.now(UTC):
+        raise HTTPException(400, "This link is invalid or has expired. Please ask for a new one.")
+    row.used_at = datetime.now(UTC)
+    return row
+
+
+def _link(path: str, raw: str) -> str:
+    # The token goes in the URL fragment: browsers never send it to a server or in a Referer header.
+    return f"{settings.frontend_url}/{path}#token={raw}"
+
+
+@router.post("/password-reset", status_code=202)
+def request_password_reset(payload: EmailRequest, request: Request, db: Session = Depends(get_db)):
+    if not mailer.available():
+        raise HTTPException(503, NO_MAIL)
+    email_key = str(payload.email).lower()
+    ip = ratelimit.client_ip(request)
+    ratelimit.enforce((ratelimit.reset_requests_per_email, email_key), (ratelimit.reset_requests_per_ip, ip))
+    ratelimit.reset_requests_per_email.hit(email_key)
+    ratelimit.reset_requests_per_ip.hit(ip)
+    user = db.query(User).filter(User.email == email_key).first()
+    if user is not None:
+        raw = _issue(db, user, "reset", RESET_TTL)
+        db.commit()
+        mailer.send(
+            user.email,
+            "Choose a new GaitScan password",
+            "Someone asked to reset the password for this GaitScan account.\n\n"
+            f"Choose a new password here (the link works once, for 30 minutes):\n{_link('reset-password', raw)}\n\n"
+            "If it wasn't you, ignore this email: your password stays the same.",
+        )
+    return {"message": RESET_SENT}
+
+
+@router.post("/password-reset/confirm")
+def confirm_password_reset(payload: ResetConfirm, db: Session = Depends(get_db)):
+    require_new_password(payload.new_password)
+    row = _redeem(db, payload.token, "reset")
+    user = db.get(User, row.user_id)
+    if user is None:
+        raise HTTPException(400, "This link is invalid or has expired. Please ask for a new one.")
+    now = datetime.now(UTC)
+    user.hashed_password = hash_password(payload.new_password)
+    user.password_changed_at = now  # ends every earlier login
+    user.email_verified_at = user.email_verified_at or now  # the link reached this inbox
+    db.query(AuthToken).filter(
+        AuthToken.user_id == user.id, AuthToken.purpose == "reset", AuthToken.used_at.is_(None)
+    ).update({AuthToken.used_at: now})
+    db.commit()
+    return {"message": "Password changed. You can now sign in with your new password."}
+
+
+@router.post("/verify-email/request", status_code=202)
+def request_email_verification(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not mailer.available():
+        raise HTTPException(503, NO_MAIL)
+    raw = _issue(db, current_user, "verify", VERIFY_TTL)
+    db.commit()
+    mailer.send(
+        current_user.email,
+        "Confirm your email address for GaitScan",
+        f"Confirm this is your email address (the link works once, for 24 hours):\n{_link('verify-email', raw)}",
+    )
+    return {"message": "We've sent a confirmation link to your email address."}
+
+
+@router.post("/verify-email")
+def verify_email(payload: LinkToken, db: Session = Depends(get_db)):
+    row = _redeem(db, payload.token, "verify")
+    user = db.get(User, row.user_id)
+    if user is not None:
+        user.email_verified_at = user.email_verified_at or datetime.now(UTC)
+    db.commit()
+    return {"message": "Email address confirmed."}

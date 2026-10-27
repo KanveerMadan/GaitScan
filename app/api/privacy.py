@@ -12,7 +12,15 @@ from sqlalchemy.orm import Session as DBSession
 
 from app.core.security import get_current_user, verify_password
 from app.db.database import get_db
-from app.db.models import AnalysisJob, ClinicianInvite, ClinicianPatient, Consent, SessionArchive, User
+from app.db.models import (
+    AnalysisJob,
+    AuthToken,
+    ClinicianInvite,
+    ClinicianPatient,
+    Consent,
+    SessionArchive,
+    User,
+)
 from app.db.models import Session as SessionModel
 
 log = logging.getLogger("gaitscan")
@@ -113,6 +121,7 @@ def delete_account(
         delete_session_rows(db, sid)
     db.query(AnalysisJob).filter(AnalysisJob.user_id == uid).delete()
     db.query(Consent).filter(Consent.user_id == uid).delete()
+    db.query(AuthToken).filter(AuthToken.user_id == uid).delete()
     db.query(ClinicianPatient).filter(
         (ClinicianPatient.patient_id == uid) | (ClinicianPatient.clinician_id == uid)
     ).delete(synchronize_session=False)

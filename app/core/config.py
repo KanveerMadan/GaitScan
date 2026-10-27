@@ -35,6 +35,11 @@ class Settings(BaseModel):
     # Header holding the client address set by the edge proxy (Render: true-client-ip). Preferred over
     # TRUSTED_PROXY_HOPS when present and a valid IP (app/core/ratelimit.py).
     client_ip_header: str = ""
+    # Email (app/services/mailer.py): "console" (dev: kept in memory and logged) or "none" (no
+    # provider yet: password reset and verification answer 503). Default: console in dev, else none.
+    mail_backend: str = ""
+    # Where links in emails point (the frontend), e.g. https://gaitscan-frontend.vercel.app
+    frontend_url: str = ""
 
     @field_validator("env")
     @classmethod
@@ -67,6 +72,14 @@ class Settings(BaseModel):
         if self.database_url.startswith("postgres://"):
             self.database_url = "postgresql://" + self.database_url[len("postgres://") :]
         self.max_upload_bytes = self.max_upload_mb * 1024 * 1024
+        self.mail_backend = (self.mail_backend or ("console" if dev else "none")).strip().lower()
+        if self.mail_backend not in ("console", "none"):
+            raise ValueError(
+                "MAIL_BACKEND must be 'console' or 'none' (no email provider is integrated yet)."
+            )
+        if not self.frontend_url:
+            self.frontend_url = "http://localhost:3000" if dev else ""
+        self.frontend_url = self.frontend_url.rstrip("/")
         return self
 
     @property

@@ -44,7 +44,15 @@ def test_a_legacy_session_and_its_archive_are_deleted_together(client):
 
 def test_deleting_the_account_needs_the_password_and_removes_everything(client):
     from app.db.database import SessionLocal
-    from app.db.models import AnalysisJob, ClinicianInvite, ClinicianPatient, Consent, SessionArchive, User
+    from app.db.models import (
+        AnalysisJob,
+        AuthToken,
+        ClinicianInvite,
+        ClinicianPatient,
+        Consent,
+        SessionArchive,
+        User,
+    )
     from app.db.models import Session as SessionRow
 
     email, t = register(client)
@@ -56,6 +64,9 @@ def test_deleting_the_account_needs_the_password_and_removes_everything(client):
     db = SessionLocal()
     uid = db.query(User).filter(User.email == email).one().id
     db.add(AnalysisJob(id="job-of-deleted-user", user_id=uid, status="done", test="walk", session_id=sid))
+    from datetime import UTC, datetime
+
+    db.add(AuthToken(user_id=uid, purpose="reset", token_hash="h" * 64, expires_at=datetime.now(UTC)))
     db.commit()
     db.close()
 
@@ -72,6 +83,7 @@ def test_deleting_the_account_needs_the_password_and_removes_everything(client):
         assert db.query(SessionRow).filter(SessionRow.user_id == uid).count() == 0
         assert db.get(SessionArchive, legacy_sid) is None
         assert db.query(Consent).filter(Consent.user_id == uid).count() == 0
+        assert db.query(AuthToken).filter(AuthToken.user_id == uid).count() == 0
         assert db.query(AnalysisJob).filter(AnalysisJob.user_id == uid).count() == 0
         assert db.query(ClinicianPatient).filter(ClinicianPatient.patient_id == uid).count() == 0
         assert db.query(ClinicianInvite).filter(ClinicianInvite.patient_id == uid).count() == 0
