@@ -1,5 +1,31 @@
 {
  "calibrated": {
+  "accuracy": {
+   "cadence": {
+    "error_95": 4.7,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.7 steps/min of the reference.",
+    "status": "validated",
+    "unit": "steps/min"
+   },
+   "peak_knee_flexion": {
+    "note": "Not yet validated: there is no knee-angle reference to check it against yet. Use it to compare your own recordings, not as an exact angle.",
+    "status": "not_yet_validated"
+   },
+   "step_length": {
+    "note": "Not yet validated on real recordings: checked only on simulated walking, and its accuracy depends on where the two floor points were marked.",
+    "status": "not_yet_validated"
+   },
+   "step_time": {
+    "error_95": 0.024,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b10.024 s of the reference.",
+    "status": "validated",
+    "unit": "s"
+   },
+   "walking_speed": {
+    "note": "Not yet validated on real recordings: checked only on simulated walking, and its accuracy depends on where the two floor points were marked.",
+    "status": "not_yet_validated"
+   }
+  },
   "metrics": {
    "cadence": {
     "n": 9,
@@ -45,6 +71,8 @@
    "version": "float16/1"
   },
   "notes": [],
+  "pass_variability": null,
+  "passes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": true,
@@ -66,9 +94,11 @@
    "view_ratio": 0.0
   },
   "rejection": null,
-  "status": "accepted"
+  "status": "accepted",
+  "test": "walk"
  },
  "feet_hidden": {
+  "accuracy": {},
   "metrics": {},
   "model": {
    "mediapipe": "1.0.1",
@@ -77,6 +107,8 @@
    "version": "float16/1"
   },
   "notes": [],
+  "pass_variability": null,
+  "passes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -90,9 +122,11 @@
    "code": "feet_not_visible",
    "message": "Both feet were clearly visible in only 0% of the time the person was in view. Keep the whole body, including both feet, in the frame, with nothing in front of the legs."
   },
-  "status": "rejected"
+  "status": "rejected",
+  "test": "walk"
  },
  "few_steps": {
+  "accuracy": {},
   "metrics": {},
   "model": {
    "mediapipe": "1.0.1",
@@ -101,6 +135,8 @@
    "version": "float16/1"
   },
   "notes": [],
+  "pass_variability": null,
+  "passes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -125,9 +161,11 @@
    "code": "too_little_walking",
    "message": "Only 2 steps of steady walking could be measured; at least 6 are needed. Film from the side with the phone held still at hip height, 3-4 m from the walking line, with the whole body in view, and walk across the frame and back at your usual pace."
   },
-  "status": "rejected"
+  "status": "rejected",
+  "test": "walk"
  },
  "frontal": {
+  "accuracy": {},
   "metrics": {},
   "model": {
    "mediapipe": "1.0.1",
@@ -136,6 +174,8 @@
    "version": "float16/1"
   },
   "notes": [],
+  "pass_variability": null,
+  "passes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -154,9 +194,11 @@
    "code": "not_side_view",
    "message": "The camera doesn't seem to be at the side of the walking path. Place the phone side-on, at right angles to the direction of walking."
   },
-  "status": "rejected"
+  "status": "rejected",
+  "test": "walk"
  },
  "low_fps": {
+  "accuracy": {},
   "metrics": {},
   "model": {
    "mediapipe": "1.0.1",
@@ -165,6 +207,8 @@
    "version": "float16/1"
   },
   "notes": [],
+  "pass_variability": null,
+  "passes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -176,9 +220,28 @@
    "code": "low_frame_rate",
    "message": "The video was recorded at 15 frames per second. Record at 30 frames per second or more (at least 24)."
   },
-  "status": "rejected"
+  "status": "rejected",
+  "test": "walk"
  },
  "noise2px": {
+  "accuracy": {
+   "cadence": {
+    "error_95": 4.7,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.7 steps/min of the reference.",
+    "status": "validated",
+    "unit": "steps/min"
+   },
+   "peak_knee_flexion": {
+    "note": "Not yet validated: there is no knee-angle reference to check it against yet. Use it to compare your own recordings, not as an exact angle.",
+    "status": "not_yet_validated"
+   },
+   "step_time": {
+    "error_95": 0.024,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b10.024 s of the reference.",
+    "status": "validated",
+    "unit": "s"
+   }
+  },
   "metrics": {
    "cadence": {
     "n": 9,
@@ -213,6 +276,8 @@
    "version": "float16/1"
   },
   "notes": [],
+  "pass_variability": null,
+  "passes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -234,9 +299,11 @@
    "view_ratio": 0.01
   },
   "rejection": null,
-  "status": "accepted"
+  "status": "accepted",
+  "test": "walk"
  },
  "rotated90": {
+  "accuracy": {},
   "metrics": {},
   "model": {
    "mediapipe": "1.0.1",
@@ -245,6 +312,8 @@
    "version": "float16/1"
   },
   "notes": [],
+  "pass_variability": null,
+  "passes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -257,9 +326,11 @@
    "code": "wrong_orientation",
    "message": "The person appears sideways or upside down in the video. Hold the phone so the person is upright on screen, and check that the video isn't rotated."
   },
-  "status": "rejected"
+  "status": "rejected",
+  "test": "walk"
  },
  "short": {
+  "accuracy": {},
   "metrics": {},
   "model": {
    "mediapipe": "1.0.1",
@@ -268,6 +339,8 @@
    "version": "float16/1"
   },
   "notes": [],
+  "pass_variability": null,
+  "passes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -279,9 +352,28 @@
    "code": "too_short",
    "message": "The video is 2.5 s long. Record at least 3 s of walking; 10-20 s works best. Film from the side with the phone held still at hip height, 3-4 m from the walking line, with the whole body in view, and walk across the frame and back at your usual pace."
   },
-  "status": "rejected"
+  "status": "rejected",
+  "test": "walk"
  },
  "spm110": {
+  "accuracy": {
+   "cadence": {
+    "error_95": 4.7,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.7 steps/min of the reference.",
+    "status": "validated",
+    "unit": "steps/min"
+   },
+   "peak_knee_flexion": {
+    "note": "Not yet validated: there is no knee-angle reference to check it against yet. Use it to compare your own recordings, not as an exact angle.",
+    "status": "not_yet_validated"
+   },
+   "step_time": {
+    "error_95": 0.024,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b10.024 s of the reference.",
+    "status": "validated",
+    "unit": "s"
+   }
+  },
   "metrics": {
    "cadence": {
     "n": 9,
@@ -316,6 +408,8 @@
    "version": "float16/1"
   },
   "notes": [],
+  "pass_variability": null,
+  "passes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -337,9 +431,28 @@
    "view_ratio": 0.0
   },
   "rejection": null,
-  "status": "accepted"
+  "status": "accepted",
+  "test": "walk"
  },
  "spm125": {
+  "accuracy": {
+   "cadence": {
+    "error_95": 4.7,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.7 steps/min of the reference.",
+    "status": "validated",
+    "unit": "steps/min"
+   },
+   "peak_knee_flexion": {
+    "note": "Not yet validated: there is no knee-angle reference to check it against yet. Use it to compare your own recordings, not as an exact angle.",
+    "status": "not_yet_validated"
+   },
+   "step_time": {
+    "error_95": 0.024,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b10.024 s of the reference.",
+    "status": "validated",
+    "unit": "s"
+   }
+  },
   "metrics": {
    "cadence": {
     "n": 16,
@@ -374,6 +487,8 @@
    "version": "float16/1"
   },
   "notes": [],
+  "pass_variability": null,
+  "passes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -395,9 +510,28 @@
    "view_ratio": 0.0
   },
   "rejection": null,
-  "status": "accepted"
+  "status": "accepted",
+  "test": "walk"
  },
  "spm90": {
+  "accuracy": {
+   "cadence": {
+    "error_95": 4.7,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.7 steps/min of the reference.",
+    "status": "validated",
+    "unit": "steps/min"
+   },
+   "peak_knee_flexion": {
+    "note": "Not yet validated: there is no knee-angle reference to check it against yet. Use it to compare your own recordings, not as an exact angle.",
+    "status": "not_yet_validated"
+   },
+   "step_time": {
+    "error_95": 0.024,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b10.024 s of the reference.",
+    "status": "validated",
+    "unit": "s"
+   }
+  },
   "metrics": {
    "cadence": {
     "n": 6,
@@ -427,6 +561,8 @@
    "version": "float16/1"
   },
   "notes": [],
+  "pass_variability": null,
+  "passes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -448,9 +584,11 @@
    "view_ratio": 0.0
   },
   "rejection": null,
-  "status": "accepted"
+  "status": "accepted",
+  "test": "walk"
  },
  "two_people": {
+  "accuracy": {},
   "metrics": {},
   "model": {
    "mediapipe": "1.0.1",
@@ -459,6 +597,8 @@
    "version": "float16/1"
   },
   "notes": [],
+  "pass_variability": null,
+  "passes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -471,9 +611,28 @@
    "code": "multiple_people",
    "message": "More than one person was detected in 100% of the video. Record with only the person who is walking in view."
   },
-  "status": "rejected"
+  "status": "rejected",
+  "test": "walk"
  },
  "yaw15": {
+  "accuracy": {
+   "cadence": {
+    "error_95": 4.7,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.7 steps/min of the reference.",
+    "status": "validated",
+    "unit": "steps/min"
+   },
+   "peak_knee_flexion": {
+    "note": "Not yet validated: there is no knee-angle reference to check it against yet. Use it to compare your own recordings, not as an exact angle.",
+    "status": "not_yet_validated"
+   },
+   "step_time": {
+    "error_95": 0.024,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b10.024 s of the reference.",
+    "status": "validated",
+    "unit": "s"
+   }
+  },
   "metrics": {
    "cadence": {
     "n": 9,
@@ -508,6 +667,8 @@
    "version": "float16/1"
   },
   "notes": [],
+  "pass_variability": null,
+  "passes": [],
   "pipeline_version": "2.0.0",
   "quality": {
    "calibrated": false,
@@ -529,6 +690,7 @@
    "view_ratio": 0.192
   },
   "rejection": null,
-  "status": "accepted"
+  "status": "accepted",
+  "test": "walk"
  }
 }

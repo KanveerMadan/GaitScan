@@ -11,7 +11,8 @@ LEGACY_NOTE = (
     "reliable, so they are no longer shown. Record a new video to get current measurements."
 )
 
-NO_ERROR_RANGES = (
-    "Error ranges for these measurements have not been measured yet. Values are from one side-view "
-    "video of one person and depend on following the recording guidance."
+ERROR_RANGES = (
+    "Error range: in an accuracy check on side-view walks from a public dataset (LJMU, Topham et al. "
+    "2023, CC BY 4.0), 95% of measurements were within this much of the reference. Values are from "
+    "one side-view video of one person and depend on following the recording guidance."
 )

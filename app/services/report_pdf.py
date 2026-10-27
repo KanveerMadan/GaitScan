@@ -2,7 +2,7 @@
 
 Deterministic and in memory: the same stored result always gives the same report, and nothing is
 written to disk (F15). Every interpolated string is escaped before ReportLab parses its markup (F20).
-Plan V3 Phase 3 redesigns this report and adds error ranges.
+Error ranges come from the result's accuracy block (gaitcore/accuracy.py).
 """
 
 import io
@@ -16,7 +16,8 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-from app.core.copy import DISCLAIMER, NO_ERROR_RANGES
+from app.core.copy import DISCLAIMER, ERROR_RANGES
+from gaitcore.accuracy import NOT_YET_VALIDATED, accuracy_for
 
 ROWS = (  # (metric key, label); per-leg metrics have "left"/"right"
     ("cadence", "Cadence"),
@@ -45,6 +46,14 @@ def _fmt(item: dict[str, Any] | None) -> str:
     return f"{item['value']}{sd} {item['unit']} (n = {item['n']})"
 
 
+def _accuracy(a: dict[str, Any] | None) -> str:
+    if not a:
+        return "-"
+    if a.get("status") == NOT_YET_VALIDATED:
+        return "Not yet validated"
+    return f"± {a['error_95']} {a['unit']}"
+
+
 def _table(rows: list[list[Any]], widths: list[float]) -> Table:
     t = Table(rows, colWidths=widths, hAlign="LEFT")
     t.setStyle(
@@ -62,6 +71,8 @@ def _table(rows: list[list[Any]], widths: list[float]) -> Table:
 
 def build_pdf(result: dict[str, Any], patient_name: str | None, created_at: datetime | None) -> bytes:
     metrics: dict[str, Any] = result.get("metrics", {})
+    # Results stored before the accuracy block existed get today's labels.
+    accuracy: dict[str, Any] = result.get("accuracy") or accuracy_for(metrics)
     quality: dict[str, Any] = result.get("quality", {})
     model: dict[str, str] = result.get("model", {})
     story: list[Any] = [
@@ -72,22 +83,53 @@ def build_pdf(result: dict[str, Any], patient_name: str | None, created_at: date
         _p(DISCLAIMER, SMALL),
         _p("Measurements", H2),
     ]
-    rows: list[list[Any]] = [[_p("Measurement"), _p("Left"), _p("Right"), _p("Both legs")]]
+    rows: list[list[Any]] = [[_p("Measurement"), _p("Left"), _p("Right"), _p("Both legs"), _p("Error range")]]
     for key, label in ROWS:
         if key not in metrics:
             continue
         m = metrics[key]
+        acc = _p(_accuracy(accuracy.get(key)), SMALL)
         if isinstance(m, dict) and ("left" in m or "right" in m):
-            rows.append([_p(label), _p(_fmt(m.get("left"))), _p(_fmt(m.get("right"))), _p("")])
+            rows.append([_p(label), _p(_fmt(m.get("left"))), _p(_fmt(m.get("right"))), _p(""), acc])
         else:
-            rows.append([_p(label), _p(""), _p(""), _p(_fmt(m))])
-    story += [_table(rows, [6 * cm, 3.7 * cm, 3.7 * cm, 3.7 * cm]), Spacer(1, 4)]
+            rows.append([_p(label), _p(""), _p(""), _p(_fmt(m)), acc])
+    story += [_table(rows, [4.4 * cm, 3.2 * cm, 3.2 * cm, 3.4 * cm, 2.9 * cm]), Spacer(1, 4)]
     story += [_p(note) for note in result.get("notes") or []]
-    story.append(_p(NO_ERROR_RANGES, SMALL))
+    story += [
+        _p(f"{label}: {accuracy[key]['note']}", SMALL)
+        for key, label in ROWS
+        if key in metrics and key in accuracy and accuracy[key].get("status") == NOT_YET_VALIDATED
+    ]
+    story.append(_p(ERROR_RANGES, SMALL))
     if "step_length" not in metrics:
         story.append(
             _p("Step length and walking speed need a floor calibration and were not measured.", SMALL)
         )
+
+    passes: list[dict[str, Any]] = result.get("passes") or []
+    if passes:
+        story.append(_p("Each pass", H2))
+        p_rows: list[list[Any]] = [[_p("Pass"), _p("Direction"), _p("Steps"), _p("Cadence"), _p("Step time")]]
+        for p in passes:
+            p_rows.append(
+                [
+                    _p(p["pass"]),
+                    _p(str(p["direction"]).replace("_", " ")),
+                    _p(p["steps"]),
+                    _p(_fmt({**p["cadence"], "n": p["steps"]})),
+                    _p(_fmt(p["step_time"])),
+                ]
+            )
+        story.append(_table(p_rows, [1.5 * cm, 3 * cm, 1.6 * cm, 5.5 * cm, 5.5 * cm]))
+        v = result.get("pass_variability")
+        if v:
+            story.append(
+                _p(
+                    f"Spread between passes (SD): cadence {v['cadence_sd']['value']} steps/min, "
+                    f"step time {v['step_time_sd']['value']} s.",
+                    SMALL,
+                )
+            )
 
     strides = quality.get("strides") or {}
     usable = quality.get("usable_frame_fraction")

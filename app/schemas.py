@@ -10,10 +10,14 @@ class Result(BaseModel):
 
     pipeline_version: str
     model: dict[str, str]
+    test: str = "walk"  # absent in results stored before Phase 3 (all walks)
     status: str
     metrics: dict[str, Any]
+    accuracy: dict[str, Any] = {}  # per metric; absent in results stored before Phase 3
     quality: dict[str, Any]
     notes: list[str] = []  # user-facing caveats; absent in results stored before 2026-10-24
+    passes: list[dict[str, Any]] = []  # per walk across the frame; absent before Phase 3
+    pass_variability: dict[str, Any] | None = None
 
 
 class AnalyzeResponse(BaseModel):

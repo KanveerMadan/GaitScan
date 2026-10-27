@@ -194,8 +194,8 @@ def measure_walk(
     calibration: Calibration | None = None,
     tracks: Tracks | None = None,
 ) -> Walk:
-    """Events and per-step/per-stride values. Without `segments` the whole clip is one segment
-    walking the way the feet point (e.g. a treadmill-like synthetic walker)."""
+    """Events and per-step/per-stride values, pooled over the segments. Without `segments` the
+    whole clip is one segment walking the way the feet point (e.g. a walker on a treadmill)."""
     tracks = tracks or build_tracks(clip)
     leg_px = leg_length(tracks)
     walk = Walk(fps=clip.fps, step_lengths_m=[] if calibration else None)
@@ -203,43 +203,73 @@ def measure_walk(
         return walk
     if segments is None:
         segments = [Segment(0, clip.n_frames, facing(tracks))]
-    fps = clip.fps
     sep = heel_separation(clip, leg_px)
     for seg in segments:
-        walk.contact_runs.extend(contact_runs(sep, seg, fps))
-        events = sorted(
-            [(int(f), side) for side in ("L", "R") for f in heel_strikes(tracks, side, seg, leg_px)]
-        )
-        for f, side in events:
-            walk.heel_strikes[side].append(f)
-        # Labelled steps: consecutive strikes of alternate feet.
-        for k in range(1, len(events)):
-            (f0, s0), (f1, s1) = events[k - 1], events[k]
-            dt = (f1 - f0) / fps
-            if s0 == s1 or not (STEP_S_RANGE[0] <= dt <= STEP_S_RANGE[1]):
-                continue
-            walk.step_times.append(dt)
-            walk.step_ends.append(s1)
-            if calibration is not None and walk.step_lengths_m is not None:
-                nxt = events[k + 1][0] if k + 1 < len(events) else min(seg.end, f1 + (f1 - f0))
-                p_new = _floor_position(tracks, s1, f1, nxt, calibration)
-                p_old = _floor_position(tracks, s0, f0, f1, calibration)
-                if p_new is not None and p_old is not None:
-                    walk.step_lengths_m.append(abs(p_new - p_old) * calibration.metres_per_pixel)
-                    walk.step_length_times.append(dt)
-        # Strides: same foot, exactly one strike of the other foot in between.
-        for k in range(2, len(events)):
-            (f0, s0), (_, sm), (f1, s1) = events[k - 2], events[k - 1], events[k]
-            dt = (f1 - f0) / fps
-            if not (s0 == s1 != sm and STRIDE_S_RANGE[0] <= dt <= STRIDE_S_RANGE[1]):
-                continue
-            walk.stride_times[s0].append(dt)
-            sl = slice(f0, f1 + 1)
-            hip, knee, ankle = (tracks[(s0, n)][sl] for n in ("hip", "knee", "ankle"))
-            if np.isfinite(np.c_[hip, knee, ankle]).all():
-                walk.knee_peak_flexion[s0].append(
-                    float(np.max(knee_flexion(hip, knee, ankle, seg.direction)))
-                )
-                th = thigh_angle(hip, knee, seg.direction)
-                walk.hip_excursion[s0].append(float(np.max(th) - np.min(th)))
+        _measure_segment(walk, tracks, sep, seg, leg_px, calibration)
     return walk
+
+
+def measure_passes(
+    clip: Clip,
+    segments: list[Segment],
+    calibration: Calibration | None = None,
+    tracks: Tracks | None = None,
+) -> list[Walk]:
+    """measure_walk for each walk across the frame (segments sharing a pass_index), in order.
+    Nothing crosses a segment boundary, so the passes' values together are measure_walk's."""
+    tracks = tracks or build_tracks(clip)
+    leg_px = leg_length(tracks)
+    if not math.isfinite(leg_px) or leg_px <= 0:
+        return []
+    sep = heel_separation(clip, leg_px)
+    walks: dict[int, Walk] = {}
+    for seg in segments:
+        walk = walks.setdefault(
+            seg.pass_index, Walk(fps=clip.fps, step_lengths_m=[] if calibration else None)
+        )
+        _measure_segment(walk, tracks, sep, seg, leg_px, calibration)
+    return [walks[k] for k in sorted(walks)]
+
+
+def _measure_segment(
+    walk: Walk,
+    tracks: Tracks,
+    sep: npt.NDArray[np.float64],
+    seg: Segment,
+    leg_px: float,
+    calibration: Calibration | None,
+) -> None:
+    """Add one segment's events and values to `walk`."""
+    fps = walk.fps
+    walk.contact_runs.extend(contact_runs(sep, seg, fps))
+    events = sorted([(int(f), side) for side in ("L", "R") for f in heel_strikes(tracks, side, seg, leg_px)])
+    for f, side in events:
+        walk.heel_strikes[side].append(f)
+    # Labelled steps: consecutive strikes of alternate feet.
+    for k in range(1, len(events)):
+        (f0, s0), (f1, s1) = events[k - 1], events[k]
+        dt = (f1 - f0) / fps
+        if s0 == s1 or not (STEP_S_RANGE[0] <= dt <= STEP_S_RANGE[1]):
+            continue
+        walk.step_times.append(dt)
+        walk.step_ends.append(s1)
+        if calibration is not None and walk.step_lengths_m is not None:
+            nxt = events[k + 1][0] if k + 1 < len(events) else min(seg.end, f1 + (f1 - f0))
+            p_new = _floor_position(tracks, s1, f1, nxt, calibration)
+            p_old = _floor_position(tracks, s0, f0, f1, calibration)
+            if p_new is not None and p_old is not None:
+                walk.step_lengths_m.append(abs(p_new - p_old) * calibration.metres_per_pixel)
+                walk.step_length_times.append(dt)
+    # Strides: same foot, exactly one strike of the other foot in between.
+    for k in range(2, len(events)):
+        (f0, s0), (_, sm), (f1, s1) = events[k - 2], events[k - 1], events[k]
+        dt = (f1 - f0) / fps
+        if not (s0 == s1 != sm and STRIDE_S_RANGE[0] <= dt <= STRIDE_S_RANGE[1]):
+            continue
+        walk.stride_times[s0].append(dt)
+        sl = slice(f0, f1 + 1)
+        hip, knee, ankle = (tracks[(s0, n)][sl] for n in ("hip", "knee", "ankle"))
+        if np.isfinite(np.c_[hip, knee, ankle]).all():
+            walk.knee_peak_flexion[s0].append(float(np.max(knee_flexion(hip, knee, ankle, seg.direction))))
+            th = thigh_angle(hip, knee, seg.direction)
+            walk.hip_excursion[s0].append(float(np.max(th) - np.min(th)))

@@ -1,0 +1,125 @@
+{
+ "dataset": "LJMU 360 Degree Gait Capture (Topham et al. 2023, Scientific Data 10:320, CC BY 4.0), 90 deg view",
+ "reference": "heel strikes: AI-annotated + cross-checked (visual), or RTMPose-x footprints; see evaluate.py",
+ "notes": [
+  "test clips: the 21 accepted ones among 102 side-view clips never used before (2026-10-26), so their acceptance is 100% by construction; they share participants with the tuning clips",
+  "where the pipeline and RTMPose disagreed by > 5 steps/min the strikes were counted visually (visual_coarse): 8 tuning and 2 test clips; in both test clips RTMPose was wrong",
+  "stride time, step length, walking speed and knee angles are not checked here (see evaluate.py)"
+ ],
+ "generated": "2026-10-26",
+ "pipeline_version": "2.0.0",
+ "model": {
+  "name": "pose_landmarker_full",
+  "version": "float16/1",
+  "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
+  "mediapipe": "1.0.1"
+ },
+ "all": {
+  "clips": 109,
+  "participants": 57,
+  "accepted": 97,
+  "rejections": {
+   "irregular_steps": 8,
+   "too_little_walking": 4
+  },
+  "accepted_without_reference": 0,
+  "per_leg_values_shown": 32,
+  "cadence_steps_per_min": {
+   "n": 97,
+   "mae": 1.55,
+   "rmse": 2.08,
+   "bias": -0.02,
+   "sd": 2.09,
+   "p95_abs": 4.67,
+   "max_abs": 5.38,
+   "limits_of_agreement": [
+    -4.11,
+    4.07
+   ]
+  },
+  "step_time_ms": {
+   "n": 97,
+   "mae": 7.74,
+   "rmse": 10.69,
+   "bias": 0.18,
+   "sd": 10.74,
+   "p95_abs": 23.5,
+   "max_abs": 32.8,
+   "limits_of_agreement": [
+    -20.87,
+    21.23
+   ]
+  }
+ },
+ "tuning": {
+  "clips": 88,
+  "participants": 56,
+  "accepted": 76,
+  "rejections": {
+   "irregular_steps": 8,
+   "too_little_walking": 4
+  },
+  "accepted_without_reference": 0,
+  "per_leg_values_shown": 22,
+  "cadence_steps_per_min": {
+   "n": 76,
+   "mae": 1.68,
+   "rmse": 2.2,
+   "bias": -0.14,
+   "sd": 2.21,
+   "p95_abs": 4.88,
+   "max_abs": 5.38,
+   "limits_of_agreement": [
+    -4.47,
+    4.19
+   ]
+  },
+  "step_time_ms": {
+   "n": 76,
+   "mae": 8.47,
+   "rmse": 11.45,
+   "bias": 0.83,
+   "sd": 11.49,
+   "p95_abs": 26.7,
+   "max_abs": 32.8,
+   "limits_of_agreement": [
+    -21.69,
+    23.35
+   ]
+  }
+ },
+ "test": {
+  "clips": 21,
+  "participants": 12,
+  "accepted": 21,
+  "rejections": {},
+  "accepted_without_reference": 0,
+  "per_leg_values_shown": 10,
+  "cadence_steps_per_min": {
+   "n": 21,
+   "mae": 1.1,
+   "rmse": 1.55,
+   "bias": 0.43,
+   "sd": 1.52,
+   "p95_abs": 2.36,
+   "max_abs": 4.62,
+   "limits_of_agreement": [
+    -2.55,
+    3.42
+   ]
+  },
+  "step_time_ms": {
+   "n": 21,
+   "mae": 5.1,
+   "rmse": 7.3,
+   "bias": -2.18,
+   "sd": 7.14,
+   "p95_abs": 16.9,
+   "max_abs": 19.3,
+   "limits_of_agreement": [
+    -16.18,
+    11.82
+   ]
+  }
+ }
+}

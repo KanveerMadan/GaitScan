@@ -12,8 +12,9 @@ from synthetic import LEG, M_PER_PX, knee_flexion_truth, synthetic_clip
 
 from gaitcore import quality
 from gaitcore.calibration import Calibration, CalibrationError
-from gaitcore.gait import leg_length, measure_walk
-from gaitcore.pipeline import analyse
+from gaitcore.clip import Clip
+from gaitcore.gait import leg_length, measure_passes, measure_walk
+from gaitcore.pipeline import UnsupportedTest, analyse
 from gaitcore.segments import steady_segments
 from gaitcore.signals import build_tracks, lowpass, masked_xy
 
@@ -167,11 +168,6 @@ def flip_legs(clip, fraction, seed):
     return clip
 
 
-LEG_FLIPS_UNFIXED = pytest.mark.xfail(
-    strict=True, reason="per-foot heel strikes still follow the leg labels; label flips not handled yet"
-)
-
-
 @pytest.mark.parametrize("seed", [0, 1, 2, 3])
 def test_brief_left_right_leg_flips_never_give_a_wrong_cadence(seed):
     r = analyse(flip_legs(synthetic_clip(steps_per_min=110)[0], 0.10, seed))
@@ -189,6 +185,16 @@ def test_cadence_and_step_time_do_not_depend_on_the_left_right_labels():
         assert r.accepted, (fraction, r.rejection)
         assert r.metrics["cadence"] == base.metrics["cadence"], fraction
         assert r.metrics["step_time"] == base.metrics["step_time"], fraction
+
+
+# A continuity correction (two-state Viterbi per pass, _audit/sandbox/ljmu_cache/scripts/legfix.py)
+# passes this on the synthetic walker, but on LJMU (Topham et al. 2023, CC BY 4.0; 77 accepted clips,
+# 2026-10-26) it left per-leg stride time as wrong as before (MAE 241 -> 246 ms vs 2x the reference
+# step time): there the labels mostly follow the legs' position, so 37/110 legs read one step as a
+# stride. Not shipped; stride time stays withheld.
+LEG_FLIPS_UNFIXED = pytest.mark.xfail(
+    strict=True, reason="per-foot heel strikes follow the leg labels; no label correction is shipped"
+)
 
 
 @pytest.mark.parametrize("seed", [pytest.param(s, marks=LEG_FLIPS_UNFIXED) for s in (0, 1, 2, 3)])
@@ -407,6 +413,39 @@ def test_per_leg_values_are_hidden_when_left_and_right_steps_are_too_variable():
     assert "stride" not in LEGS_NOT_TOLD_APART.lower()  # stride time isn't shown at all
 
 
+def test_per_leg_values_are_hidden_when_a_legs_strides_are_not_two_steps_long():
+    """On LJMU the labels often follow the legs' position in the image, and a 'stride' of one label is
+    then one step. A leg's median stride time must be within MAX_STRIDE_MISMATCH of twice the
+    label-free step time, or per-leg values are withheld."""
+    from gaitcore.gait import Walk
+    from gaitcore.result import LEGS_NOT_TOLD_APART, metrics_from_walk, notes_from_walk
+
+    def walk(left_strides):
+        return Walk(
+            fps=30.0,
+            contact_runs=[[0.0, 0.55, 1.1, 1.65, 2.2, 2.75, 3.3]],
+            step_times=[0.55, 0.56, 0.54, 0.55, 0.55, 0.56],
+            stride_times={"L": left_strides, "R": [1.1, 1.1, 1.1]},
+            knee_peak_flexion={"L": [60.0, 61.0, 59.0], "R": [58.0, 60.0, 59.0]},
+        )
+
+    assert metrics_from_walk(walk([1.05, 1.1, 1.15]))["peak_knee_flexion"]["left"] is not None
+    halved = walk([0.55, 0.55, 1.1])
+    assert metrics_from_walk(halved)["peak_knee_flexion"] == {"left": None, "right": None}
+    assert notes_from_walk(halved) == [LEGS_NOT_TOLD_APART]
+
+
+@pytest.mark.parametrize("seed", range(8))
+def test_knee_values_under_brief_leg_flips_are_hidden_or_right(seed):
+    """10% of frames flipped: the stride check hides the per-leg values whenever a leg's strides come
+    out short. (At 5%, 2 of 8 seeds still show a left knee 4-6 deg low with normal strides: Phase 8.)"""
+    base = analyse(synthetic_clip()[0]).metrics["peak_knee_flexion"]
+    knee = analyse(flip_legs(synthetic_clip()[0], 0.10, seed)).metrics["peak_knee_flexion"]
+    for side in ("left", "right"):
+        if knee[side] is not None:
+            assert knee[side]["value"] == pytest.approx(base[side]["value"], abs=1.0), side
+
+
 def test_result_carries_user_facing_notes():
     assert analyse(synthetic_clip()[0]).to_dict()["notes"] == []
 
@@ -469,3 +508,116 @@ def test_only_kept_metrics_are_returned():
     time is withheld until Phase 3: brief left/right flips make it wrong without any warning."""
     metrics = analyse(synthetic_clip()[0]).to_dict()["metrics"]
     assert set(metrics) == {"cadence", "step_time", "peak_knee_flexion"}
+
+
+# ---- passes, test types, treadmill (Phase 3) ---------------------------------------------------
+def surge(clip, start_s, secs=0.6, px=60.0):
+    """The walker speeds up briefly mid-pass: every landmark moves px further over secs."""
+    t = np.arange(clip.n_frames) / clip.fps
+    u = np.clip((t - start_s) / secs, 0, 1)
+    shift = px * (1 - np.cos(np.pi * u)) / 2 / clip.width
+    lm = clip.landmarks.copy()
+    for c in lm:
+        if c.endswith("_x"):
+            lm[c] = lm[c] + shift
+    return Clip(lm, clip.fps, clip.width, clip.height)
+
+
+def on_treadmill(clip):
+    """The same walker on a treadmill: the pelvis held still mid-frame, the feet carried back."""
+    lm = clip.landmarks.copy()
+    pelvis = (lm["lm23_x"] + lm["lm24_x"]) / 2
+    for c in lm:
+        if c.endswith("_x"):
+            lm[c] = lm[c] - pelvis + 0.5
+    return Clip(lm, clip.fps, clip.width, clip.height)
+
+
+def test_each_steady_segment_knows_its_walk_across():
+    _, segs = walk_of(synthetic_clip(passes=3)[0])
+    assert [s.pass_index for s in segs] == [0, 1, 2]
+
+
+def test_a_speed_change_mid_pass_splits_the_segment_not_the_pass():
+    clip = surge(synthetic_clip(passes=2, pass_secs=6.0, width=2000)[0], 2.5)
+    _, segs = walk_of(clip)
+    assert len(segs) > 2  # the surge isn't steady walking
+    assert sorted({s.pass_index for s in segs}) == [0, 1]
+    assert analyse(clip).quality["passes"] == 2
+
+
+def test_per_pass_walks_pool_to_the_whole_walk():
+    clip, truth = synthetic_clip(passes=3, pass_secs=6.0, width=2000)
+    tracks = build_tracks(clip)
+    segs = steady_segments(clip, tracks, leg_length(tracks))
+    passes = measure_passes(clip, segs, tracks=tracks)
+    whole = measure_walk(clip, segs, tracks=tracks)
+    assert len(passes) == 3
+    for p in passes:
+        assert p.step_count >= 6 and p.cadence == pytest.approx(truth.cadence, abs=2)
+    for name in ("contact_runs", "step_times", "step_ends"):
+        assert [x for p in passes for x in getattr(p, name)] == getattr(whole, name)
+    for name in ("heel_strikes", "stride_times", "knee_peak_flexion", "hip_excursion"):
+        for s in ("L", "R"):
+            assert [x for p in passes for x in getattr(p, name)[s]] == getattr(whole, name)[s]
+
+
+def test_result_names_its_test():
+    assert analyse(synthetic_clip()[0]).to_dict()["test"] == "walk"
+    assert analyse(synthetic_clip(fps=15)[0]).to_dict()["test"] == "walk"  # rejected ones too
+
+
+def test_a_test_without_a_validated_analysis_is_refused():
+    with pytest.raises(UnsupportedTest):
+        analyse(synthetic_clip()[0], test="sit_to_stand")
+
+
+def test_treadmill_walk_is_rejected_until_treadmill_mode_has_its_own_view_check():
+    clip = on_treadmill(synthetic_clip(passes=1, pass_secs=12.0, ramp_secs=0.3)[0])
+    assert analyse(clip).rejection.code == "view_unconfirmed"
+
+
+def test_event_timing_works_for_a_walker_who_never_crosses_the_frame():
+    """What treadmill mode can build on: steps are timed without the pelvis moving across the image."""
+    clip, truth = synthetic_clip(passes=1, pass_secs=12.0, ramp_secs=0.3)
+    walk = measure_walk(on_treadmill(clip))
+    assert walk.step_count >= 15
+    assert walk.cadence == pytest.approx(truth.cadence, abs=2)
+
+
+def test_metrics_without_a_reference_check_are_marked_not_yet_validated():
+    """No knee-angle reference without OpenCap (Phase 8); calibrated distances are checked on the
+    synthetic walker only."""
+    clip, truth = synthetic_clip()
+    acc = analyse(clip, floor_calibration(truth)).to_dict()["accuracy"]
+    for name in ("peak_knee_flexion", "step_length", "walking_speed"):
+        assert acc[name]["status"] == "not_yet_validated", name
+        assert "not yet validated" in acc[name]["note"].lower()
+    assert analyse(synthetic_clip(fps=15)[0]).to_dict()["accuracy"] == {}  # rejected: no metrics
+
+
+def test_each_pass_gets_its_own_cadence_and_the_spread_between_passes():
+    clip, truth = synthetic_clip(passes=3, pass_secs=6.0, width=2000)
+    d = analyse(clip).to_dict()
+    assert [p["pass"] for p in d["passes"]] == [1, 2, 3]
+    assert [p["direction"] for p in d["passes"]] == ["left_to_right", "right_to_left", "left_to_right"]
+    for p in d["passes"]:
+        assert p["steps"] >= quality.MIN_STEPS
+        assert (
+            p["cadence"]["value"] == pytest.approx(truth.cadence, abs=2)
+            and p["cadence"]["unit"] == "steps/min"
+        )
+        assert (
+            p["step_time"]["value"] == pytest.approx(60 / truth.cadence, abs=0.01)
+            and p["step_time"]["unit"] == "s"
+        )
+    v = d["pass_variability"]
+    assert v["passes"] == 3 and 0 <= v["cadence_sd"]["value"] < 2 and v["cadence_sd"]["unit"] == "steps/min"
+    assert v["step_time_sd"]["unit"] == "s"
+
+
+def test_passes_with_too_few_steps_get_no_values_of_their_own():
+    """Each pass of the default walker holds 3 steps: the clip's cadence pools them, but no pass is
+    timed alone (the same MIN_STEPS resolution bound as the whole clip)."""
+    d = analyse(synthetic_clip()[0]).to_dict()
+    assert d["status"] == "accepted" and d["passes"] == [] and d["pass_variability"] is None

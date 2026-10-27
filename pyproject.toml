@@ -48,6 +48,9 @@ dev = [
     "types-reportlab>=5.0.0.20260911",
     "scipy-stubs>=1.17.1.5",
 ]
+evaluate = [
+    "scikit-learn>=1.7",
+]
 
 [tool.uv]
 package = false
@@ -83,10 +86,11 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S", "B", "T20"]
+"evaluation/*" = ["T20", "S603", "S607"]  # command-line scripts
 
 [tool.mypy]
 python_version = "3.11"
-files = ["gaitcore", "app"]
+files = ["gaitcore", "app", "evaluation"]
 exclude = ["_audit/", "alembic/"]
 warn_redundant_casts = true
 warn_unused_ignores = true
@@ -110,4 +114,8 @@ extra_checks = true
 # mediapipe 1.0.1 ships neither stubs nor py.typed.
 [[tool.mypy.overrides]]
 module = "mediapipe.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["remotezip", "zipfile_deflate64", "sklearn.*"]  # make fetch-ljmu (uv run --with) and the evaluate group
 ignore_missing_imports = true

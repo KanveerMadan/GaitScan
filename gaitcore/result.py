@@ -12,9 +12,11 @@ from typing import Any
 import numpy as np
 
 from gaitcore import __version__, model
+from gaitcore.accuracy import accuracy_for
 from gaitcore.gait import Walk
 from gaitcore.quality import Rejection
 
+WALK = "walk"  # the test type: the only one so far (pipeline.TESTS)
 MIN_STRIDES_PER_LEG = 3  # a median of >= 3 strides can't be set by one bad stride
 LEG = {"L": "left", "R": "right"}
 
@@ -28,6 +30,12 @@ LEG = {"L": "left", "R": "right"}
 # synthetic walker keep the CV at 0.06-0.11 while per-leg stride times read up to 26% short, so this
 # check doesn't catch every label problem.
 MAX_LABELLED_STEP_CV = 0.20
+# A leg's median stride time must also be within MAX_STRIDE_MISMATCH of twice the label-free mean
+# step time. On LJMU the labels often follow the legs' position in the image rather than the leg, and
+# one label's "stride" is then a single step. Data (2026-10-26, 77 accepted LJMU clips, 110 legs
+# with >= 3 strides, vs twice the reference step time): stride / reference was 0.91-1.05 for 56
+# legs and <= 0.88 for the rest (37 at 0.48-0.62: one step), so +-10% keeps every correct leg.
+MAX_STRIDE_MISMATCH = 0.10
 LEGS_NOT_TOLD_APART = (
     "Left and right legs couldn't be told apart reliably in this video, so peak knee flexion isn't "
     "shown for each leg. Cadence and step time don't depend on telling the legs apart."
@@ -55,7 +63,14 @@ def _per_leg(values: dict[str, list[float]], unit: str, digits: int, centre: str
 
 def legs_told_apart(walk: Walk) -> bool:
     t = np.asarray(walk.step_times, dtype=float)
-    return len(t) < 2 or float(np.std(t, ddof=1) / np.mean(t)) <= MAX_LABELLED_STEP_CV
+    if len(t) >= 2 and float(np.std(t, ddof=1) / np.mean(t)) > MAX_LABELLED_STEP_CV:
+        return False
+    stride = 2 * walk.mean_step_time
+    return all(
+        abs(float(np.median(walk.stride_times[s])) / stride - 1) <= MAX_STRIDE_MISMATCH
+        for s in ("L", "R")
+        if len(walk.stride_times[s]) >= MIN_STRIDES_PER_LEG and math.isfinite(stride)
+    )
 
 
 def notes_from_walk(walk: Walk) -> list[str]:
@@ -89,6 +104,37 @@ def metrics_from_walk(walk: Walk) -> dict[str, Any]:
     return m
 
 
+def pass_results(walks: list[tuple[int, float, Walk]], min_steps: int) -> list[dict[str, Any]]:
+    """Cadence and step time of each walk across the frame (pass_index, direction, walk) that holds
+    at least `min_steps` steps (quality.MIN_STEPS, the same resolution bound as the whole clip)."""
+    return [
+        {
+            "pass": k + 1,
+            "direction": "left_to_right" if direction > 0 else "right_to_left",
+            "steps": w.step_count,
+            "cadence": {"value": round(w.cadence, 1), "unit": "steps/min"},
+            "step_time": {
+                **_summary(w.contact_step_times, "s", 3, "mean"),
+                "value": round(w.mean_step_time, 3),
+            },
+        }
+        for k, direction, w in walks
+        if w.step_count >= min_steps
+    ]
+
+
+def pass_variability(passes: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """SD of the per-pass values between passes; None with fewer than two timed passes."""
+    if len(passes) < 2:
+        return None
+    sd = {m: float(np.std([p[m]["value"] for p in passes], ddof=1)) for m in ("cadence", "step_time")}
+    return {
+        "passes": len(passes),
+        "cadence_sd": {"value": round(sd["cadence"], 1), "unit": "steps/min"},
+        "step_time_sd": {"value": round(sd["step_time"], 3), "unit": "s"},
+    }
+
+
 def model_info() -> dict[str, str]:
     return {
         "name": model.NAME,
@@ -105,6 +151,9 @@ class AnalysisResult:
     metrics: dict[str, Any] = field(default_factory=dict)
     quality: dict[str, Any] = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)  # user-facing caveats about an accepted result
+    test: str = WALK
+    passes: list[dict[str, Any]] = field(default_factory=list)  # per walk across the frame
+    pass_variability: dict[str, Any] | None = None
     pipeline_version: str = __version__
 
     @property
@@ -115,13 +164,17 @@ class AnalysisResult:
         return {
             "pipeline_version": self.pipeline_version,
             "model": model_info(),
+            "test": self.test,
             "status": self.status,
             "rejection": None
             if self.rejection is None
             else {"code": self.rejection.code, "message": self.rejection.message},
             "metrics": self.metrics,
+            "accuracy": accuracy_for(self.metrics),
             "quality": _clean(self.quality),
             "notes": list(self.notes),
+            "passes": self.passes,
+            "pass_variability": self.pass_variability,
         }
 
 
