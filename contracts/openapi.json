@@ -297,6 +297,19 @@
     "title": "ConsentStatus",
     "type": "object"
    },
+   "DeleteAccount": {
+    "properties": {
+     "password": {
+      "title": "Password",
+      "type": "string"
+     }
+    },
+    "required": [
+     "password"
+    ],
+    "title": "DeleteAccount",
+    "type": "object"
+   },
    "HTTPValidationError": {
     "properties": {
      "detail": {
@@ -1476,6 +1489,69 @@
     "summary": "Healthz"
    }
   },
+  "/me": {
+   "delete": {
+    "operationId": "delete_account_me_delete",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/DeleteAccount"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Delete Account",
+    "tags": [
+     "privacy"
+    ]
+   }
+  },
+  "/me/export": {
+   "get": {
+    "operationId": "export_my_data_me_export_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Export My Data",
+    "tags": [
+     "privacy"
+    ]
+   }
+  },
   "/patient/join": {
    "post": {
     "operationId": "join_clinician_patient_join_post",
@@ -1596,6 +1672,44 @@
    }
   },
   "/sessions/{session_id}": {
+   "delete": {
+    "operationId": "delete_session_sessions__session_id__delete",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "session_id",
+      "required": true,
+      "schema": {
+       "title": "Session Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Delete Session",
+    "tags": [
+     "privacy"
+    ]
+   },
    "get": {
     "operationId": "get_session_sessions__session_id__get",
     "parameters": [
