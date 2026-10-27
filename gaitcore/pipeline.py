@@ -9,7 +9,7 @@ import cv2
 from gaitcore import quality
 from gaitcore.calibration import Calibration
 from gaitcore.clip import Clip
-from gaitcore.gait import leg_length, measure_passes, measure_walk
+from gaitcore.gait import leg_length, measure_passes, measure_walk, typical_step_s
 from gaitcore.result import (
     WALK,
     AnalysisResult,
@@ -19,8 +19,8 @@ from gaitcore.result import (
     pass_results,
     pass_variability,
 )
-from gaitcore.segments import steady_segments
-from gaitcore.signals import build_tracks
+from gaitcore.segments import SMOOTH_RANGE_S, SMOOTH_S, Segment, steady_segments
+from gaitcore.signals import Tracks, build_tracks
 
 
 class UnsupportedTest(ValueError):
@@ -55,16 +55,33 @@ def analyse(clip: Clip, calibration: Calibration | None = None, test: str = WALK
     return result
 
 
+@dataclass(frozen=True)
+class Walking:
+    segments: list[Segment]
+    window_s: float  # steadiness window: the walker's own step time, within SMOOTH_RANGE_S
+    dropped: quality.Dropped
+
+
+def walking(clip: Clip, tracks: Tracks, leg_px: float) -> Walking:
+    """The steady walking a walk is measured on (segments.py), minus the dropped stretches."""
+    dropped = quality.dropped_stretches(clip)
+    if not math.isfinite(leg_px):
+        return Walking([], SMOOTH_S, dropped)
+    step = typical_step_s(clip, tracks, leg_px)
+    window = SMOOTH_S if step is None else min(max(step, SMOOTH_RANGE_S[0]), SMOOTH_RANGE_S[1])
+    return Walking(steady_segments(clip, tracks, leg_px, window, dropped.usable), window, dropped)
+
+
 def _analyse_walk(clip: Clip, calibration: Calibration | None, q: dict[str, object]) -> AnalysisResult:
     """Overground walk filmed side-on: steady passes across the frame (ADR-006)."""
     q["feet_visible_fraction"] = round(quality.feet_fraction(clip), 3)
-    r = quality.feet(clip)
-    if r:
-        return _rejected(r, q)
-
     tracks = build_tracks(clip)
     leg_px = leg_length(tracks)
-    segments = steady_segments(clip, tracks, leg_px) if math.isfinite(leg_px) else []
+    w = walking(clip, tracks, leg_px)
+    segments = w.segments
+    q["steadiness_window_s"] = round(w.window_s, 3)
+    q["second_person_s"] = round(w.dropped.second_person_s, 2)
+    q["heels_hidden_s"] = round(w.dropped.heels_hidden_s, 2)
     ratio = quality.view_ratio(clip, tracks, segments)
     q["view_ratio"] = round(ratio, 3) if math.isfinite(ratio) else None
     q["passes"] = len({s.pass_index for s in segments})
@@ -73,7 +90,7 @@ def _analyse_walk(clip: Clip, calibration: Calibration | None, q: dict[str, obje
     q["usable_frame_fraction"] = round(steady_frames / clip.n_frames, 3)
     convergence = quality.path_convergence(clip, tracks, leg_px) if math.isfinite(leg_px) else math.nan
     q["path_convergence_deg"] = round(convergence, 1) if math.isfinite(convergence) else None
-    r = quality.side_view(ratio) or quality.path_view(convergence)
+    r = quality.side_view(ratio) or quality.name_the_cause(quality.path_view(convergence), w.dropped)
     if r:
         return _rejected(r, q)
 
@@ -82,9 +99,9 @@ def _analyse_walk(clip: Clip, calibration: Calibration | None, q: dict[str, obje
     q["strides"] = {"left": len(walk.stride_times["L"]), "right": len(walk.stride_times["R"])}
     cv = quality.step_time_cv(walk.contact_step_times)
     q["step_time_cv"] = round(cv, 3) if math.isfinite(cv) else None
-    r = quality.enough_walking(walk.step_count, steady_frames / clip.fps) or quality.regular_steps(
-        walk.contact_step_times
-    )
+    r = quality.name_the_cause(
+        quality.enough_walking(walk.step_count, steady_frames / clip.fps), w.dropped
+    ) or quality.regular_steps(walk.contact_step_times)
     if r:
         return _rejected(r, q)
     direction = {s.pass_index: s.direction for s in segments}

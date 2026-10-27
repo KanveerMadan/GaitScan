@@ -59,7 +59,7 @@ from scipy.signal import find_peaks, peak_widths
 from gaitcore.angles import knee_flexion, thigh_angle
 from gaitcore.calibration import Calibration
 from gaitcore.clip import Clip
-from gaitcore.segments import Segment
+from gaitcore.segments import V_MIN, Segment, pelvis_in_view, pelvis_speed
 from gaitcore.signals import SIDES, Tracks, build_tracks, lowpass, raw_xy, runs, single_person
 
 MIN_STRIDE_S = 0.5
@@ -67,6 +67,7 @@ PROMINENCE = 0.1
 STEP_S_RANGE = (0.25, 2.0)
 STRIDE_S_RANGE = (0.5, 4.0)
 CURVE_POINTS = 101  # 0-100% of the stride
+MIN_TYPICAL_STEPS = 4  # a median of fewer is one stray event away from wrong
 
 
 def leg_length(tracks: Tracks) -> float:
@@ -127,6 +128,22 @@ def contact_runs(sep: npt.NDArray[np.float64], seg: Segment, fps: float) -> list
             run.append(float(t))
         out.append(run)
     return [r for r in out if len(r) >= 2]
+
+
+def typical_step_s(clip: Clip, tracks: Tracks, leg_px: float) -> float | None:
+    """The walker's own step time (s): median of the label-free step times over every stretch of
+    walking across the frame, steady or not (it sizes the steadiness window, so it can't need it).
+    None with fewer than MIN_TYPICAL_STEPS steps."""
+    with np.errstate(invalid="ignore"):
+        moving = pelvis_in_view(clip) & (np.abs(pelvis_speed(tracks, leg_px)) >= V_MIN)
+    sep = heel_separation(clip, leg_px)
+    steps = [
+        float(d)
+        for a, b in runs(moving)
+        for run in contact_runs(sep, Segment(a, b, 1.0), clip.fps)
+        for d in np.diff(run)
+    ]
+    return float(np.median(steps)) if len(steps) >= MIN_TYPICAL_STEPS else None
 
 
 @dataclass

@@ -378,8 +378,8 @@ def with_feet_cut_off(clip, start_s, end_s):
     return Clip(lm, clip.fps, clip.width, clip.height)
 
 
-# Three 8 s passes with 1.5 s turns: pass k runs from 9.5k to 9.5k + 8 s.
-THREE_PASSES = {"passes": 3, "pass_secs": 8.0}
+# Three 8 s passes with 1.5 s turns (pass k runs from 9.5k to 9.5k + 8 s), always in the frame.
+THREE_PASSES = {"passes": 3, "pass_secs": 8.0, "width": 2000}
 
 
 def test_a_second_person_in_part_of_the_video_drops_only_that_part():
@@ -422,6 +422,31 @@ def test_the_rejection_names_a_second_person_who_left_too_little_walking():
     r = analyse(with_second_person(clip, 0, 11.0))  # two of three short passes
     assert r.rejection is not None and r.rejection.code == "multiple_people"
     assert "11 s" in r.rejection.message and "only the person who is walking" in r.rejection.message
+
+
+def test_the_rejection_names_a_second_person_seen_on_and_off():
+    """Pose models often see a bystander for a few frames at a time: each burst is shorter than a step,
+    so nothing is dropped, but every such frame is masked and breaks up the walking."""
+    clip, _ = synthetic_clip(passes=3, pass_secs=4.0)
+    for start in np.arange(0, 11.0, 0.4):
+        clip = with_second_person(clip, start, start + 0.2)
+    r = analyse(clip)
+    assert r.rejection is not None and r.rejection.code == "multiple_people"
+    assert r.quality["second_person_s"] == pytest.approx(5.5, abs=0.2)
+
+
+def test_frames_with_two_people_do_not_decide_the_orientation():
+    """With two people the pose may belong to either, e.g. someone sitting (LJMU P2_E1T5: 72% of
+    frames with two people read as a sideways walker)."""
+    clip, _ = synthetic_clip(passes=3, pass_secs=4.0)
+    clip = with_second_person(clip, 0, 11.0)
+    lm, rows = clip.landmarks, slice(0, int(11.0 * clip.fps) - 1)
+    for i in range(33):  # the other person's pose, lying across the frame
+        lm.loc[rows, f"lm{i}_x"], lm.loc[rows, f"lm{i}_y"] = (
+            lm.loc[rows, f"lm{i}_y"],
+            lm.loc[rows, f"lm{i}_x"],
+        )
+    assert analyse(clip).rejection.code == "multiple_people"
 
 
 def test_the_rejection_names_feet_out_of_view_that_left_too_little_walking():
