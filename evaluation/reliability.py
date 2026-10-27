@@ -13,9 +13,11 @@ a constant interval (the calibration quantile of |error|), which is what the app
 
 Run: uv run --group evaluate python -m evaluation.reliability  (writes results/reliability.json)
 
-Result (2026-10-27, 527 accepted runs, 54 participants): not shipped. The intervals reach their
-coverage, but the predicted error barely ranks clips by real error (Spearman ~0.1), and rejecting the
-worst-predicted 10-20% leaves the share of large errors where random rejection would. Within what the
+Result (2026-10-28, 536 accepted runs, 54 participants, on the step-sized steadiness window): not
+shipped. The predicted error barely ranks clips by real error (Spearman 0.13 for cadence and step
+time), rejecting the worst-predicted 10-20% leaves the share of large errors where random rejection
+would, and the 90% intervals cover 86-87% (gradient boosting). The first run (2026-10-27, 527 runs)
+gave the same picture (Spearman 0.11, coverage 0.89-0.91). Within what the
 gate accepts, the remaining error is close to the reference's own noise and not predictable from these
 quality measures.
 """

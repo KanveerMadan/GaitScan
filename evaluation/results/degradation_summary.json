@@ -6,28 +6,28 @@
    "rejections": {},
    "cadence_steps_per_min": {
     "n": 54,
-    "mae": 1.76,
-    "rmse": 2.25,
-    "bias": -0.11,
-    "sd": 2.27,
-    "p95_abs": 4.71,
-    "max_abs": 5.01,
+    "mae": 1.75,
+    "rmse": 2.26,
+    "bias": -0.01,
+    "sd": 2.29,
+    "p95_abs": 4.51,
+    "max_abs": 6.41,
     "limits_of_agreement": [
-     -4.56,
-     4.33
+     -4.49,
+     4.47
     ]
    },
    "step_time_ms": {
     "n": 54,
-    "mae": 8.69,
-    "rmse": 11.47,
-    "bias": 0.49,
-    "sd": 11.56,
-    "p95_abs": 25.07,
-    "max_abs": 30.3,
+    "mae": 8.6,
+    "rmse": 11.4,
+    "bias": -0.03,
+    "sd": 11.51,
+    "p95_abs": 23.87,
+    "max_abs": 34.9,
     "limits_of_agreement": [
-     -22.17,
-     23.16
+     -22.59,
+     22.52
     ]
    }
   }
@@ -35,36 +35,36 @@
  "resolution": {
   "320.0": {
    "clips": 54,
-   "accepted": 32,
+   "accepted": 35,
    "rejections": {
     "irregular_steps": 4,
-    "legs_not_tracked": 8,
+    "legs_not_tracked": 5,
     "too_little_walking": 10
    },
    "cadence_steps_per_min": {
-    "n": 32,
-    "mae": 1.81,
-    "rmse": 2.56,
-    "bias": 0.76,
-    "sd": 2.49,
-    "p95_abs": 4.93,
+    "n": 35,
+    "mae": 2.03,
+    "rmse": 2.78,
+    "bias": 0.35,
+    "sd": 2.8,
+    "p95_abs": 5.52,
     "max_abs": 9.02,
     "limits_of_agreement": [
-     -4.12,
-     5.64
+     -5.14,
+     5.84
     ]
    },
    "step_time_ms": {
-    "n": 32,
-    "mae": 8.75,
-    "rmse": 12.99,
-    "bias": -3.63,
-    "sd": 12.68,
-    "p95_abs": 26.56,
+    "n": 35,
+    "mae": 10.19,
+    "rmse": 14.56,
+    "bias": -1.59,
+    "sd": 14.68,
+    "p95_abs": 33.04,
     "max_abs": 46.5,
     "limits_of_agreement": [
-     -28.47,
-     21.22
+     -30.37,
+     27.2
     ]
    }
   },
@@ -73,33 +73,34 @@
    "accepted": 38,
    "rejections": {
     "irregular_steps": 2,
-    "legs_not_tracked": 5,
+    "legs_not_tracked": 4,
+    "multiple_people": 1,
     "too_little_walking": 9
    },
    "cadence_steps_per_min": {
     "n": 38,
-    "mae": 1.76,
-    "rmse": 2.26,
-    "bias": -0.04,
-    "sd": 2.29,
-    "p95_abs": 4.59,
-    "max_abs": 5.21,
+    "mae": 1.85,
+    "rmse": 2.39,
+    "bias": -0.21,
+    "sd": 2.41,
+    "p95_abs": 4.68,
+    "max_abs": 5.18,
     "limits_of_agreement": [
-     -4.53,
-     4.46
+     -4.93,
+     4.51
     ]
    },
    "step_time_ms": {
     "n": 38,
-    "mae": 8.92,
-    "rmse": 11.96,
-    "bias": 0.13,
-    "sd": 12.12,
-    "p95_abs": 22.7,
-    "max_abs": 32.3,
+    "mae": 9.19,
+    "rmse": 12.26,
+    "bias": 1.06,
+    "sd": 12.38,
+    "p95_abs": 26.0,
+    "max_abs": 30.5,
     "limits_of_agreement": [
-     -23.63,
-     23.9
+     -23.2,
+     25.33
     ]
    }
   },
@@ -109,28 +110,28 @@
    "rejections": {},
    "cadence_steps_per_min": {
     "n": 54,
-    "mae": 1.76,
-    "rmse": 2.25,
-    "bias": -0.11,
-    "sd": 2.27,
-    "p95_abs": 4.71,
-    "max_abs": 5.01,
+    "mae": 1.75,
+    "rmse": 2.26,
+    "bias": -0.01,
+    "sd": 2.29,
+    "p95_abs": 4.51,
+    "max_abs": 6.41,
     "limits_of_agreement": [
-     -4.56,
-     4.33
+     -4.49,
+     4.47
     ]
    },
    "step_time_ms": {
     "n": 54,
-    "mae": 8.69,
-    "rmse": 11.47,
-    "bias": 0.49,
-    "sd": 11.56,
-    "p95_abs": 25.07,
-    "max_abs": 30.3,
+    "mae": 8.6,
+    "rmse": 11.4,
+    "bias": -0.03,
+    "sd": 11.51,
+    "p95_abs": 23.87,
+    "max_abs": 34.9,
     "limits_of_agreement": [
-     -22.17,
-     23.16
+     -22.59,
+     22.52
     ]
    }
   }
@@ -151,35 +152,35 @@
   },
   "24.0": {
    "clips": 54,
-   "accepted": 50,
+   "accepted": 49,
    "rejections": {
-    "legs_not_tracked": 1,
-    "too_little_walking": 3
+    "legs_not_tracked": 3,
+    "too_little_walking": 2
    },
    "cadence_steps_per_min": {
-    "n": 50,
-    "mae": 1.99,
-    "rmse": 2.58,
-    "bias": 0.16,
-    "sd": 2.6,
-    "p95_abs": 4.64,
+    "n": 49,
+    "mae": 1.89,
+    "rmse": 2.44,
+    "bias": 0.07,
+    "sd": 2.47,
+    "p95_abs": 4.56,
     "max_abs": 6.29,
     "limits_of_agreement": [
-     -4.95,
-     5.26
+     -4.77,
+     4.9
     ]
    },
    "step_time_ms": {
-    "n": 50,
-    "mae": 9.92,
-    "rmse": 13.1,
-    "bias": -0.73,
-    "sd": 13.21,
-    "p95_abs": 26.38,
+    "n": 49,
+    "mae": 9.41,
+    "rmse": 12.21,
+    "bias": -0.19,
+    "sd": 12.34,
+    "p95_abs": 23.86,
     "max_abs": 29.9,
     "limits_of_agreement": [
-     -26.61,
-     25.16
+     -24.37,
+     23.99
     ]
    }
   },
@@ -193,27 +194,27 @@
    "cadence_steps_per_min": {
     "n": 49,
     "mae": 1.93,
-    "rmse": 2.62,
-    "bias": 0.34,
-    "sd": 2.63,
-    "p95_abs": 5.52,
+    "rmse": 2.58,
+    "bias": 0.21,
+    "sd": 2.59,
+    "p95_abs": 5.56,
     "max_abs": 7.1,
     "limits_of_agreement": [
-     -4.81,
-     5.48
+     -4.87,
+     5.3
     ]
    },
    "step_time_ms": {
     "n": 49,
-    "mae": 9.81,
-    "rmse": 13.36,
-    "bias": -1.55,
-    "sd": 13.41,
-    "p95_abs": 29.72,
+    "mae": 9.74,
+    "rmse": 13.05,
+    "bias": -0.95,
+    "sd": 13.16,
+    "p95_abs": 28.72,
     "max_abs": 32.7,
     "limits_of_agreement": [
-     -27.84,
-     24.74
+     -26.73,
+     24.84
     ]
    }
   }
@@ -221,106 +222,106 @@
  "compression": {
   "5.0": {
    "clips": 54,
-   "accepted": 17,
+   "accepted": 15,
    "rejections": {
-    "feet_not_visible": 2,
-    "legs_not_tracked": 6,
+    "irregular_steps": 1,
+    "legs_not_tracked": 5,
     "not_side_view": 3,
-    "too_little_walking": 26
+    "too_little_walking": 30
    },
    "cadence_steps_per_min": {
-    "n": 17,
-    "mae": 1.81,
-    "rmse": 2.47,
-    "bias": 0.11,
-    "sd": 2.54,
-    "p95_abs": 4.85,
+    "n": 15,
+    "mae": 1.68,
+    "rmse": 2.39,
+    "bias": -0.26,
+    "sd": 2.46,
+    "p95_abs": 4.96,
     "max_abs": 5.77,
     "limits_of_agreement": [
-     -4.86,
-     5.09
+     -5.08,
+     4.57
     ]
    },
    "step_time_ms": {
-    "n": 17,
-    "mae": 8.26,
-    "rmse": 10.89,
-    "bias": -1.59,
-    "sd": 11.11,
-    "p95_abs": 22.52,
-    "max_abs": 23.4,
+    "n": 15,
+    "mae": 7.41,
+    "rmse": 10.22,
+    "bias": 0.23,
+    "sd": 10.58,
+    "p95_abs": 20.2,
+    "max_abs": 22.3,
     "limits_of_agreement": [
-     -23.36,
-     20.18
+     -20.5,
+     20.97
     ]
    }
   },
   "10.0": {
    "clips": 54,
-   "accepted": 31,
+   "accepted": 33,
    "rejections": {
-    "legs_not_tracked": 10,
-    "too_little_walking": 13
+    "legs_not_tracked": 7,
+    "too_little_walking": 14
    },
    "cadence_steps_per_min": {
-    "n": 31,
-    "mae": 1.87,
-    "rmse": 2.67,
-    "bias": 0.72,
-    "sd": 2.62,
-    "p95_abs": 5.67,
-    "max_abs": 7.77,
+    "n": 33,
+    "mae": 2.08,
+    "rmse": 2.85,
+    "bias": 0.66,
+    "sd": 2.82,
+    "p95_abs": 6.45,
+    "max_abs": 6.98,
     "limits_of_agreement": [
-     -4.41,
-     5.84
+     -4.87,
+     6.19
     ]
    },
    "step_time_ms": {
-    "n": 31,
-    "mae": 9.4,
-    "rmse": 13.54,
-    "bias": -4.1,
-    "sd": 13.12,
-    "p95_abs": 26.9,
+    "n": 33,
+    "mae": 10.57,
+    "rmse": 14.84,
+    "bias": -3.6,
+    "sd": 14.62,
+    "p95_abs": 30.82,
     "max_abs": 41.5,
     "limits_of_agreement": [
-     -29.81,
-     21.62
+     -32.26,
+     25.05
     ]
    }
   },
   "20.0": {
    "clips": 54,
-   "accepted": 37,
+   "accepted": 38,
    "rejections": {
-    "irregular_steps": 1,
-    "legs_not_tracked": 7,
+    "irregular_steps": 2,
+    "legs_not_tracked": 5,
     "too_little_walking": 9
    },
    "cadence_steps_per_min": {
-    "n": 37,
-    "mae": 1.92,
-    "rmse": 2.63,
-    "bias": -0.59,
-    "sd": 2.6,
-    "p95_abs": 4.82,
+    "n": 38,
+    "mae": 1.79,
+    "rmse": 2.5,
+    "bias": -0.1,
+    "sd": 2.54,
+    "p95_abs": 4.45,
     "max_abs": 9.05,
     "limits_of_agreement": [
-     -5.67,
-     4.5
+     -5.07,
+     4.87
     ]
    },
    "step_time_ms": {
-    "n": 37,
-    "mae": 9.23,
-    "rmse": 11.94,
-    "bias": 2.78,
-    "sd": 11.77,
-    "p95_abs": 25.36,
-    "max_abs": 29.3,
+    "n": 38,
+    "mae": 8.67,
+    "rmse": 11.36,
+    "bias": 0.06,
+    "sd": 11.51,
+    "p95_abs": 21.3,
+    "max_abs": 31.3,
     "limits_of_agreement": [
-     -20.29,
-     25.85
+     -22.5,
+     22.62
     ]
    }
   }
@@ -330,11 +331,10 @@
    "clips": 54,
    "accepted": 0,
    "rejections": {
-    "feet_not_visible": 9,
     "no_person": 28,
-    "not_side_view": 2,
+    "not_side_view": 5,
     "too_little_walking": 6,
-    "view_unconfirmed": 9
+    "view_unconfirmed": 15
    },
    "cadence_steps_per_min": {
     "n": 0
@@ -345,73 +345,73 @@
   },
   "0.2": {
    "clips": 54,
-   "accepted": 26,
+   "accepted": 30,
    "rejections": {
-    "feet_not_visible": 3,
-    "irregular_steps": 3,
+    "irregular_steps": 2,
     "legs_not_tracked": 4,
     "no_person": 1,
-    "too_little_walking": 17
+    "not_side_view": 1,
+    "too_little_walking": 16
    },
    "cadence_steps_per_min": {
-    "n": 26,
-    "mae": 2.43,
-    "rmse": 3.37,
-    "bias": 0.18,
-    "sd": 3.43,
-    "p95_abs": 6.78,
-    "max_abs": 7.35,
+    "n": 30,
+    "mae": 2.37,
+    "rmse": 3.23,
+    "bias": 0.14,
+    "sd": 3.28,
+    "p95_abs": 6.55,
+    "max_abs": 6.94,
     "limits_of_agreement": [
-     -6.54,
-     6.9
+     -6.29,
+     6.57
     ]
    },
    "step_time_ms": {
-    "n": 26,
-    "mae": 11.52,
-    "rmse": 16.68,
-    "bias": -0.41,
-    "sd": 17.01,
-    "p95_abs": 38.5,
-    "max_abs": 39.6,
+    "n": 30,
+    "mae": 11.44,
+    "rmse": 16.05,
+    "bias": -0.14,
+    "sd": 16.32,
+    "p95_abs": 34.52,
+    "max_abs": 40.3,
     "limits_of_agreement": [
-     -33.74,
-     32.93
+     -32.12,
+     31.85
     ]
    }
   },
   "0.3": {
    "clips": 54,
-   "accepted": 36,
+   "accepted": 35,
    "rejections": {
-    "irregular_steps": 3,
-    "legs_not_tracked": 7,
-    "too_little_walking": 8
+    "irregular_steps": 5,
+    "legs_not_tracked": 5,
+    "too_little_walking": 9
    },
    "cadence_steps_per_min": {
-    "n": 36,
-    "mae": 1.19,
-    "rmse": 1.69,
-    "bias": 0.05,
-    "sd": 1.71,
-    "p95_abs": 4.09,
-    "max_abs": 4.42,
+    "n": 35,
+    "mae": 1.27,
+    "rmse": 1.84,
+    "bias": -0.11,
+    "sd": 1.87,
+    "p95_abs": 4.06,
+    "max_abs": 4.98,
     "limits_of_agreement": [
-     -3.31,
-     3.4
+     -3.76,
+     3.55
     ]
    },
    "step_time_ms": {
-    "n": 36,
-    "mae": 5.58,
-    "rmse": 7.96,
-    "bias": -0.18,
-    "sd": 8.07,
-    "p95_abs": 17.68,
-    "max_abs": 24.3,
+    "n": 35,
+    "mae": 6.06,
+    "rmse": 9.06,
+    "bias": 0.78,
+    "sd": 9.16,
+    "p95_abs": 18.96,
+    "max_abs": 29.5,
     "limits_of_agreement": [
-     -15.99,
-     15.63
+     -17.17,
+     18.72
     ]
    }
   }
@@ -419,107 +419,108 @@
  "roll": {
   "-10.0": {
    "clips": 54,
-   "accepted": 28,
+   "accepted": 29,
    "rejections": {
     "irregular_steps": 1,
     "legs_not_tracked": 10,
-    "too_little_walking": 15
+    "too_little_walking": 14
    },
    "cadence_steps_per_min": {
-    "n": 28,
-    "mae": 2.07,
-    "rmse": 2.53,
+    "n": 29,
+    "mae": 2.23,
+    "rmse": 2.62,
     "bias": 0.2,
-    "sd": 2.57,
-    "p95_abs": 4.81,
-    "max_abs": 5.31,
+    "sd": 2.66,
+    "p95_abs": 4.62,
+    "max_abs": 5.41,
     "limits_of_agreement": [
-     -4.83,
-     5.24
+     -5.01,
+     5.4
     ]
    },
    "step_time_ms": {
-    "n": 28,
-    "mae": 9.79,
-    "rmse": 12.16,
-    "bias": -1.59,
-    "sd": 12.28,
-    "p95_abs": 24.67,
+    "n": 29,
+    "mae": 10.96,
+    "rmse": 12.99,
+    "bias": -1.24,
+    "sd": 13.16,
+    "p95_abs": 25.8,
     "max_abs": 29.9,
     "limits_of_agreement": [
-     -25.66,
-     22.48
+     -27.04,
+     24.56
     ]
    }
   },
   "5.0": {
    "clips": 54,
-   "accepted": 40,
+   "accepted": 41,
    "rejections": {
     "irregular_steps": 1,
-    "legs_not_tracked": 5,
-    "too_little_walking": 8
+    "legs_not_tracked": 6,
+    "too_little_walking": 6
    },
    "cadence_steps_per_min": {
-    "n": 40,
-    "mae": 1.59,
-    "rmse": 2.09,
-    "bias": 0.27,
-    "sd": 2.1,
-    "p95_abs": 4.68,
-    "max_abs": 4.75,
+    "n": 41,
+    "mae": 1.8,
+    "rmse": 2.58,
+    "bias": 0.04,
+    "sd": 2.61,
+    "p95_abs": 6.51,
+    "max_abs": 6.68,
     "limits_of_agreement": [
-     -3.85,
-     4.39
+     -5.07,
+     5.15
     ]
    },
    "step_time_ms": {
-    "n": 40,
-    "mae": 7.88,
-    "rmse": 10.75,
-    "bias": -1.66,
-    "sd": 10.76,
-    "p95_abs": 18.78,
-    "max_abs": 33.5,
+    "n": 41,
+    "mae": 8.83,
+    "rmse": 12.98,
+    "bias": -0.07,
+    "sd": 13.14,
+    "p95_abs": 31.0,
+    "max_abs": 40.0,
     "limits_of_agreement": [
-     -22.75,
-     19.42
+     -25.83,
+     25.68
     ]
    }
   },
   "15.0": {
    "clips": 54,
-   "accepted": 35,
+   "accepted": 36,
    "rejections": {
+    "feet_not_visible": 1,
     "irregular_steps": 1,
-    "legs_not_tracked": 7,
-    "multiple_people": 1,
-    "too_little_walking": 10
+    "legs_not_tracked": 6,
+    "multiple_people": 2,
+    "too_little_walking": 8
    },
    "cadence_steps_per_min": {
-    "n": 35,
-    "mae": 1.92,
-    "rmse": 2.5,
-    "bias": 0.64,
-    "sd": 2.45,
-    "p95_abs": 4.77,
+    "n": 36,
+    "mae": 2.03,
+    "rmse": 2.67,
+    "bias": 0.7,
+    "sd": 2.61,
+    "p95_abs": 4.91,
     "max_abs": 6.82,
     "limits_of_agreement": [
-     -4.15,
-     5.44
+     -4.42,
+     5.82
     ]
    },
    "step_time_ms": {
-    "n": 35,
-    "mae": 8.79,
-    "rmse": 11.04,
-    "bias": -3.65,
-    "sd": 10.57,
-    "p95_abs": 20.84,
-    "max_abs": 22.5,
+    "n": 36,
+    "mae": 9.51,
+    "rmse": 12.53,
+    "bias": -3.82,
+    "sd": 12.1,
+    "p95_abs": 26.75,
+    "max_abs": 28.5,
     "limits_of_agreement": [
-     -24.36,
-     17.07
+     -27.53,
+     19.89
     ]
    }
   }
@@ -529,8 +530,7 @@
    "clips": 32,
    "accepted": 0,
    "rejections": {
-    "multiple_people": 3,
-    "not_side_view": 28,
+    "not_side_view": 31,
     "wrong_orientation": 1
    },
    "cadence_steps_per_min": {
