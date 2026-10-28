@@ -26,6 +26,22 @@ class User(Base):
     role: Mapped[str] = mapped_column(String, nullable=False, default="patient")
     full_name: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Logins issued before this are refused (a password change or reset ends other sessions).
+    password_changed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class AuthToken(Base):
+    """A single-use link token for password reset or email verification. Only its SHA-256 is stored."""
+
+    __tablename__ = "auth_tokens"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    purpose: Mapped[str] = mapped_column(String, nullable=False)  # reset | verify
+    token_hash: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class Session(Base):
@@ -64,6 +80,31 @@ class AnalysisJob(Base):
     error_message: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now())
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class Consent(Base):
+    """One acceptance of the consent text (ADR-007). Withdrawal sets withdrawn_at; rows are kept as
+    the record. Active = the latest row for the user, current version, not withdrawn."""
+
+    __tablename__ = "consents"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    version: Mapped[str] = mapped_column(String, nullable=False)
+    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    withdrawn_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class ShareLink(Base):
+    """A read-only link to one session (Plan V3 Phase 5). Only the token's SHA-256 is stored."""
+
+    __tablename__ = "share_links"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    session_id: Mapped[str] = mapped_column(String, ForeignKey("sessions.id"), nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    token_hash: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class SessionArchive(Base):

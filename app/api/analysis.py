@@ -16,6 +16,7 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session as DBSession
 
+from app.api.consent import require_consent
 from app.core.config import settings
 from app.core.copy import DISCLAIMER
 from app.core.security import get_current_user
@@ -117,6 +118,11 @@ def _store(
     )
 
 
+def _name(given: str | None, user: User) -> str:
+    """The name on the session and its report: the one sent, else the account holder's (F40)."""
+    return (given or "").strip() or (user.full_name or "").strip() or "Anonymous"
+
+
 def _remove(path: str) -> None:
     # The raw video is never kept, whatever happened.
     if os.path.exists(path):
@@ -126,7 +132,7 @@ def _remove(path: str) -> None:
 @router.post("/analyze", response_model=AnalyzeResponse)
 def analyze(
     video: UploadFile = File(...),
-    patient_name: str = Form("Anonymous"),
+    patient_name: str | None = Form(None),
     test: str = Form(WALK),
     calib_x1: float | None = Form(None),
     calib_y1: float | None = Form(None),
@@ -137,6 +143,7 @@ def analyze(
     db: DBSession = Depends(get_db),
 ) -> AnalyzeResponse:
     """Synchronous analysis (kept until every client uses POST /analyses)."""
+    require_consent(db, current_user)
     ext, calibration = _form_checks(video, test, [calib_x1, calib_y1, calib_x2, calib_y2], calib_distance_m)
     job_id = str(uuid.uuid4())
     video_path = f"data/raw/{job_id}{ext}"
@@ -151,7 +158,7 @@ def analyze(
         if not result.accepted:
             assert result.rejection is not None
             raise rejected(result.rejection.code, result.rejection.message)
-        return _store(db, job_id, current_user.id, patient_name, result)
+        return _store(db, job_id, current_user.id, _name(patient_name, current_user), result)
     except HTTPException:
         raise
     except Exception:
@@ -166,7 +173,7 @@ def analyze(
 def submit_analysis(
     background: BackgroundTasks,
     video: UploadFile = File(...),
-    patient_name: str = Form("Anonymous"),
+    patient_name: str | None = Form(None),
     test: str = Form(WALK),
     calib_x1: float | None = Form(None),
     calib_y1: float | None = Form(None),
@@ -178,6 +185,7 @@ def submit_analysis(
 ) -> JobQueued:
     """Queue an analysis and return at once; poll the status_url (Plan V3 Phase 4). Checks that need
     no pose model (file type, test, calibration, length, frame rate) answer here, straight away."""
+    require_consent(db, current_user)
     ext, calibration = _form_checks(video, test, [calib_x1, calib_y1, calib_x2, calib_y2], calib_distance_m)
     job_id = str(uuid.uuid4())
     video_path = f"data/raw/{job_id}{ext}"
@@ -199,7 +207,11 @@ def submit_analysis(
                 raise rejected("bad_calibration", str(e)) from None
         db.add(
             AnalysisJob(
-                id=job_id, user_id=current_user.id, status="queued", test=test, patient_name=patient_name
+                id=job_id,
+                user_id=current_user.id,
+                status="queued",
+                test=test,
+                patient_name=_name(patient_name, current_user),
             )
         )
         db.commit()

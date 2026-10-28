@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta
+import time
+from datetime import UTC, datetime, timedelta
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -27,7 +28,9 @@ def verify_password(plain: str, hashed: str) -> bool:
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.access_token_minutes))
-    to_encode.update({"exp": expire})
+    # iat to the microsecond (a NumericDate may be fractional): a login in the same second as a
+    # password change must still sort before or after it.
+    to_encode.update({"exp": expire, "iat": time.time()})
     return jwt.encode(to_encode, settings.jwt_secret, algorithm=ALGORITHM)
 
 
@@ -51,6 +54,13 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
     if user is None:
         raise credentials_exception
+    if user.password_changed_at is not None:
+        changed = user.password_changed_at
+        if changed.tzinfo is None:  # SQLite returns naive datetimes; they are stored in UTC
+            changed = changed.replace(tzinfo=UTC)
+        issued = payload.get("iat")
+        if not isinstance(issued, int | float) or issued < changed.timestamp():
+            raise credentials_exception  # issued before the last password change or reset
 
     return user
 

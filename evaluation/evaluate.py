@@ -42,9 +42,8 @@ import pandas as pd
 from gaitcore import __version__ as gaitcore_version
 from gaitcore.clip import Clip
 from gaitcore.gait import leg_length
-from gaitcore.pipeline import analyse
+from gaitcore.pipeline import analyse, walking
 from gaitcore.result import model_info
-from gaitcore.segments import steady_segments
 from gaitcore.signals import build_tracks
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -141,7 +140,7 @@ def evaluate_clip(ref: Reference, clip: Clip) -> dict[str, Any]:
     if not r.accepted:
         return row
     tracks = build_tracks(clip)
-    segs = steady_segments(clip, tracks, leg_length(tracks))
+    segs = walking(clip, tracks, leg_length(tracks)).segments
     first, last = segs[0].start, segs[-1].end - 1
     ref_t = reference_step_time(ref, first, last, clip.fps)
     cadence = r.metrics["cadence"]["value"]

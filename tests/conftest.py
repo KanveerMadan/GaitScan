@@ -20,6 +20,8 @@ os.environ.update(
         "DATABASE_URL": f"sqlite:///{TMP}/test.db",
         "JWT_SECRET": secrets.token_urlsafe(48),
         "CORS_ORIGINS": "http://localhost:3000",
+        "MAIL_BACKEND": "console",
+        "FRONTEND_URL": "http://app.test",
     }
 )
 
@@ -42,6 +44,15 @@ migrate(os.environ["DATABASE_URL"])
 PASSWORD = "correct-horse-battery"
 
 
+@pytest.fixture
+def outbox():
+    """Emails 'sent' by the console mailer during the test."""
+    from app.services import mailer
+
+    mailer.OUTBOX.clear()
+    return mailer.OUTBOX
+
+
 @pytest.fixture(autouse=True)
 def _reset_rate_limits():
     """Every test starts with empty auth rate-limit windows (all requests share one test IP)."""
@@ -61,11 +72,19 @@ def client():
         yield c
 
 
-def register(client, email=None, password=PASSWORD, **extra):
+def register(client, email=None, password=PASSWORD, consent=True, **extra):
+    """A new account; by default it has also accepted the current consent text (Phase 5), as every
+    account must before its first analysis (tests/test_consent.py covers refusing without it)."""
     email = email or f"{uuid.uuid4().hex[:10]}@example.com"
     r = client.post("/auth/register", json={"email": email, "password": password, **extra})
     assert r.status_code == 201, r.text
-    return email, r.json()["access_token"]
+    token = r.json()["access_token"]
+    if consent:
+        from app.core.copy import CONSENT_VERSION
+
+        c = client.post("/consent", headers=auth(token), json={"version": CONSENT_VERSION})
+        assert c.status_code == 201, c.text
+    return email, token
 
 
 def auth(token):

@@ -86,9 +86,15 @@
       "title": "Calib Y2"
      },
      "patient_name": {
-      "default": "Anonymous",
-      "title": "Patient Name",
-      "type": "string"
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Patient Name"
      },
      "test": {
       "default": "walk",
@@ -165,9 +171,15 @@
       "title": "Calib Y2"
      },
      "patient_name": {
-      "default": "Anonymous",
-      "title": "Patient Name",
-      "type": "string"
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Patient Name"
      },
      "test": {
       "default": "walk",
@@ -202,6 +214,126 @@
      "new_password"
     ],
     "title": "ChangePasswordRequest",
+    "type": "object"
+   },
+   "ConsentAccept": {
+    "properties": {
+     "version": {
+      "title": "Version",
+      "type": "string"
+     }
+    },
+    "required": [
+     "version"
+    ],
+    "title": "ConsentAccept",
+    "type": "object"
+   },
+   "ConsentRecord": {
+    "properties": {
+     "accepted_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Accepted At"
+     },
+     "version": {
+      "title": "Version",
+      "type": "string"
+     },
+     "withdrawn_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Withdrawn At"
+     }
+    },
+    "required": [
+     "version",
+     "accepted_at",
+     "withdrawn_at"
+    ],
+    "title": "ConsentRecord",
+    "type": "object"
+   },
+   "ConsentStatus": {
+    "properties": {
+     "accepted_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Accepted At"
+     },
+     "active": {
+      "title": "Active",
+      "type": "boolean"
+     },
+     "history": {
+      "items": {
+       "$ref": "#/components/schemas/ConsentRecord"
+      },
+      "title": "History",
+      "type": "array"
+     },
+     "text": {
+      "title": "Text",
+      "type": "string"
+     },
+     "version": {
+      "title": "Version",
+      "type": "string"
+     }
+    },
+    "required": [
+     "active",
+     "version",
+     "text",
+     "accepted_at",
+     "history"
+    ],
+    "title": "ConsentStatus",
+    "type": "object"
+   },
+   "DeleteAccount": {
+    "properties": {
+     "password": {
+      "title": "Password",
+      "type": "string"
+     }
+    },
+    "required": [
+     "password"
+    ],
+    "title": "DeleteAccount",
+    "type": "object"
+   },
+   "EmailRequest": {
+    "properties": {
+     "email": {
+      "format": "email",
+      "title": "Email",
+      "type": "string"
+     }
+    },
+    "required": [
+     "email"
+    ],
+    "title": "EmailRequest",
     "type": "object"
    },
    "HTTPValidationError": {
@@ -304,6 +436,21 @@
      "code"
     ],
     "title": "JoinRequest",
+    "type": "object"
+   },
+   "LinkToken": {
+    "properties": {
+     "token": {
+      "maxLength": 200,
+      "minLength": 20,
+      "title": "Token",
+      "type": "string"
+     }
+    },
+    "required": [
+     "token"
+    ],
+    "title": "LinkToken",
     "type": "object"
    },
    "LoginRequest": {
@@ -466,6 +613,26 @@
      "message"
     ],
     "title": "Rejection",
+    "type": "object"
+   },
+   "ResetConfirm": {
+    "properties": {
+     "new_password": {
+      "title": "New Password",
+      "type": "string"
+     },
+     "token": {
+      "maxLength": 200,
+      "minLength": 20,
+      "title": "Token",
+      "type": "string"
+     }
+    },
+    "required": [
+     "token",
+     "new_password"
+    ],
+    "title": "ResetConfirm",
     "type": "object"
    },
    "Result": {
@@ -769,6 +936,138 @@
      "note"
     ],
     "title": "SessionOut",
+    "type": "object"
+   },
+   "ShareCreate": {
+    "properties": {
+     "days": {
+      "default": 7,
+      "maximum": 30.0,
+      "minimum": 1.0,
+      "title": "Days",
+      "type": "integer"
+     }
+    },
+    "title": "ShareCreate",
+    "type": "object"
+   },
+   "ShareCreated": {
+    "properties": {
+     "created_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created At"
+     },
+     "expires_at": {
+      "title": "Expires At",
+      "type": "string"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "revoked": {
+      "title": "Revoked",
+      "type": "boolean"
+     },
+     "url": {
+      "title": "Url",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "created_at",
+     "expires_at",
+     "revoked",
+     "url"
+    ],
+    "title": "ShareCreated",
+    "type": "object"
+   },
+   "ShareOut": {
+    "properties": {
+     "created_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created At"
+     },
+     "expires_at": {
+      "title": "Expires At",
+      "type": "string"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "revoked": {
+      "title": "Revoked",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "id",
+     "created_at",
+     "expires_at",
+     "revoked"
+    ],
+    "title": "ShareOut",
+    "type": "object"
+   },
+   "SharedSession": {
+    "properties": {
+     "created_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created At"
+     },
+     "disclaimer": {
+      "title": "Disclaimer",
+      "type": "string"
+     },
+     "result": {
+      "$ref": "#/components/schemas/Result"
+     }
+    },
+    "required": [
+     "created_at",
+     "result",
+     "disclaimer"
+    ],
+    "title": "SharedSession",
+    "type": "object"
+   },
+   "SharedToken": {
+    "properties": {
+     "token": {
+      "maxLength": 200,
+      "minLength": 20,
+      "title": "Token",
+      "type": "string"
+     }
+    },
+    "required": [
+     "token"
+    ],
+    "title": "SharedToken",
     "type": "object"
    },
    "TokenResponse": {
@@ -1130,6 +1429,84 @@
     ]
    }
   },
+  "/auth/password-reset": {
+   "post": {
+    "operationId": "request_password_reset_auth_password_reset_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/EmailRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "202": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Request Password Reset",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/auth/password-reset/confirm": {
+   "post": {
+    "operationId": "confirm_password_reset_auth_password_reset_confirm_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ResetConfirm"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Confirm Password Reset",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
   "/auth/register": {
    "post": {
     "operationId": "register_auth_register_post",
@@ -1166,6 +1543,69 @@
      }
     },
     "summary": "Register",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/auth/verify-email": {
+   "post": {
+    "operationId": "verify_email_auth_verify_email_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/LinkToken"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Verify Email",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/auth/verify-email/request": {
+   "post": {
+    "operationId": "request_email_verification_auth_verify_email_request_post",
+    "responses": {
+     "202": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Request Email Verification",
     "tags": [
      "auth"
     ]
@@ -1272,6 +1712,100 @@
     ]
    }
   },
+  "/consent": {
+   "delete": {
+    "operationId": "withdraw_consent_consent_delete",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ConsentStatus"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Withdraw Consent",
+    "tags": [
+     "consent"
+    ]
+   },
+   "get": {
+    "operationId": "get_consent_consent_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ConsentStatus"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Consent",
+    "tags": [
+     "consent"
+    ]
+   },
+   "post": {
+    "operationId": "accept_consent_consent_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ConsentAccept"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ConsentStatus"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Accept Consent",
+    "tags": [
+     "consent"
+    ]
+   }
+  },
   "/healthz": {
    "get": {
     "description": "Render health check: the process is up and the database answers.",
@@ -1287,6 +1821,69 @@
      }
     },
     "summary": "Healthz"
+   }
+  },
+  "/me": {
+   "delete": {
+    "operationId": "delete_account_me_delete",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/DeleteAccount"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Delete Account",
+    "tags": [
+     "privacy"
+    ]
+   }
+  },
+  "/me/export": {
+   "get": {
+    "operationId": "export_my_data_me_export_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Export My Data",
+    "tags": [
+     "privacy"
+    ]
    }
   },
   "/patient/join": {
@@ -1409,6 +2006,44 @@
    }
   },
   "/sessions/{session_id}": {
+   "delete": {
+    "operationId": "delete_session_sessions__session_id__delete",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "session_id",
+      "required": true,
+      "schema": {
+       "title": "Session Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Delete Session",
+    "tags": [
+     "privacy"
+    ]
+   },
    "get": {
     "operationId": "get_session_sessions__session_id__get",
     "parameters": [
@@ -1508,6 +2143,193 @@
     "summary": "Label Session",
     "tags": [
      "sessions"
+    ]
+   }
+  },
+  "/sessions/{session_id}/shares": {
+   "get": {
+    "operationId": "list_shares_sessions__session_id__shares_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "session_id",
+      "required": true,
+      "schema": {
+       "title": "Session Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/ShareOut"
+         },
+         "title": "Response List Shares Sessions  Session Id  Shares Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "List Shares",
+    "tags": [
+     "sharing"
+    ]
+   },
+   "post": {
+    "operationId": "create_share_sessions__session_id__shares_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "session_id",
+      "required": true,
+      "schema": {
+       "title": "Session Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ShareCreate"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ShareCreated"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Create Share",
+    "tags": [
+     "sharing"
+    ]
+   }
+  },
+  "/shared": {
+   "post": {
+    "operationId": "open_shared_shared_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SharedToken"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SharedSession"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Open Shared",
+    "tags": [
+     "sharing"
+    ]
+   }
+  },
+  "/shares/{share_id}": {
+   "delete": {
+    "operationId": "revoke_share_shares__share_id__delete",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "share_id",
+      "required": true,
+      "schema": {
+       "title": "Share Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Revoke Share",
+    "tags": [
+     "sharing"
     ]
    }
   },

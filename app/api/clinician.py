@@ -1,11 +1,13 @@
 import secrets
 import string
+from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api.sessions import session_out
+from app.core import ratelimit
 from app.core.security import get_current_user, require_clinician
 from app.db.database import get_db
 from app.db.models import ClinicianInvite, ClinicianPatient, User
@@ -13,6 +15,7 @@ from app.db.models import Session as GaitSession
 from app.schemas import PatientRef, PatientSessions, PatientSummary
 
 router = APIRouter(tags=["clinician"])
+INVITE_TTL = timedelta(days=7)  # an unused code stops working after a week (F10)
 
 
 def generate_code():
@@ -38,10 +41,16 @@ class JoinRequest(BaseModel):
 
 @router.post("/patient/join")
 def join_clinician(
-    payload: JoinRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    payload: JoinRequest,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     if current_user.role != "patient":
         raise HTTPException(status_code=403, detail="Only patients can join a clinician")
+    ip = ratelimit.client_ip(request)
+    ratelimit.enforce((ratelimit.invite_joins_per_ip, ip))
+    ratelimit.invite_joins_per_ip.hit(ip)
 
     invite = (
         db.query(ClinicianInvite)
@@ -49,8 +58,11 @@ def join_clinician(
         .first()
     )
 
-    if not invite:
-        raise HTTPException(status_code=404, detail="Invalid or already used invite code")
+    created = invite.created_at if invite else None
+    if created is not None and created.tzinfo is None:
+        created = created.replace(tzinfo=UTC)  # SQLite: naive, stored in UTC
+    if not invite or created is None or datetime.now(UTC) - created > INVITE_TTL:
+        raise HTTPException(status_code=404, detail="Invalid, expired or already used invite code")
 
     existing = (
         db.query(ClinicianPatient)

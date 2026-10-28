@@ -52,3 +52,35 @@ def test_patient_sessions_for_missing_patient_is_404_not_500(client):
         db.commit()
     r = client.get("/clinician/patients/999999/sessions", headers=auth(doc_t))
     assert r.status_code == 404
+
+
+def test_an_invite_code_expires_after_7_days(client):
+    from datetime import UTC, datetime, timedelta
+
+    from conftest import auth, promote_to_clinician, register
+
+    from app.db.database import SessionLocal
+    from app.db.models import ClinicianInvite
+
+    doc_email, doc = register(client)
+    promote_to_clinician(doc_email)
+    code = client.post("/clinician/invite", headers=auth(doc)).json()["code"]
+    db = SessionLocal()
+    inv = db.query(ClinicianInvite).filter(ClinicianInvite.code == code).one()
+    inv.created_at = datetime.now(UTC) - timedelta(days=7, minutes=1)
+    db.commit()
+    db.close()
+    _, pt = register(client)
+    r = client.post("/patient/join", headers=auth(pt), json={"code": code})
+    assert r.status_code == 404
+
+
+def test_join_attempts_are_rate_limited_per_client(client):
+    from conftest import auth, register
+
+    _, pt = register(client)
+    codes = [
+        client.post("/patient/join", headers=auth(pt), json={"code": f"ZZ{i:04d}"}).status_code
+        for i in range(11)
+    ]
+    assert codes[:10] == [404] * 10 and codes[10] == 429

@@ -2,9 +2,9 @@
  "calibrated": {
   "accuracy": {
    "cadence": {
-    "error_95": 4.7,
-    "mdc_95": 4.4,
-    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.7 steps/min of the reference.",
+    "error_95": 4.5,
+    "mdc_95": 4.6,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.5 steps/min of the reference.",
     "status": "validated",
     "unit": "steps/min"
    },
@@ -18,7 +18,7 @@
    },
    "step_time": {
     "error_95": 0.024,
-    "mdc_95": 0.023,
+    "mdc_95": 0.025,
     "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b10.024 s of the reference.",
     "status": "validated",
     "unit": "s"
@@ -295,8 +295,11 @@
    "fps": 30.0,
    "frames_total": 450,
    "frames_with_pose": 450,
+   "heels_hidden_s": 0.0,
    "passes": 3,
    "path_convergence_deg": 0.7,
+   "second_person_s": 0.0,
+   "steadiness_window_s": 0.545,
    "steady_walking_s": 8.1,
    "step_time_cv": 0.008,
    "steps_detected": 9,
@@ -331,11 +334,19 @@
    "feet_visible_fraction": 0.0,
    "fps": 30.0,
    "frames_total": 450,
-   "frames_with_pose": 450
+   "frames_with_pose": 450,
+   "heels_hidden_s": 15.0,
+   "passes": 0,
+   "path_convergence_deg": null,
+   "second_person_s": 0.0,
+   "steadiness_window_s": 0.5,
+   "steady_walking_s": 0.0,
+   "usable_frame_fraction": 0.0,
+   "view_ratio": 0.0
   },
   "rejection": {
    "code": "feet_not_visible",
-   "message": "Both feet were clearly visible in only 0% of the time the person was in view. Keep the whole body, including both feet, in the frame, with nothing in front of the legs."
+   "message": "Neither heel could be seen for 15 s while the person was in view. Those parts can't be measured, and what's left has too little steady walking. Keep the whole body, including both feet, in the frame, with nothing in front of the legs."
   },
   "status": "rejected",
   "test": "walk"
@@ -361,8 +372,11 @@
    "fps": 30.0,
    "frames_total": 102,
    "frames_with_pose": 102,
+   "heels_hidden_s": 0.0,
    "passes": 1,
    "path_convergence_deg": 3.5,
+   "second_person_s": 0.0,
+   "steadiness_window_s": 0.5,
    "steady_walking_s": 2.1,
    "step_time_cv": 0.01,
    "steps_detected": 2,
@@ -375,7 +389,7 @@
   },
   "rejection": {
    "code": "too_little_walking",
-   "message": "Only 2 steps of steady walking could be measured; at least 6 are needed. Film from the side with the phone held still at hip height, 3-4 m from the walking line, with the whole body in view, and walk across the frame and back at your usual pace."
+   "message": "Only 2 steps of steady walking could be measured; at least 6 are needed. Film from the side with the phone held still at waist height, 3-4 m from the walking line, with the whole body in view, and walk across the frame and back at your usual pace."
   },
   "status": "rejected",
   "test": "walk"
@@ -401,8 +415,11 @@
    "fps": 30.0,
    "frames_total": 450,
    "frames_with_pose": 450,
+   "heels_hidden_s": 0.0,
    "passes": 0,
    "path_convergence_deg": null,
+   "second_person_s": 0.0,
+   "steadiness_window_s": 0.5,
    "steady_walking_s": 0.0,
    "usable_frame_fraction": 0.0,
    "view_ratio": 0.741
@@ -444,9 +461,9 @@
  "noise2px": {
   "accuracy": {
    "cadence": {
-    "error_95": 4.7,
-    "mdc_95": 4.4,
-    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.7 steps/min of the reference.",
+    "error_95": 4.5,
+    "mdc_95": 4.6,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.5 steps/min of the reference.",
     "status": "validated",
     "unit": "steps/min"
    },
@@ -456,7 +473,7 @@
    },
    "step_time": {
     "error_95": 0.024,
-    "mdc_95": 0.023,
+    "mdc_95": 0.025,
     "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b10.024 s of the reference.",
     "status": "validated",
     "unit": "s"
@@ -718,16 +735,19 @@
    "fps": 30.0,
    "frames_total": 450,
    "frames_with_pose": 450,
+   "heels_hidden_s": 0.0,
    "passes": 3,
    "path_convergence_deg": 0.7,
-   "steady_walking_s": 8.2,
-   "step_time_cv": 0.01,
+   "second_person_s": 0.0,
+   "steadiness_window_s": 0.548,
+   "steady_walking_s": 8.1,
+   "step_time_cv": 0.009,
    "steps_detected": 9,
    "strides": {
     "left": 3,
     "right": 3
    },
-   "usable_frame_fraction": 0.547,
+   "usable_frame_fraction": 0.54,
    "view_ratio": 0.01
   },
   "rejection": null,
@@ -784,7 +804,7 @@
   },
   "rejection": {
    "code": "too_short",
-   "message": "The video is 2.5 s long. Record at least 3 s of walking; 10-20 s works best. Film from the side with the phone held still at hip height, 3-4 m from the walking line, with the whole body in view, and walk across the frame and back at your usual pace."
+   "message": "The video is 2.5 s long. Record at least 3 s of walking; 10-20 s works best. Film from the side with the phone held still at waist height, 3-4 m from the walking line, with the whole body in view, and walk across the frame and back at your usual pace."
   },
   "status": "rejected",
   "test": "walk"
@@ -792,9 +812,9 @@
  "spm110": {
   "accuracy": {
    "cadence": {
-    "error_95": 4.7,
-    "mdc_95": 4.4,
-    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.7 steps/min of the reference.",
+    "error_95": 4.5,
+    "mdc_95": 4.6,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.5 steps/min of the reference.",
     "status": "validated",
     "unit": "steps/min"
    },
@@ -804,7 +824,7 @@
    },
    "step_time": {
     "error_95": 0.024,
-    "mdc_95": 0.023,
+    "mdc_95": 0.025,
     "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b10.024 s of the reference.",
     "status": "validated",
     "unit": "s"
@@ -1066,8 +1086,11 @@
    "fps": 30.0,
    "frames_total": 450,
    "frames_with_pose": 450,
+   "heels_hidden_s": 0.0,
    "passes": 3,
    "path_convergence_deg": 0.7,
+   "second_person_s": 0.0,
+   "steadiness_window_s": 0.545,
    "steady_walking_s": 8.1,
    "step_time_cv": 0.008,
    "steps_detected": 9,
@@ -1085,9 +1108,9 @@
  "spm125": {
   "accuracy": {
    "cadence": {
-    "error_95": 4.7,
-    "mdc_95": 4.4,
-    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.7 steps/min of the reference.",
+    "error_95": 4.5,
+    "mdc_95": 4.6,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.5 steps/min of the reference.",
     "status": "validated",
     "unit": "steps/min"
    },
@@ -1097,7 +1120,7 @@
    },
    "step_time": {
     "error_95": 0.024,
-    "mdc_95": 0.023,
+    "mdc_95": 0.025,
     "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b10.024 s of the reference.",
     "status": "validated",
     "unit": "s"
@@ -1359,8 +1382,11 @@
    "fps": 30.0,
    "frames_total": 615,
    "frames_with_pose": 615,
+   "heels_hidden_s": 0.0,
    "passes": 4,
    "path_convergence_deg": 0.0,
+   "second_person_s": 0.0,
+   "steadiness_window_s": 0.5,
    "steady_walking_s": 10.8,
    "step_time_cv": 0.006,
    "steps_detected": 16,
@@ -1378,9 +1404,9 @@
  "spm90": {
   "accuracy": {
    "cadence": {
-    "error_95": 4.7,
-    "mdc_95": 4.4,
-    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.7 steps/min of the reference.",
+    "error_95": 4.5,
+    "mdc_95": 4.6,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.5 steps/min of the reference.",
     "status": "validated",
     "unit": "steps/min"
    },
@@ -1390,7 +1416,7 @@
    },
    "step_time": {
     "error_95": 0.024,
-    "mdc_95": 0.023,
+    "mdc_95": 0.025,
     "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b10.024 s of the reference.",
     "status": "validated",
     "unit": "s"
@@ -1510,7 +1536,7 @@
    "cadence": {
     "n": 6,
     "unit": "steps/min",
-    "value": 89.8
+    "value": 89.9
    },
    "peak_knee_flexion": {
     "left": {
@@ -1523,9 +1549,9 @@
    },
    "step_time": {
     "n": 6,
-    "sd": 0.006,
+    "sd": 0.005,
     "unit": "s",
-    "value": 0.668
+    "value": 0.667
    }
   },
   "model": {
@@ -1545,16 +1571,19 @@
    "fps": 30.0,
    "frames_total": 615,
    "frames_with_pose": 615,
+   "heels_hidden_s": 0.0,
    "passes": 4,
    "path_convergence_deg": 0.5,
-   "steady_walking_s": 10.8,
-   "step_time_cv": 0.009,
+   "second_person_s": 0.0,
+   "steadiness_window_s": 0.664,
+   "steady_walking_s": 10.53,
+   "step_time_cv": 0.007,
    "steps_detected": 6,
    "strides": {
     "left": 4,
     "right": 0
    },
-   "usable_frame_fraction": 0.527,
+   "usable_frame_fraction": 0.514,
    "view_ratio": 0.0
   },
   "rejection": null,
@@ -1578,13 +1607,22 @@
   "quality": {
    "calibrated": false,
    "duration_s": 15.0,
+   "feet_visible_fraction": 0.0,
    "fps": 30.0,
    "frames_total": 450,
-   "frames_with_pose": 450
+   "frames_with_pose": 450,
+   "heels_hidden_s": 0.0,
+   "passes": 0,
+   "path_convergence_deg": null,
+   "second_person_s": 15.0,
+   "steadiness_window_s": 0.5,
+   "steady_walking_s": 0.0,
+   "usable_frame_fraction": 0.0,
+   "view_ratio": null
   },
   "rejection": {
    "code": "multiple_people",
-   "message": "More than one person was detected in 100% of the video. Record with only the person who is walking in view."
+   "message": "Another person was in view for 15 s of the video. Those parts can't be measured, and what's left has too little steady walking. Record with only the person who is walking in view."
   },
   "status": "rejected",
   "test": "walk"
@@ -1592,9 +1630,9 @@
  "yaw15": {
   "accuracy": {
    "cadence": {
-    "error_95": 4.7,
-    "mdc_95": 4.4,
-    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.7 steps/min of the reference.",
+    "error_95": 4.5,
+    "mdc_95": 4.6,
+    "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b14.5 steps/min of the reference.",
     "status": "validated",
     "unit": "steps/min"
    },
@@ -1604,7 +1642,7 @@
    },
    "step_time": {
     "error_95": 0.024,
-    "mdc_95": 0.023,
+    "mdc_95": 0.025,
     "note": "In an accuracy check on 97 side-view walks from a public dataset (LJMU), 95% of values were within \u00b10.024 s of the reference.",
     "status": "validated",
     "unit": "s"
@@ -1866,8 +1904,11 @@
    "fps": 30.0,
    "frames_total": 450,
    "frames_with_pose": 450,
+   "heels_hidden_s": 0.0,
    "passes": 3,
    "path_convergence_deg": 0.8,
+   "second_person_s": 0.0,
+   "steadiness_window_s": 0.546,
    "steady_walking_s": 8.1,
    "step_time_cv": 0.007,
    "steps_detected": 9,

@@ -12,7 +12,10 @@ from app.api.analysis import recover_unfinished_jobs
 from app.api.analysis import router as analysis_router
 from app.api.auth import router as auth_router
 from app.api.clinician import router as clinician_router
+from app.api.consent import router as consent_router
+from app.api.privacy import router as privacy_router
 from app.api.sessions import router as sessions_router
+from app.api.shares import router as shares_router
 from app.core.config import settings
 from app.core.logging import RequestLogMiddleware, configure_logging
 from app.core.observability import init_sentry
@@ -42,12 +45,15 @@ app.include_router(auth_router)
 app.include_router(clinician_router)
 app.include_router(analysis_router)
 app.include_router(sessions_router)
+app.include_router(consent_router)
+app.include_router(privacy_router)
+app.include_router(shares_router)
 
 app.add_middleware(RequestLogMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
-    allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
 )
 

@@ -6,7 +6,7 @@
   "where the pipeline and RTMPose disagreed by > 5 steps/min the strikes were counted visually (visual_coarse): 8 tuning and 2 test clips; in both test clips RTMPose was wrong",
   "stride time, step length, walking speed and knee angles are not checked here (see evaluate.py)"
  ],
- "generated": "2026-10-26",
+ "generated": "2026-10-27",
  "pipeline_version": "2.0.0",
  "model": {
   "name": "pose_landmarker_full",
@@ -19,35 +19,36 @@
   "participants": 57,
   "accepted": 97,
   "rejections": {
-   "irregular_steps": 8,
+   "irregular_steps": 7,
+   "legs_not_tracked": 1,
    "too_little_walking": 4
   },
   "accepted_without_reference": 0,
-  "per_leg_values_shown": 32,
+  "per_leg_values_shown": 33,
   "cadence_steps_per_min": {
    "n": 97,
-   "mae": 1.55,
-   "rmse": 2.08,
-   "bias": -0.02,
-   "sd": 2.09,
-   "p95_abs": 4.67,
-   "max_abs": 5.38,
+   "mae": 1.56,
+   "rmse": 2.11,
+   "bias": 0.08,
+   "sd": 2.12,
+   "p95_abs": 4.48,
+   "max_abs": 6.41,
    "limits_of_agreement": [
-    -4.11,
-    4.07
+    -4.07,
+    4.23
    ]
   },
   "step_time_ms": {
    "n": 97,
-   "mae": 7.74,
-   "rmse": 10.69,
-   "bias": 0.18,
-   "sd": 10.74,
-   "p95_abs": 23.5,
-   "max_abs": 32.8,
+   "mae": 7.8,
+   "rmse": 10.99,
+   "bias": -0.39,
+   "sd": 11.04,
+   "p95_abs": 23.54,
+   "max_abs": 40.8,
    "limits_of_agreement": [
-    -20.87,
-    21.23
+    -22.03,
+    21.25
    ]
   }
  },
@@ -56,35 +57,36 @@
   "participants": 56,
   "accepted": 76,
   "rejections": {
-   "irregular_steps": 8,
+   "irregular_steps": 7,
+   "legs_not_tracked": 1,
    "too_little_walking": 4
   },
   "accepted_without_reference": 0,
-  "per_leg_values_shown": 22,
+  "per_leg_values_shown": 23,
   "cadence_steps_per_min": {
    "n": 76,
-   "mae": 1.68,
-   "rmse": 2.2,
-   "bias": -0.14,
-   "sd": 2.21,
-   "p95_abs": 4.88,
-   "max_abs": 5.38,
+   "mae": 1.69,
+   "rmse": 2.24,
+   "bias": 0.01,
+   "sd": 2.26,
+   "p95_abs": 4.53,
+   "max_abs": 6.41,
    "limits_of_agreement": [
-    -4.47,
-    4.19
+    -4.41,
+    4.44
    ]
   },
   "step_time_ms": {
    "n": 76,
-   "mae": 8.47,
-   "rmse": 11.45,
-   "bias": 0.83,
-   "sd": 11.49,
-   "p95_abs": 26.7,
-   "max_abs": 32.8,
+   "mae": 8.61,
+   "rmse": 11.81,
+   "bias": -0.05,
+   "sd": 11.89,
+   "p95_abs": 25.45,
+   "max_abs": 40.8,
    "limits_of_agreement": [
-    -21.69,
-    23.35
+    -23.35,
+    23.26
    ]
   }
  },
@@ -97,28 +99,28 @@
   "per_leg_values_shown": 10,
   "cadence_steps_per_min": {
    "n": 21,
-   "mae": 1.1,
-   "rmse": 1.55,
-   "bias": 0.43,
-   "sd": 1.52,
-   "p95_abs": 2.36,
+   "mae": 1.06,
+   "rmse": 1.53,
+   "bias": 0.32,
+   "sd": 1.54,
+   "p95_abs": 2.75,
    "max_abs": 4.62,
    "limits_of_agreement": [
-    -2.55,
-    3.42
+    -2.69,
+    3.33
    ]
   },
   "step_time_ms": {
    "n": 21,
-   "mae": 5.1,
-   "rmse": 7.3,
-   "bias": -2.18,
-   "sd": 7.14,
-   "p95_abs": 16.9,
+   "mae": 4.85,
+   "rmse": 7.29,
+   "bias": -1.64,
+   "sd": 7.28,
+   "p95_abs": 18.9,
    "max_abs": 19.3,
    "limits_of_agreement": [
-    -16.18,
-    11.82
+    -15.9,
+    12.62
    ]
   }
  },
@@ -126,14 +128,14 @@
   "pairs": 25,
   "participants": 16,
   "cadence_steps_per_min": {
-   "mean_abs_diff": 1.89,
-   "sd_diff": 2.23,
-   "mdc_95": 4.36
+   "mean_abs_diff": 2.05,
+   "sd_diff": 2.34,
+   "mdc_95": 4.6
   },
   "step_time_ms": {
-   "mean_abs_diff": 9.04,
-   "sd_diff": 11.53,
-   "mdc_95": 22.61
+   "mean_abs_diff": 9.88,
+   "sd_diff": 12.6,
+   "mdc_95": 24.7
   }
  }
 }

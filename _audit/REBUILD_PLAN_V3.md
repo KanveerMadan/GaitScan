@@ -66,19 +66,19 @@ Rules:
 - [ ] [C] Treadmill mode (user-entered speed)
 
 ## Phase 5 — Accounts, sharing, privacy
-- [ ] [M] Transactional email (provider justified in the terminal summary; secrets via env)
-- [ ] [M] Password reset with expiring single-use tokens
-- [ ] [M] Email verification (closes F12)
-- [ ] [M] Consent screen before first analysis
-- [ ] [M] Privacy center: export data, delete sessions, delete account
-- [ ] [M] Patient name on PDF (F40)
-- [ ] [S] Professional inbox (shared reports, comments; access-control tests)
-- [ ] [S] Expiring, revocable, read-only share links (random token, 7-day default, no personal data in URL), with tests
-- [ ] [S] Re-test reminders (user schedule, easy unsubscribe)
-- [ ] [C] Sign in with Google
-- [ ] [C] Multiple adult profiles per account, blocking under-18 profiles
-- [ ] [C] Hindi UI strings
-- [ ] [M] Re-run every audit probe; F01–F44 each closed or explicitly accepted
+- [ ] [M] Transactional email (provider justified in the terminal summary; secrets via env) (blocked: needs the owner's provider account and key; mailer interface + console backend ready)
+- [x] [M] Password reset with expiring single-use tokens (503 with a reason until a provider is set)
+- [x] [M] Email verification (closes F12) (built; F12's generic sign-up waits for the provider)
+- [x] [M] Consent screen before first analysis
+- [x] [M] Privacy center: export data, delete sessions, delete account
+- [x] [M] Patient name on PDF (F40)
+- [ ] [S] Professional inbox (shared reports, comments; access-control tests) (cut for time)
+- [x] [S] Expiring, revocable, read-only share links (random token, 7-day default, no personal data in URL), with tests
+- [ ] [S] Re-test reminders (user schedule, easy unsubscribe) (blocked: email provider)
+- [ ] [C] Sign in with Google (cut; also needs OAuth credentials)
+- [ ] [C] Multiple adult profiles per account, blocking under-18 profiles (cut)
+- [ ] [C] Hindi UI strings (cut)
+- [x] [M] Re-run every audit probe; F01–F44 each closed or explicitly accepted (probes: _audit/probes/out_*_phase5.txt; status in REBUILD_PROGRESS.md)
 
 ## Phase 6 — Frontend redesign & polish
 - [ ] [M] Production-quality redesign of every screen

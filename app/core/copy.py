@@ -16,3 +16,17 @@ ERROR_RANGES = (
     "2023, CC BY 4.0), 95% of measurements were within this much of the reference. Values are from "
     "one side-view video of one person and depend on following the recording guidance."
 )
+
+# Consent before the first analysis (ADR-007). Changing the text means a new version: accounts then
+# consent again before their next analysis.
+CONSENT_VERSION = "2026-10-27"
+CONSENT_TEXT = (
+    "Before you analyse a video, please confirm:\n"
+    "- I am 18 or older, and I am the person in the videos I upload, or I have that adult's permission.\n"
+    "- GaitScan reads the video to measure how I walk. The video is deleted as soon as the analysis "
+    "ends; the measurements are kept in my account until I delete them.\n"
+    "- Only clinicians I choose to link with can see my results.\n"
+    "- I can withdraw this consent, export my data, or delete sessions or my whole account at any time "
+    "in Privacy.\n"
+    f"- {DISCLAIMER}"
+)
