@@ -29,20 +29,20 @@ Rules:
 - [ ] [S] gait.py:103 heel visibility: heel separation doesn't require visible heels; check on phone clips (blocked: needs real phone clips)
 - [x] [S] result.py:56 brief flips: labelled step CV <= 0.2 misses 5-10% brief flips (per-leg knee flexion) (stride check hides all 10% cases; at 5%, 2/8 synthetic seeds still show a knee 4-6 deg low)
 
-## Phase 3.2 — Reliability engine
-- [ ] [M] Degradation curves on LJMU (resolution, fps, compression, low light, camera yaw/roll): how each gait metric's error grows
-- [ ] [M] Learned reliability model: per-clip expected error / reject (gradient boosting or small MLP, conformal intervals), leave-participant-out evaluation
-- [ ] [M] Ship it in the app: learned ± error next to each metric, learned rejections with reasons
+## Phase 3.2 — Reliability engine: done (learned model evaluated, not shipped)
+- [x] [M] Degradation curves on LJMU (resolution, fps, compression, low light, camera yaw/roll): how each gait metric's error grows (evaluation/results/degradation_*; yaw = the simultaneous 45 deg clips)
+- [x] [M] Learned reliability model: per-clip expected error / reject (gradient boosting or small MLP, conformal intervals), leave-participant-out evaluation (negative result: Spearman 0.11 with real error, rejecting the worst-predicted 20% doesn't reduce large errors; evaluation/results/reliability.json)
+- [ ] [M] Ship it in the app: learned ± error next to each metric, learned rejections with reasons (not shipped: the model doesn't beat a constant range; the LJMU range stays)
 - [ ] [S] arXiv-style write-up (deferred to Phase 7)
 
-## Phase 3.5 — Design foundation (before any Phase 4 UI)
-- [ ] [M] Design direction
-- [ ] [M] Design system: color, typography, spacing tokens, light/dark themes
-- [ ] [M] Tailwind + shadcn/ui (Radix)
-- [ ] [M] App shell: navigation and layout
-- [ ] [M] Migrate existing screens into the shell
-- [ ] [M] Use design-taste-frontend, frontend-design-toolkit, web-design-guidelines; no generic template look
-- [ ] [M] All Phase 4–5 screens built with this system
+## Phase 3.5 — Design foundation (before any Phase 4 UI): done (frontend #12)
+- [x] [M] Design direction
+- [x] [M] Design system: color, typography, spacing tokens, light/dark themes
+- [x] [M] Tailwind + shadcn/ui (Radix)
+- [x] [M] App shell: navigation and layout
+- [x] [M] Migrate existing screens into the shell
+- [x] [M] Use design-taste-frontend, frontend-design-toolkit, web-design-guidelines; no generic template look (design-taste-frontend and web-design-guidelines used; frontend-design-toolkit not yet)
+- [ ] [M] All Phase 4–5 screens built with this system (ongoing rule)
 
 ## Phase 4 — Usability + app features
 - [ ] [M] Non-blocking analysis: FastAPI background task + status endpoint + polling (no Redis/Celery)
@@ -51,7 +51,7 @@ Rules:
 - [ ] [M] Personal dashboard: latest results, trends, last test date
 - [ ] [M] Session comparison: side by side, overlaid knee curves, "real change" vs "within measurement error"
 - [ ] [M] Session notes/tags
-- [ ] [M] Split App.jsx per ADR-008 with a typed API client
+- [ ] [M] Split App.jsx per ADR-008 with a typed API client (split done in Phase 3.5; typed client remains)
 - [ ] [M] One Playwright e2e test of the main flow, in CI
 - [ ] [S] Demo mode (sample video, no signup; synthetic or explicitly consented clip)
 - [ ] [S] Visual explanations: keyframes with skeleton + heel strikes, knee curve with gait cycles, offending frame on rejection (server-rendered images, no video stored)
