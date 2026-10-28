@@ -18,9 +18,9 @@ from dataclasses import dataclass
 
 import numpy as np
 import numpy.typing as npt
-from scipy.signal import butter, filtfilt
 
 from gaitcore.clip import Clip
+from gaitcore.dsp import butter2_lowpass, filtfilt_gust
 
 Array = npt.NDArray[np.float64]
 
@@ -76,11 +76,11 @@ def min_run(fps: float) -> int:
 def lowpass(xy: Array, fps: float) -> Array:
     """Zero-phase low-pass of each valid run; samples of runs too short to filter become NaN."""
     out = np.full_like(xy, np.nan)
-    b, a = butter(ORDER, CUTOFF_HZ / (fps / 2))
+    b, a = butter2_lowpass(CUTOFF_HZ / (fps / 2))  # ORDER == 2
     need = min_run(fps)
     for s, e in runs(np.asarray(np.isfinite(xy).all(axis=1))):
         if e - s >= need:
-            out[s:e] = filtfilt(b, a, xy[s:e], axis=0, method="gust")
+            out[s:e] = filtfilt_gust(b, a, xy[s:e])
     return out
 
 
