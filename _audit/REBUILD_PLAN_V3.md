@@ -111,3 +111,4 @@ Rules:
 - [ ] Extend the reliability model to knee angles
 - [ ] Update the model card
 - [ ] Sit-to-stand / 30-second chair stand against OpenCap sit-to-stand data
+- [ ] Isolate which #18 change (step-sized steadiness window vs dropped stretches) raised the share of accepted degraded LJMU runs more than 5 steps/min off from 4.0% to 6.0%: cache the degraded landmarks (degrade.py), then score each change alone (trade-off accepted by the owner 2026-10-28)
