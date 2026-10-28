@@ -13,7 +13,7 @@ from app.core.security import get_current_user
 from app.db.database import get_db
 from app.db.models import ClinicianPatient, User
 from app.db.models import Session as SessionModel
-from app.schemas import Result, SessionDetail, SessionOut
+from app.schemas import Result, SessionDetail, SessionLabels, SessionOut
 from app.services.report_pdf import build_pdf
 
 router = APIRouter(tags=["sessions"])
@@ -49,6 +49,8 @@ def session_out(s: SessionModel) -> SessionOut:
         legacy=legacy,
         result=None if legacy else Result.model_validate(s.result),
         note=LEGACY_NOTE if legacy else None,
+        notes=s.notes,
+        tags=list(s.tags or []),
     )
 
 
@@ -89,3 +91,23 @@ def get_session(
 ):
     s = get_visible_session(db, current_user, session_id)
     return SessionDetail(**session_out(s).model_dump(), disclaimer=DISCLAIMER)
+
+
+@router.patch("/sessions/{session_id}", response_model=SessionOut)
+def label_session(
+    session_id: str,
+    labels: SessionLabels,
+    current_user: User = Depends(get_current_user),
+    db: DBSession = Depends(get_db),
+):
+    """The owner's notes and tags. Only the owner may edit (a linked clinician sees them)."""
+    s = db.query(SessionModel).filter(SessionModel.id == session_id).first()
+    if s is None or s.user_id != current_user.id:
+        raise HTTPException(404, "Session not found")
+    sent = labels.model_fields_set
+    if "notes" in sent:
+        s.notes = (labels.notes or "").strip() or None
+    if "tags" in sent:
+        s.tags = labels.tags or []
+    db.commit()
+    return session_out(s)

@@ -621,3 +621,21 @@ def test_passes_with_too_few_steps_get_no_values_of_their_own():
     timed alone (the same MIN_STEPS resolution bound as the whole clip)."""
     d = analyse(synthetic_clip()[0]).to_dict()
     assert d["status"] == "accepted" and d["passes"] == [] and d["pass_variability"] is None
+
+
+def test_each_leg_gets_a_mean_knee_curve_over_the_stride():
+    d = analyse(synthetic_clip()[0]).to_dict()
+    curves = d["curves"]["knee_flexion"]
+    assert curves["unit"] == "deg" and curves["points"] == 101
+    for side in ("left", "right"):
+        c = curves[side]
+        assert len(c) == 101
+        # Its peak is the average stride's peak: close to the median per-stride peak reported.
+        assert max(c) == pytest.approx(d["metrics"]["peak_knee_flexion"][side]["value"], abs=3)
+
+
+def test_no_knee_curve_when_per_leg_values_are_hidden():
+    d = analyse(flip_legs(synthetic_clip()[0], 0.10, 1)).to_dict()  # strides come out short: hidden
+    assert d["status"] == "accepted" and d["metrics"]["peak_knee_flexion"] == {"left": None, "right": None}
+    assert d["curves"]["knee_flexion"]["left"] is None and d["curves"]["knee_flexion"]["right"] is None
+    assert analyse(synthetic_clip(fps=15)[0]).to_dict()["curves"] == {}

@@ -36,3 +36,23 @@ def test_error_ranges_are_the_evaluation_results(metric, key, scale, digits):
     p95 = max(s["all"][key]["p95_abs"], s["test"][key]["p95_abs"]) * scale
     assert VALIDATED[metric]["error_95"] == pytest.approx(math.ceil(p95 * 10**digits - 1e-9) / 10**digits)
     assert VALIDATED[metric]["test_clips"] == s["test"][key]["n"]
+
+
+@pytest.mark.parametrize(
+    "metric,key,scale,digits",
+    [("cadence", "cadence_steps_per_min", 1.0, 1), ("step_time", "step_time_ms", 0.001, 3)],
+)
+def test_repeatability_is_the_evaluation_result(metric, key, scale, digits):
+    """Minimal detectable change (95%): 1.96 x the SD of the difference between two walks of the same
+    person in the same session (LJMU), rounded up to the displayed precision."""
+    with open(SUMMARY) as f:
+        rep = json.load(f)["repeatability"]
+    expected = math.ceil(rep[key]["mdc_95"] * scale * 10**digits - 1e-9) / 10**digits
+    assert VALIDATED[metric]["mdc_95"] == pytest.approx(expected)
+    assert rep["pairs"] >= 20
+
+
+def test_validated_metrics_carry_their_repeatability():
+    d = analyse(synthetic_clip()[0]).to_dict()
+    for name in ("cadence", "step_time"):
+        assert d["accuracy"][name]["mdc_95"] == VALIDATED[name]["mdc_95"]

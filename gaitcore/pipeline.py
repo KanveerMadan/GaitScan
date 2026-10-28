@@ -13,6 +13,7 @@ from gaitcore.gait import leg_length, measure_passes, measure_walk
 from gaitcore.result import (
     WALK,
     AnalysisResult,
+    curves_from_walk,
     metrics_from_walk,
     notes_from_walk,
     pass_results,
@@ -98,6 +99,7 @@ def _analyse_walk(clip: Clip, calibration: Calibration | None, q: dict[str, obje
         notes=notes_from_walk(walk),
         passes=passes,
         pass_variability=pass_variability(passes),
+        curves=curves_from_walk(walk),
     )
 
 

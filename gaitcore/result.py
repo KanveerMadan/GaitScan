@@ -13,7 +13,7 @@ import numpy as np
 
 from gaitcore import __version__, model
 from gaitcore.accuracy import accuracy_for
-from gaitcore.gait import Walk
+from gaitcore.gait import CURVE_POINTS, Walk
 from gaitcore.quality import Rejection
 
 WALK = "walk"  # the test type: the only one so far (pipeline.TESTS)
@@ -135,6 +135,21 @@ def pass_variability(passes: list[dict[str, Any]]) -> dict[str, Any] | None:
     }
 
 
+def curves_from_walk(walk: Walk) -> dict[str, Any]:
+    """Mean knee flexion over the stride (heel strike to heel strike, 0-100%) per leg: shown and
+    hidden exactly like peak knee flexion (same strides, same label checks). Not yet validated."""
+    shown = legs_told_apart(walk)
+    knee: dict[str, Any] = {"unit": "deg", "points": CURVE_POINTS}
+    for s in ("L", "R"):
+        c = walk.knee_curves[s]
+        knee[LEG[s]] = (
+            [round(float(v), 1) for v in np.mean(np.asarray(c), axis=0)]
+            if shown and len(c) >= MIN_STRIDES_PER_LEG
+            else None
+        )
+    return {"knee_flexion": knee}
+
+
 def model_info() -> dict[str, str]:
     return {
         "name": model.NAME,
@@ -154,6 +169,7 @@ class AnalysisResult:
     test: str = WALK
     passes: list[dict[str, Any]] = field(default_factory=list)  # per walk across the frame
     pass_variability: dict[str, Any] | None = None
+    curves: dict[str, Any] = field(default_factory=dict)  # gait-cycle curves (not yet validated)
     pipeline_version: str = __version__
 
     @property
@@ -175,6 +191,7 @@ class AnalysisResult:
             "notes": list(self.notes),
             "passes": self.passes,
             "pass_variability": self.pass_variability,
+            "curves": self.curves,
         }
 
 

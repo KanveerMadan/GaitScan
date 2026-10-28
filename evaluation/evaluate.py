@@ -183,6 +183,41 @@ def error_stats(errors: list[float]) -> dict[str, Any]:
     return out
 
 
+def repeatability(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Two walks of the same person in the same session (same participant and experiment, both
+    accepted): the spread of their difference. mdc_95 = 1.96 x SD of the differences, the change a
+    repeat walk exceeds only 5% of the time. Same-session only: day-to-day variation isn't in it."""
+    import itertools
+    import re
+
+    groups: dict[tuple[int, str], list[dict[str, Any]]] = {}
+    for r in rows:
+        m = re.match(r"P\d+_E(\d)T", r["clip"])
+        if r["status"] == "accepted" and m:
+            groups.setdefault((r["participant"], m.group(1)), []).append(r)
+    pairs = [
+        (a, b)
+        for g in groups.values()
+        for a, b in itertools.combinations(sorted(g, key=lambda r: r["clip"]), 2)
+    ]
+
+    def stats(diffs: list[float]) -> dict[str, Any]:
+        d = np.asarray(diffs, dtype=float)
+        sd = float(np.std(d, ddof=1)) if len(d) >= 2 else None
+        return {
+            "mean_abs_diff": round(float(np.mean(np.abs(d))), 2) if len(d) else None,
+            "sd_diff": None if sd is None else round(sd, 2),
+            "mdc_95": None if sd is None else round(1.96 * sd, 2),
+        }
+
+    return {
+        "pairs": len(pairs),
+        "participants": len({a["participant"] for a, _ in pairs}),
+        "cadence_steps_per_min": stats([a["cadence"] - b["cadence"] for a, b in pairs]),
+        "step_time_ms": stats([(a["step_time"] - b["step_time"]) * 1000 for a, b in pairs]),
+    }
+
+
 def summarise(rows: list[dict[str, Any]]) -> dict[str, Any]:
     def block(sel: list[dict[str, Any]]) -> dict[str, Any]:
         accepted = [r for r in sel if r["status"] == "accepted"]
@@ -240,6 +275,7 @@ def main() -> None:
         "pipeline_version": gaitcore_version,
         "model": model_info(),
         **summarise(rows),
+        "repeatability": repeatability(rows),
     }
     with open(os.path.join(args.out, "ljmu_summary.json"), "w") as f:
         json.dump(summary, f, indent=1)

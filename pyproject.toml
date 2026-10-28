@@ -87,6 +87,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S", "B", "T20"]
 "evaluation/*" = ["T20", "S603", "S607"]  # command-line scripts
+"loadtest/*" = ["T20", "S106"]  # command-line scripts; a throwaway password for test accounts
 
 [tool.mypy]
 python_version = "3.11"
