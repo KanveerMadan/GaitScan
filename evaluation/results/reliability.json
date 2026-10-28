@@ -1,0 +1,90 @@
+{
+ "runs": 527,
+ "participants": 54,
+ "alpha": 0.1,
+ "features": [
+  "q_fps",
+  "pose_fraction",
+  "q_feet_visible_fraction",
+  "q_view_ratio",
+  "q_path_convergence_deg",
+  "q_steady_walking_s",
+  "q_steps_detected",
+  "q_step_time_cv",
+  "q_usable_frame_fraction",
+  "q_height_px",
+  "q_mean_leg_visibility",
+  "q_heel_jitter_px"
+ ],
+ "evaluation": "leave-participant-out, 5 folds (GroupKFold)",
+ "cadence_error": {
+  "gbm": {
+   "coverage": 0.905,
+   "mean_width": 9.53,
+   "median_width": 8.57,
+   "constant_coverage": 0.858,
+   "constant_width": 7.53
+  },
+  "ridge": {
+   "coverage": 0.858,
+   "mean_width": 8.23,
+   "median_width": 7.8,
+   "constant_coverage": 0.858,
+   "constant_width": 7.53
+  },
+  "discrimination": {
+   "spearman": 0.106,
+   "limit_p95_abs": 4.88,
+   "share_beyond_limit_if_random": 0.049,
+   "rejecting_worst_predicted": [
+    {
+     "rejected": 0.0,
+     "share_beyond_limit": 0.049
+    },
+    {
+     "rejected": 0.1,
+     "share_beyond_limit": 0.044
+    },
+    {
+     "rejected": 0.2,
+     "share_beyond_limit": 0.045
+    }
+   ]
+  }
+ },
+ "step_time_error_ms": {
+  "gbm": {
+   "coverage": 0.894,
+   "mean_width": 46.36,
+   "median_width": 42.02,
+   "constant_coverage": 0.867,
+   "constant_width": 35.56
+  },
+  "ridge": {
+   "coverage": 0.873,
+   "mean_width": 39.86,
+   "median_width": 37.75,
+   "constant_coverage": 0.867,
+   "constant_width": 35.56
+  },
+  "discrimination": {
+   "spearman": 0.086,
+   "limit_p95_abs": 26.91,
+   "share_beyond_limit_if_random": 0.051,
+   "rejecting_worst_predicted": [
+    {
+     "rejected": 0.0,
+     "share_beyond_limit": 0.051
+    },
+    {
+     "rejected": 0.1,
+     "share_beyond_limit": 0.048
+    },
+    {
+     "rejected": 0.2,
+     "share_beyond_limit": 0.052
+    }
+   ]
+  }
+ }
+}
