@@ -3,6 +3,7 @@
 import os
 import subprocess
 import sys
+import warnings
 
 import cv2
 import numpy as np
@@ -53,6 +54,8 @@ def test_analysis_of_1080p_60fps_10s_peaks_under_420_mb(tmp_path):
     )
     assert out.returncode == 0, out.stderr[-2000:]
     peak_mb = int(out.stdout.split()[-1])  # ru_maxrss is in KiB on Linux
+    # Reported on every run (pytest's warnings summary), not only on failure: CI is the x86 reference.
+    warnings.warn(f"peak RSS {peak_mb} MB (limit {PEAK_RSS_LIMIT_MB} MB)", UserWarning, stacklevel=1)
     assert peak_mb <= PEAK_RSS_LIMIT_MB, f"peak RSS {peak_mb} MB"
 
 
