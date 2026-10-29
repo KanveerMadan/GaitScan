@@ -31,3 +31,4 @@ Plan: [REBUILD_PLAN_V3.md](REBUILD_PLAN_V3.md). Full history of Phases 0–2 is 
 - Phase 6 (frontend #15): code splitting, landing, phone layout (360 px checked), icons, Learn pages; axe WCAG 2.1 AA clean light/dark; Lighthouse mobile 97/100/100/100
 - Phase 7 (backend rebuild/phase-7-docs, frontend #16): READMEs, architecture + ADR as-built, model card, SECURITY.md, capture protocol, changelog, findings F01-F44, case study, reliability write-up
   - Owner actions: email provider + key (closes F12, enables reset), merge order of stacked PRs (#15-#18, frontend #11-#16), Dependabot PRs, OpenCap (Phase 8), more phone clips (irregular_steps, heel visibility, slow walkers)
+- perf/numpy-signal (#21, draft, owner decides after production peak_rss_mb): scipy replaced by gaitcore.dsp, identical outputs (golden, make evaluate byte-identical); x86 CI peak 445 -> 377 MB. test_memory had measured pytest (ru_maxrss survives exec); now VmHWM
