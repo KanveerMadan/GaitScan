@@ -34,11 +34,16 @@ def _write_video(path: str, w: int = 1920, h: int = 1080, fps: int = 60, secs: i
 
 
 # A fresh process, so the number is the server's imports plus one analysis, nothing from pytest.
-# peak_mb(): this process' peak resident memory, in MB.
+# peak_mb(): this process' peak resident memory, in MB. Linux: VmHWM, which exec resets; ru_maxrss
+# would carry over the peak of the process that started it (pytest, hundreds of MB in a full run).
 PEAK = """
 import resource
 def peak_mb():
-    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024
+    try:
+        with open("/proc/self/status") as f:
+            return next(int(line.split()[1]) for line in f if line.startswith("VmHWM:")) // 1024
+    except OSError:
+        return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024
 """
 CHILD = (
     PEAK
