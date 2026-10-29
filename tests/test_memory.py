@@ -34,28 +34,50 @@ def _write_video(path: str, w: int = 1920, h: int = 1080, fps: int = 60, secs: i
 
 
 # A fresh process, so the number is the server's imports plus one analysis, nothing from pytest.
-CHILD = """
-import resource, sys
+# peak_mb(): this process' peak resident memory, in MB.
+PEAK = """
+import resource
+def peak_mb():
+    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024
+"""
+CHILD = (
+    PEAK
+    + """
+import sys
 {preload}
 import app.main
-idle = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024
+idle = peak_mb()
 from app.api.analysis import run_pipeline
 run_pipeline(sys.argv[1], None)
-print(idle, resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024)
+print(idle, peak_mb())
 """
+)
 
 
-def _rss_mb(video: str, preload: str = "") -> tuple[int, int]:
-    """(idle after importing the app, peak after one analysis), in MB; ru_maxrss is KiB on Linux."""
+def _child(code: str, *args: str) -> list[int]:
     out = subprocess.run(
-        [sys.executable, "-c", CHILD.format(preload=preload), video],
+        [sys.executable, "-c", code, *args],
         capture_output=True,
         text=True,
         env={**os.environ, "PYTHONPATH": ROOT},
     )
     assert out.returncode == 0, out.stderr[-2000:]
-    idle, peak = out.stdout.split()[-2:]
-    return int(idle), int(peak)
+    return [int(v) for v in out.stdout.split()]
+
+
+def _rss_mb(video: str, preload: str = "") -> tuple[int, int]:
+    """(idle after importing the app, peak after one analysis), in MB."""
+    idle, peak = _child(CHILD.format(preload=preload), video)[-2:]
+    return idle, peak
+
+
+@pytest.mark.skipif(not sys.platform.startswith("linux"), reason="Linux exec semantics (CI, Docker)")
+def test_a_child_reports_its_own_memory_not_its_parents():
+    """On Linux ru_maxrss survives exec: a child started by pytest reported pytest's own size
+    (442 MB on CI, the same with or without an analysis)."""
+    ballast = b"x" * (300 * 1024 * 1024)  # the parent holds 300 MB, as a full test run does
+    (peak,) = _child(PEAK + "print(peak_mb())")
+    assert len(ballast) and peak < 100, f"child reported {peak} MB"
 
 
 @needs_mediapipe
