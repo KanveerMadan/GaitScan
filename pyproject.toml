@@ -26,7 +26,7 @@ dependencies = [
     "opencv-python-headless>=4.12",
     "numpy>=2.0",
     "pandas>=2.2",
-    "scipy>=1.13",
+    # no scipy: importing scipy.signal cost ~60 MB RSS; gaitcore.dsp ports the routines used
     # reports
     "reportlab>=4.4",
     "pillow>=13.0.0",
@@ -47,9 +47,11 @@ dev = [
     "pypdf>=6.1",
     "types-reportlab>=5.0.0.20260911",
     "scipy-stubs>=1.17.1.5",
+    "scipy>=1.13",  # the oracle for gaitcore.dsp (tests/test_dsp.py)
 ]
 evaluate = [
     "scikit-learn>=1.7",
+    "scipy>=1.13",
 ]
 
 [tool.uv]

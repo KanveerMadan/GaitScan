@@ -380,7 +380,6 @@ dependencies = [
     { name = "pyjwt" },
     { name = "python-multipart" },
     { name = "reportlab" },
-    { name = "scipy" },
     { name = "sentry-sdk", extra = ["fastapi"] },
     { name = "sqlalchemy" },
     { name = "structlog" },
@@ -396,12 +395,14 @@ dev = [
     { name = "pypdf" },
     { name = "pytest" },
     { name = "ruff" },
+    { name = "scipy" },
     { name = "scipy-stubs" },
     { name = "types-passlib" },
     { name = "types-reportlab" },
 ]
 evaluate = [
     { name = "scikit-learn" },
+    { name = "scipy" },
 ]
 
 [package.metadata]
@@ -421,7 +422,6 @@ requires-dist = [
     { name = "pyjwt", specifier = ">=2.10" },
     { name = "python-multipart", specifier = ">=0.0.31" },
     { name = "reportlab", specifier = ">=4.4" },
-    { name = "scipy", specifier = ">=1.13" },
     { name = "sentry-sdk", extras = ["fastapi"], specifier = ">=2.35" },
     { name = "sqlalchemy", specifier = ">=2.0.43" },
     { name = "structlog", specifier = ">=25.4" },
@@ -437,11 +437,15 @@ dev = [
     { name = "pypdf", specifier = ">=6.1" },
     { name = "pytest", specifier = ">=8.4" },
     { name = "ruff", specifier = ">=0.13" },
+    { name = "scipy", specifier = ">=1.13" },
     { name = "scipy-stubs", specifier = ">=1.17.1.5" },
     { name = "types-passlib" },
     { name = "types-reportlab", specifier = ">=5.0.0.20260911" },
 ]
-evaluate = [{ name = "scikit-learn", specifier = ">=1.7" }]
+evaluate = [
+    { name = "scikit-learn", specifier = ">=1.7" },
+    { name = "scipy", specifier = ">=1.13" },
+]
 
 [[package]]
 name = "h11"

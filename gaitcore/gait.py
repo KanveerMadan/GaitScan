@@ -11,7 +11,7 @@ support, when the feet are furthest apart:
 - peaks with the same PROMINENCE (0.1 leg lengths) and at least STEP_S_RANGE[0] apart, searched for
   inside each steady pass only: a peak cut by the end of a pass is lost, but one shaped by the speed
   ramp before it is not counted (searching the whole clip read 84 for the 90 steps/min synthetic
-  walker). Each peak is timed at the centre of its width at half prominence (scipy peak_widths,
+  walker). Each peak is timed at the centre of its width at half prominence (peak_widths as in scipy,
   linearly interpolated between frames), so events are found to a fraction of a frame; the arg-max
   alone is quantised to whole frames and wanders along the flat top of the double-support plateau.
 - consecutive events STEP_S_RANGE apart form a run; a gap outside it (a missed or extra peak) starts
@@ -54,11 +54,11 @@ from dataclasses import dataclass, field
 
 import numpy as np
 import numpy.typing as npt
-from scipy.signal import find_peaks, peak_widths
 
 from gaitcore.angles import knee_flexion, thigh_angle
 from gaitcore.calibration import Calibration
 from gaitcore.clip import Clip
+from gaitcore.dsp import find_peaks, peak_half_width_edges
 from gaitcore.segments import V_MIN, Segment, pelvis_in_view, pelvis_speed
 from gaitcore.signals import SIDES, Tracks, build_tracks, lowpass, raw_xy, runs, single_person
 
@@ -95,7 +95,7 @@ def heel_strikes(tracks: Tracks, side: str, seg: Segment, leg_px: float) -> npt.
     window[seg.start : seg.end] = rel[seg.start : seg.end]
     found: list[int] = []
     for a, b in runs(np.isfinite(window)):
-        peaks, _ = find_peaks(
+        peaks = find_peaks(
             window[a:b], distance=max(1, math.ceil(MIN_STRIDE_S * tracks.fps)), prominence=PROMINENCE
         )
         found.extend(int(a + p) for p in peaks)
@@ -116,10 +116,10 @@ def contact_runs(sep: npt.NDArray[np.float64], seg: Segment, fps: float) -> list
     out: list[list[float]] = []
     for a, b in runs(np.isfinite(window)):
         w = window[a:b]
-        peaks, _ = find_peaks(w, distance=max(1, math.ceil(STEP_S_RANGE[0] * fps)), prominence=PROMINENCE)
+        peaks = find_peaks(w, distance=max(1, math.ceil(STEP_S_RANGE[0] * fps)), prominence=PROMINENCE)
         if not len(peaks):
             continue
-        _, _, left, right = peak_widths(w, peaks, rel_height=0.5)
+        left, right = peak_half_width_edges(w, peaks)
         run: list[float] = []
         for t in (a + (left + right) / 2) / fps:
             if run and not (STEP_S_RANGE[0] <= t - run[-1] <= STEP_S_RANGE[1]):

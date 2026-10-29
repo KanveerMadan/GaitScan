@@ -33,7 +33,7 @@ Rules:
 - [x] [M] Degradation curves on LJMU (resolution, fps, compression, low light, camera yaw/roll): how each gait metric's error grows (evaluation/results/degradation_*; yaw = the simultaneous 45 deg clips)
 - [x] [M] Learned reliability model: per-clip expected error / reject (gradient boosting or small MLP, conformal intervals), leave-participant-out evaluation (negative result: Spearman 0.11 with real error, rejecting the worst-predicted 20% doesn't reduce large errors; evaluation/results/reliability.json)
 - [ ] [M] Ship it in the app: learned ± error next to each metric, learned rejections with reasons (not shipped: the model doesn't beat a constant range; the LJMU range stays)
-- [ ] [S] arXiv-style write-up (deferred to Phase 7)
+- [x] [S] arXiv-style write-up (docs/reliability-engine.md)
 
 ## Phase 3.5 — Design foundation (before any Phase 4 UI): done (frontend #12)
 - [x] [M] Design direction
@@ -80,30 +80,30 @@ Rules:
 - [ ] [C] Hindi UI strings (cut)
 - [x] [M] Re-run every audit probe; F01–F44 each closed or explicitly accepted (probes: _audit/probes/out_*_phase5.txt; status in REBUILD_PROGRESS.md)
 
-## Phase 6 — Frontend redesign & polish
-- [ ] [M] Production-quality redesign of every screen
-- [ ] [M] Landing page
-- [ ] [M] Mobile-first responsive layouts
-- [ ] [M] Loading, empty, error states everywhere
-- [ ] [M] WCAG AA
-- [ ] [M] Lighthouse 90+ (code splitting, image optimization)
-- [ ] [M] Use the design skills; no generic template look
+## Phase 6 — Frontend redesign & polish (frontend #15)
+- [x] [M] Production-quality redesign of every screen (Phase 3.5 design system on every screen; Phase 6 landing, phone layout, icons)
+- [x] [M] Landing page
+- [x] [M] Mobile-first responsive layouts (Playwright: no sideways scroll at 360 px on any screen; section links on screen)
+- [ ] [M] Loading, empty, error states everywhere (loading skeleton for lazy screens, errors shown with messages; not audited screen by screen)
+- [x] [M] WCAG AA (axe WCAG 2.1 A/AA: no serious or critical issues on every screen, light and dark, in CI; Lighthouse accessibility 100. No manual screen-reader pass)
+- [x] [M] Lighthouse 90+ (code splitting, image optimization) (mobile landing: 97 / 100 / 100 / 100; first load 808 -> 333 kB)
+- [x] [M] Use the design skills; no generic template look (design-taste-frontend, web-design-guidelines)
 - [ ] [S] Skeletons, transitions, micro-interactions
 - [ ] [S] Consistent chart styling
-- [ ] [S] Branding: logo, favicon, app icons
-- [ ] [S] Consistent copy
-- [ ] [C] Visual regression screenshots in CI
+- [x] [S] Branding: logo, favicon, app icons (Phosphor walking figure on the app's teal; maskable icon)
+- [x] [S] Consistent copy (filming tips match the backend's capture tip; accuracy figures read from the API)
+- [ ] [C] Visual regression screenshots in CI (cut)
 
-## Phase 7 — Documentation
-- [ ] README and setup
-- [ ] Architecture docs and ADR updates
-- [ ] Model card / "Accuracy & Limitations" page (from `make evaluate`) + evaluate instructions
-- [ ] Learn pages per metric with cited sources
-- [ ] SECURITY.md with threat model
-- [ ] Capture protocol guide
-- [ ] Changelog of all phases
-- [ ] Final findings table (F01–F44)
-- [ ] Case-study write-up
+## Phase 7 — Documentation (backend docs PR, frontend #16; Learn pages in frontend #15)
+- [x] README and setup (both repos; .env.example now lists MAIL_BACKEND and FRONTEND_URL)
+- [x] Architecture docs and ADR updates (docs/architecture.md: as-built table per ADR)
+- [x] Model card / "Accuracy & Limitations" page (from `make evaluate`) + evaluate instructions (docs/model-card.md)
+- [x] Learn pages per metric with cited sources (frontend /learn; DOIs checked)
+- [x] SECURITY.md with threat model
+- [x] Capture protocol guide (docs/capture-protocol.md)
+- [x] Changelog of all phases (CHANGELOG.md)
+- [x] Final findings table (F01–F44) (docs/findings.md)
+- [x] Case-study write-up (docs/case-study.md)
 
 ## Phase 8 — OpenCap knee-angle validation (optional)
 - [ ] Verify a side-on camera exists in the OpenCap data
@@ -111,3 +111,4 @@ Rules:
 - [ ] Extend the reliability model to knee angles
 - [ ] Update the model card
 - [ ] Sit-to-stand / 30-second chair stand against OpenCap sit-to-stand data
+- [ ] Isolate which #18 change (step-sized steadiness window vs dropped stretches) raised the share of accepted degraded LJMU runs more than 5 steps/min off from 4.0% to 6.0%: cache the degraded landmarks (degrade.py), then score each change alone (trade-off accepted by the owner 2026-10-28)
