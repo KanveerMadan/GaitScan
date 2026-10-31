@@ -105,10 +105,30 @@ Rules:
 - [x] Final findings table (F01–F44) (docs/findings.md)
 - [x] Case-study write-up (docs/case-study.md)
 
-## Phase 8 — OpenCap knee-angle validation (optional)
+## Phase 8 — OpenCap knee-angle validation (optional; knee items scrapped by the owner 2026-10-31: no OpenCap download, and the only open alternative found, Zenodo 19720803, has no video, only YOLOv8n keypoints, so it can't check MediaPipe's knee)
 - [ ] Verify a side-on camera exists in the OpenCap data
 - [ ] Validate peak knee flexion (and hip sagittal excursion) against its marker data
 - [ ] Extend the reliability model to knee angles
 - [ ] Update the model card
 - [ ] Sit-to-stand / 30-second chair stand against OpenCap sit-to-stand data
 - [ ] Isolate which #18 change (step-sized steadiness window vs dropped stretches) raised the share of accepted degraded LJMU runs more than 5 steps/min off from 4.0% to 6.0%: cache the degraded landmarks (degrade.py), then score each change alone (trade-off accepted by the owner 2026-10-28)
+
+## Phase 9 — Owner requests (2026-10-31)
+Decisions: no email (no domain, and Render's free tier blocks SMTP); knee validation scrapped; all cut features back in; the owner reviews Hindi strings and sets up Google OAuth; ghost replay stores one averaged stride, not per-frame landmarks.
+- [ ] [M] Recovery codes replace emailed reset links (8 single-use codes, hashed, shown once; reset = email + code); email verification removed; F12 stays accepted (no email channel)
+- [ ] [M] Re-test reminders without email: repeating .ics calendar file + "next test due" on the dashboard
+- [ ] [M] Ghost replay: one averaged stride per session (pelvis-centred, leg-length-scaled, 101 points; no face/hands, no absolute position), deleted with the session, in the export, consent text v2 (users re-consent)
+- [ ] [M] Google sign-in (ID token, client ID only; link to an existing account only when Google says the email is verified) (needs the owner's OAuth client ID)
+- [ ] [M] In-browser recording (the owner tests on a phone)
+- [ ] [M] Phase 6 leftovers: loading/empty/error states audited per screen, skeletons and transitions, consistent chart styling
+- [ ] [M] Per-foot heel strikes robust to left/right swaps (ship only if LJMU improves), then stride time
+- [ ] [S] Goals with progress tracking
+- [ ] [S] Professional inbox (shared reports, comments; access-control tests)
+- [ ] [S] Treadmill mode with a user-entered speed (labelled not yet validated: no treadmill clips)
+- [ ] [S] "Analysis done" notification (browser notification, no push server)
+- [ ] [S] Profile settings: height, units, language, dark mode
+- [ ] [S] Timeline search and filters
+- [ ] [S] Multiple adult profiles per account, under-18 profiles blocked (self-declared birth year)
+- [ ] [S] Hindi UI strings (the owner reviews before release)
+- [ ] [ ] Reference norms by age and sex: waiting on the owner's decision
+
