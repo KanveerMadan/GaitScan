@@ -10,7 +10,7 @@ from app.core import ratelimit
 from app.core.config import settings
 from app.core.security import create_access_token, get_current_user, hash_password, verify_password
 from app.db.database import get_db
-from app.db.models import AuthToken, User, UserRole
+from app.db.models import AuthToken, RecoveryCode, User, UserRole
 from app.services import mailer
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -51,6 +51,11 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"  # noqa: S105 (OAuth2 token type, not a secret)
     role: str
     full_name: str | None = None
+    recovery_codes_left: int | None = None  # on sign-in, so the app can prompt for a set
+
+
+class SignupResponse(TokenResponse):
+    recovery_codes: list[str]  # shown once
 
 
 def _token_response(user: User) -> TokenResponse:
@@ -59,7 +64,7 @@ def _token_response(user: User) -> TokenResponse:
     return TokenResponse(access_token=token, role=role_str, full_name=user.full_name)
 
 
-@router.post("/register", response_model=TokenResponse, status_code=201)
+@router.post("/register", response_model=SignupResponse, status_code=201)
 def register(payload: RegisterRequest, request: Request, db: Session = Depends(get_db)):
     ip = ratelimit.client_ip(request)
     ratelimit.enforce((ratelimit.registrations_per_ip, ip))
@@ -81,7 +86,9 @@ def register(payload: RegisterRequest, request: Request, db: Session = Depends(g
     db.add(user)
     db.commit()
     db.refresh(user)
-    return _token_response(user)
+    codes = _new_recovery_codes(db, user)
+    db.commit()
+    return SignupResponse(**_token_response(user).model_dump(), recovery_codes=codes)
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -96,7 +103,9 @@ def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)
     if not user or not ok:
         ratelimit.login_failures_per_email.hit(email_key)
         raise HTTPException(status_code=401, detail="Invalid email or password")
-    return _token_response(user)
+    out = _token_response(user)
+    out.recovery_codes_left = _codes_left(db, user)
+    return out
 
 
 @router.post("/change-password")
@@ -119,13 +128,14 @@ def change_password(
 
 
 @router.get("/me")
-def get_me(current_user: User = Depends(get_current_user)):
+def get_me(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     return {
         "id": current_user.id,
         "email": current_user.email,
         "role": current_user.role,
         "full_name": current_user.full_name,
         "email_verified": current_user.email_verified_at is not None,
+        "recovery_codes_left": _codes_left(db, current_user),
     }
 
 
@@ -243,3 +253,88 @@ def verify_email(payload: LinkToken, db: Session = Depends(get_db)):
         user.email_verified_at = user.email_verified_at or datetime.now(UTC)
     db.commit()
     return {"message": "Email address confirmed."}
+
+
+# ---- Recovery codes (Plan V3 Phase 9): password recovery without email ----------------------------
+# No email can be sent (no domain, and Render's free tier blocks SMTP), so a forgotten password is
+# recovered with one of eight single-use codes shown when the account is made. 16 Crockford base32
+# characters = 80 random bits: guessing is hopeless even offline against the stored SHA-256.
+RECOVERY_CODES = 8
+_ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"  # Crockford base32: no I, L, O, U  # pragma: allowlist secret
+BAD_CODE = "That email address and recovery code don't match an unused code."
+
+
+class RecoverRequest(BaseModel):
+    email: EmailStr
+    code: str = Field(min_length=16, max_length=40)
+    new_password: str
+
+
+class PasswordCheck(BaseModel):
+    password: str
+
+
+def _normalise_code(code: str) -> str:
+    """Upper case, no separators or spaces; I/L read as 1 and O as 0, as Crockford base32 allows."""
+    c = "".join(ch for ch in code.upper() if ch.isalnum())
+    return c.translate(str.maketrans("ILO", "110"))
+
+
+def _new_recovery_codes(db: Session, user: User) -> list[str]:
+    """A fresh set, replacing any earlier one. Returns the codes; only their hashes are kept."""
+    db.query(RecoveryCode).filter(RecoveryCode.user_id == user.id).delete()
+    codes = []
+    for _ in range(RECOVERY_CODES):
+        raw = "".join(secrets.choice(_ALPHABET) for _ in range(16))
+        db.add(RecoveryCode(user_id=user.id, code_hash=_hash(raw)))
+        codes.append("-".join(raw[i : i + 4] for i in range(0, 16, 4)))
+    return codes
+
+
+def _codes_left(db: Session, user: User) -> int:
+    return (
+        db.query(RecoveryCode).filter(RecoveryCode.user_id == user.id, RecoveryCode.used_at.is_(None)).count()
+    )
+
+
+@router.post("/recovery-codes", status_code=201)
+def make_recovery_codes(
+    payload: PasswordCheck, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+):
+    if not verify_password(payload.password, current_user.hashed_password):
+        raise HTTPException(401, "The password is incorrect.")
+    codes = _new_recovery_codes(db, current_user)
+    db.commit()
+    return {"recovery_codes": codes}
+
+
+@router.post("/recover")
+def recover(payload: RecoverRequest, request: Request, db: Session = Depends(get_db)):
+    email_key = str(payload.email).lower()
+    ip = ratelimit.client_ip(request)
+    ratelimit.enforce(
+        (ratelimit.recovery_attempts_per_email, email_key), (ratelimit.recovery_attempts_per_ip, ip)
+    )
+    require_new_password(payload.new_password)
+    ratelimit.recovery_attempts_per_email.hit(email_key)
+    ratelimit.recovery_attempts_per_ip.hit(ip)
+    user = db.query(User).filter(User.email == email_key).first()
+    row = None
+    if user is not None:
+        row = (
+            db.query(RecoveryCode)
+            .filter(
+                RecoveryCode.user_id == user.id,
+                RecoveryCode.code_hash == _hash(_normalise_code(payload.code)),
+                RecoveryCode.used_at.is_(None),
+            )
+            .first()
+        )
+    if user is None or row is None:
+        raise HTTPException(400, BAD_CODE)
+    now = datetime.now(UTC)
+    row.used_at = now
+    user.hashed_password = hash_password(payload.new_password)
+    user.password_changed_at = now  # ends every earlier login
+    db.commit()
+    return {"message": "Password changed. You can now sign in with your new password."}

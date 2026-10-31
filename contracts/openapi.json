@@ -472,6 +472,19 @@
     "title": "LoginRequest",
     "type": "object"
    },
+   "PasswordCheck": {
+    "properties": {
+     "password": {
+      "title": "Password",
+      "type": "string"
+     }
+    },
+    "required": [
+     "password"
+    ],
+    "title": "PasswordCheck",
+    "type": "object"
+   },
    "PatientRef": {
     "properties": {
      "email": {
@@ -565,6 +578,32 @@
      "linked_since"
     ],
     "title": "PatientSummary",
+    "type": "object"
+   },
+   "RecoverRequest": {
+    "properties": {
+     "code": {
+      "maxLength": 40,
+      "minLength": 16,
+      "title": "Code",
+      "type": "string"
+     },
+     "email": {
+      "format": "email",
+      "title": "Email",
+      "type": "string"
+     },
+     "new_password": {
+      "title": "New Password",
+      "type": "string"
+     }
+    },
+    "required": [
+     "email",
+     "code",
+     "new_password"
+    ],
+    "title": "RecoverRequest",
     "type": "object"
    },
    "RegisterRequest": {
@@ -1070,6 +1109,59 @@
     "title": "SharedToken",
     "type": "object"
    },
+   "SignupResponse": {
+    "properties": {
+     "access_token": {
+      "title": "Access Token",
+      "type": "string"
+     },
+     "full_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Full Name"
+     },
+     "recovery_codes": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Recovery Codes",
+      "type": "array"
+     },
+     "recovery_codes_left": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Recovery Codes Left"
+     },
+     "role": {
+      "title": "Role",
+      "type": "string"
+     },
+     "token_type": {
+      "default": "bearer",
+      "title": "Token Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "access_token",
+     "role",
+     "recovery_codes"
+    ],
+    "title": "SignupResponse",
+    "type": "object"
+   },
    "TokenResponse": {
     "properties": {
      "access_token": {
@@ -1086,6 +1178,17 @@
        }
       ],
       "title": "Full Name"
+     },
+     "recovery_codes_left": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Recovery Codes Left"
      },
      "role": {
       "title": "Role",
@@ -1507,6 +1610,89 @@
     ]
    }
   },
+  "/auth/recover": {
+   "post": {
+    "operationId": "recover_auth_recover_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RecoverRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Recover",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/auth/recovery-codes": {
+   "post": {
+    "operationId": "make_recovery_codes_auth_recovery_codes_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PasswordCheck"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Make Recovery Codes",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
   "/auth/register": {
    "post": {
     "operationId": "register_auth_register_post",
@@ -1525,7 +1711,7 @@
       "content": {
        "application/json": {
         "schema": {
-         "$ref": "#/components/schemas/TokenResponse"
+         "$ref": "#/components/schemas/SignupResponse"
         }
        }
       },
