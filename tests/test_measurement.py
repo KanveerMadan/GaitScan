@@ -763,3 +763,38 @@ def test_no_knee_curve_when_per_leg_values_are_hidden():
     assert d["status"] == "accepted" and d["metrics"]["peak_knee_flexion"] == {"left": None, "right": None}
     assert d["curves"]["knee_flexion"]["left"] is None and d["curves"]["knee_flexion"]["right"] is None
     assert analyse(synthetic_clip(fps=15)[0]).to_dict()["curves"] == {}
+
+
+# ---- stride outline (ghost replay, Plan V3 Phase 9) ----------------------------------------------
+OUTLINE_NAMES = ("hip", "knee", "ankle", "heel", "toe")
+
+
+def test_an_accepted_walk_keeps_one_averaged_stride_outline():
+    """Both legs over one average stride, leading leg = L: pelvis-centred, in leg lengths, walking
+    towards +x, height above the floor. No absolute position, no head, arms or hands."""
+    d = analyse(synthetic_clip(pass_secs=6.0)[0]).to_dict()  # three passes, both directions
+    o = d["curves"]["stride_outline"]
+    assert set(o["points"]) == {f"{s}_{n}" for s in ("L", "R") for n in OUTLINE_NAMES}
+    for track in o["points"].values():
+        assert len(track) == 101 and all(len(p) == 2 for p in track)
+    assert o["strides"] >= 3
+    assert o["trail_strike"] == pytest.approx(0.5, abs=0.06)
+    p = o["points"]
+    hip_y = [y for _, y in p["L_hip"]]
+    assert abs(np.mean([x for x, _ in p["L_hip"]])) < 0.02  # pelvis-centred
+    assert np.mean(hip_y) == pytest.approx(0.96, abs=0.05)  # the simulated hip height, in leg lengths
+    assert min(y for _, y in p["L_heel"] + p["R_heel"]) == pytest.approx(0, abs=0.02)  # on the floor
+    # Phase 0 is the leading heel's strike: in front of the pelvis, whichever way the pass went.
+    assert p["L_heel"][0][0] == pytest.approx(0.3, abs=0.06) and p["R_heel"][0][0] < 0
+
+
+def test_no_stride_outline_when_the_legs_cant_be_told_apart():
+    d = analyse(flip_legs(synthetic_clip()[0], 0.10, 1)).to_dict()
+    assert d["curves"]["stride_outline"] is None
+
+
+def test_the_consent_text_mentions_the_stride_outline():
+    from app.core.copy import CONSENT_TEXT, CONSENT_VERSION
+
+    assert CONSENT_VERSION > "2026-10-27"  # a new version: everyone is asked again
+    assert "outline of one average stride" in CONSENT_TEXT
