@@ -97,8 +97,9 @@ the latest summary. `evaluation/degrade.py` runs the degradation curves, and
 |---|---|---|
 | POST | `/auth/register`, `/auth/login` | anyone (rate-limited) |
 | GET · POST | `/auth/me` · `/auth/change-password` | signed in |
-| POST | `/auth/password-reset`, `/auth/password-reset/confirm`, `/auth/verify-email` | anyone, with a link token |
-| POST | `/auth/verify-email/request` | signed in |
+| POST | `/auth/recover` (email + recovery code + new password) | anyone (rate-limited) |
+| POST | `/auth/recovery-codes` (a new set; needs the password) | signed in |
+| POST | `/auth/password-reset`, `/auth/password-reset/confirm`, `/auth/verify-email`, `/auth/verify-email/request` | unused: answer 503 while no email is sent (`MAIL_BACKEND=none`) |
 | GET · POST · DELETE | `/consent` | signed in |
 | POST · GET | `/analyses` (202) · `/analyses/{job_id}` (poll) | signed in, with consent |
 | POST | `/analyze` (synchronous; for scripts, the app uses `/analyses`) | signed in, with consent |

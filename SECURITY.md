@@ -17,7 +17,8 @@ a one-person project.
 | Account (email, name, password hash) | Postgres `users` | bcrypt hashes; no plaintext password is stored or logged |
 | Consent records | Postgres `consents` | Versioned; an analysis is refused (403) without current consent |
 | Share links | Postgres `share_links` | Only a SHA-256 hash of the token is stored; read-only, one session, 7 days by default (1–30), revocable |
-| Reset / verification links | Postgres `auth_tokens` | Hashed, single-use, expiring (reset: 30 minutes) |
+| Recovery codes | Postgres `recovery_codes` | 8 per account, 80 random bits each, single-use, only the SHA-256 stored; shown once |
+| Reset / verification links (unused: no email is sent) | Postgres `auth_tokens` | Hashed, single-use, expiring (reset: 30 minutes) |
 
 ## Threat model
 Attackers considered: an anonymous internet user; a signed-in user trying to reach someone else's
@@ -30,6 +31,7 @@ Vercel account, a compromised developer machine, and physical access to a user's
 | Reading another user's sessions, reports or shares | Every session, report and share route checks ownership or an explicit clinician link | `tests/test_access_control.py`; probe F02 |
 | Self-promotion to clinician | Role is never taken from the client; clinicians are promoted by an admin | probe F03 |
 | Password guessing | 10-character minimum; sliding-window limits: 5 failures per email / 15 min, 20 attempts per IP / 5 min; equal-cost login for unknown emails | `tests/test_auth_hardening.py`; probe F10 |
+| Recovery-code guessing | 80-bit codes; 5 attempts per email and 20 per client per 15 min; a used code or a new set ends every earlier login | `tests/test_recovery_codes.py` |
 | Long-lived stolen tokens | 12-hour access tokens; changing or resetting the password ends every earlier login (`iat` checked against `password_changed_at`) | `tests/test_account_email.py` |
 | Leaked share link | Random 256-bit token, hash stored, expiry, revocation, no personal data in the URL (the token is in the fragment, not sent to servers or in Referer), 60 opens per IP per hour | `tests/test_share_links.py` |
 | Invite-code guessing | `secrets`-generated codes, 7-day expiry, 10 joins per IP per 15 min | `tests/test_invites.py` |
@@ -44,7 +46,10 @@ Vercel account, a compromised developer machine, and physical access to a user's
 
 ## Known gaps (accepted for now)
 - **Account enumeration at sign-up (F12).** Registration says when an email is taken. Closing it needs
-  verified sign-up by email, which waits for an email provider.
+  verified sign-up by email, and GaitScan sends no email (no domain; Render's free tier blocks SMTP).
+  Sign-up is rate-limited per client.
+- **No recovery without the password or a code.** Password recovery uses recovery codes instead of
+  email. Someone who loses both can't get back in; the app says so when it shows the codes.
 - **Token in `localStorage` (part of F05).** An XSS bug would expose the access token. Mitigations:
   no third-party scripts, React escaping, 12-hour tokens. Moving to an httpOnly cookie needs CSRF
   protection and a same-site API domain.
