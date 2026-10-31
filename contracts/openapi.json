@@ -1272,6 +1272,16 @@
       "title": "Role",
       "type": "string"
      },
+     "settings": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Settings"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
      "token_type": {
       "default": "bearer",
       "title": "Token Type",
@@ -1317,6 +1327,16 @@
      "role": {
       "title": "Role",
       "type": "string"
+     },
+     "settings": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Settings"
+       },
+       {
+        "type": "null"
+       }
+      ]
      },
      "token_type": {
       "default": "bearer",
