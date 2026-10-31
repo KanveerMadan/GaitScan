@@ -336,6 +336,21 @@
     "title": "EmailRequest",
     "type": "object"
    },
+   "GoogleCredential": {
+    "properties": {
+     "credential": {
+      "maxLength": 4096,
+      "minLength": 20,
+      "title": "Credential",
+      "type": "string"
+     }
+    },
+    "required": [
+     "credential"
+    ],
+    "title": "GoogleCredential",
+    "type": "object"
+   },
    "HTTPValidationError": {
     "properties": {
      "detail": {
@@ -1632,6 +1647,55 @@
      }
     ],
     "summary": "Change Password",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/auth/google": {
+   "post": {
+    "operationId": "google_sign_in_auth_google_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/GoogleCredential"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "anyOf": [
+          {
+           "$ref": "#/components/schemas/SignupResponse"
+          },
+          {
+           "$ref": "#/components/schemas/TokenResponse"
+          }
+         ],
+         "title": "Response Google Sign In Auth Google Post"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Google Sign In",
     "tags": [
      "auth"
     ]

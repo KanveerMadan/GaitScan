@@ -40,6 +40,8 @@ class Settings(BaseModel):
     mail_backend: str = ""
     # Where links in emails point (the frontend), e.g. https://gaitscan-frontend.vercel.app
     frontend_url: str = ""
+    # Google sign-in (app/api/google_auth.py): the OAuth web client ID; empty = off. Not a secret.
+    google_client_id: str = ""
 
     @field_validator("env")
     @classmethod
