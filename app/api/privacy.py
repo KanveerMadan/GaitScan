@@ -21,6 +21,7 @@ from app.db.models import (
     Consent,
     RecoveryCode,
     SessionArchive,
+    SessionComment,
     ShareLink,
     User,
 )
@@ -35,6 +36,7 @@ def _iso(d: datetime | None) -> str | None:
 
 
 def delete_session_rows(db: DBSession, session_id: str) -> None:
+    db.query(SessionComment).filter(SessionComment.session_id == session_id).delete()
     db.query(ShareLink).filter(ShareLink.session_id == session_id).delete()
     db.query(AnalysisJob).filter(AnalysisJob.session_id == session_id).delete()
     db.query(SessionArchive).filter(SessionArchive.session_id == session_id).delete()
@@ -73,6 +75,16 @@ def export_my_data(
                 "notes": s.notes,
                 "tags": s.tags or [],
                 "archived_values": s.archive.data if s.archive else None,
+                "comments": [
+                    {
+                        "by": "you" if c.author_id == uid else "clinician",
+                        "body": c.body,
+                        "at": _iso(c.created_at),
+                    }
+                    for c in db.query(SessionComment)
+                    .filter(SessionComment.session_id == s.id)
+                    .order_by(SessionComment.id)
+                ],
             }
             for s in sessions
         ],
@@ -128,6 +140,7 @@ def delete_account(
     db.query(Consent).filter(Consent.user_id == uid).delete()
     db.query(AuthToken).filter(AuthToken.user_id == uid).delete()
     db.query(RecoveryCode).filter(RecoveryCode.user_id == uid).delete()
+    db.query(SessionComment).filter(SessionComment.author_id == uid).delete()  # theirs on others' sessions
     db.query(ClinicianPatient).filter(
         (ClinicianPatient.patient_id == uid) | (ClinicianPatient.clinician_id == uid)
     ).delete(synchronize_session=False)

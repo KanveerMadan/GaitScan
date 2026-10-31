@@ -31,6 +31,8 @@ class User(Base):
     password_changed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     # Settings (app/api/settings.py); NULL = the defaults.
     settings: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    # Clinicians: when they last looked at their inbox (app/api/inbox.py).
+    inbox_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class AuthToken(Base):
@@ -105,6 +107,17 @@ class RecoveryCode(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     code_hash: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class SessionComment(Base):
+    """A comment on a session by its owner or a linked clinician (Plan V3 Phase 9)."""
+
+    __tablename__ = "session_comments"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    session_id: Mapped[str] = mapped_column(String, ForeignKey("sessions.id"), nullable=False, index=True)
+    author_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

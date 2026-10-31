@@ -216,6 +216,73 @@
     "title": "ChangePasswordRequest",
     "type": "object"
    },
+   "CommentIn": {
+    "properties": {
+     "body": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Body",
+      "type": "string"
+     }
+    },
+    "required": [
+     "body"
+    ],
+    "title": "CommentIn",
+    "type": "object"
+   },
+   "CommentOut": {
+    "properties": {
+     "author_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Author Name"
+     },
+     "author_role": {
+      "title": "Author Role",
+      "type": "string"
+     },
+     "body": {
+      "title": "Body",
+      "type": "string"
+     },
+     "created_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created At"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "mine": {
+      "title": "Mine",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "id",
+     "body",
+     "author_role",
+     "author_name",
+     "mine",
+     "created_at"
+    ],
+    "title": "CommentOut",
+    "type": "object"
+   },
    "ConsentAccept": {
     "properties": {
      "version": {
@@ -362,6 +429,110 @@
      }
     },
     "title": "HTTPValidationError",
+    "type": "object"
+   },
+   "Inbox": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/InboxItem"
+      },
+      "title": "Items",
+      "type": "array"
+     },
+     "seen_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Seen At"
+     }
+    },
+    "required": [
+     "items",
+     "seen_at"
+    ],
+    "title": "Inbox",
+    "type": "object"
+   },
+   "InboxItem": {
+    "properties": {
+     "cadence": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cadence"
+     },
+     "comments": {
+      "title": "Comments",
+      "type": "integer"
+     },
+     "created_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created At"
+     },
+     "last_comment_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Comment At"
+     },
+     "new": {
+      "title": "New",
+      "type": "boolean"
+     },
+     "patient_id": {
+      "title": "Patient Id",
+      "type": "integer"
+     },
+     "patient_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Patient Name"
+     },
+     "session_id": {
+      "title": "Session Id",
+      "type": "string"
+     }
+    },
+    "required": [
+     "session_id",
+     "patient_id",
+     "patient_name",
+     "created_at",
+     "cadence",
+     "comments",
+     "last_comment_at",
+     "new"
+    ],
+    "title": "InboxItem",
     "type": "object"
    },
    "JobQueued": {
@@ -2031,6 +2202,51 @@
     ]
    }
   },
+  "/clinician/inbox": {
+   "get": {
+    "operationId": "inbox_clinician_inbox_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Inbox"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Inbox",
+    "tags": [
+     "inbox"
+    ]
+   }
+  },
+  "/clinician/inbox/seen": {
+   "post": {
+    "operationId": "mark_seen_clinician_inbox_seen_post",
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Mark Seen",
+    "tags": [
+     "inbox"
+    ]
+   }
+  },
   "/clinician/invite": {
    "post": {
     "operationId": "create_invite_clinician_invite_post",
@@ -2633,6 +2849,112 @@
     "summary": "Label Session",
     "tags": [
      "sessions"
+    ]
+   }
+  },
+  "/sessions/{session_id}/comments": {
+   "get": {
+    "operationId": "list_comments_sessions__session_id__comments_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "session_id",
+      "required": true,
+      "schema": {
+       "title": "Session Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/CommentOut"
+         },
+         "title": "Response List Comments Sessions  Session Id  Comments Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "List Comments",
+    "tags": [
+     "inbox"
+    ]
+   },
+   "post": {
+    "operationId": "add_comment_sessions__session_id__comments_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "session_id",
+      "required": true,
+      "schema": {
+       "title": "Session Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CommentIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CommentOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Add Comment",
+    "tags": [
+     "inbox"
     ]
    }
   },
