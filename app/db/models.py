@@ -94,6 +94,18 @@ class Consent(Base):
     withdrawn_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
+class RecoveryCode(Base):
+    """A single-use password recovery code (Plan V3 Phase 9). Only its SHA-256 is stored: the code has
+    80 random bits, so the hash can't be reversed by trying codes."""
+
+    __tablename__ = "recovery_codes"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    code_hash: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class ShareLink(Base):
     """A read-only link to one session (Plan V3 Phase 5). Only the token's SHA-256 is stored."""
 

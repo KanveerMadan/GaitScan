@@ -18,6 +18,7 @@ from app.db.models import (
     ClinicianInvite,
     ClinicianPatient,
     Consent,
+    RecoveryCode,
     SessionArchive,
     ShareLink,
     User,
@@ -124,6 +125,7 @@ def delete_account(
     db.query(AnalysisJob).filter(AnalysisJob.user_id == uid).delete()
     db.query(Consent).filter(Consent.user_id == uid).delete()
     db.query(AuthToken).filter(AuthToken.user_id == uid).delete()
+    db.query(RecoveryCode).filter(RecoveryCode.user_id == uid).delete()
     db.query(ClinicianPatient).filter(
         (ClinicianPatient.patient_id == uid) | (ClinicianPatient.clinician_id == uid)
     ).delete(synchronize_session=False)
