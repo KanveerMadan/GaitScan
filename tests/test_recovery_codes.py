@@ -133,3 +133,10 @@ def test_recovery_works_with_no_email_provider(client, monkeypatch):
         "/auth/recover", json={"email": email, "code": body["recovery_codes"][0], "new_password": NEW}
     )
     assert r.status_code == 200
+
+
+def test_sign_in_says_how_many_codes_are_left(client):
+    body = signup(client)
+    email = client.get("/auth/me", headers=auth(body["access_token"])).json()["email"]
+    r = client.post("/auth/login", json={"email": email, "password": PASSWORD})
+    assert r.json()["recovery_codes_left"] == 8
