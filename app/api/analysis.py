@@ -17,6 +17,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPExcepti
 from sqlalchemy.orm import Session as DBSession
 
 from app.api.consent import require_consent
+from app.api.profiles import owned_profile
 from app.core.config import settings
 from app.core.copy import DISCLAIMER
 from app.core.security import get_current_user
@@ -97,7 +98,12 @@ UNREADABLE = "We couldn't read this file as a video. Please upload an .mp4, .mov
 
 
 def _store(
-    db: DBSession, job_id: str, user_id: int, patient_name: str, result: AnalysisResult
+    db: DBSession,
+    job_id: str,
+    user_id: int,
+    patient_name: str,
+    result: AnalysisResult,
+    profile_id: int | None = None,
 ) -> AnalyzeResponse:
     data = result.to_dict()
     db.add(
@@ -105,6 +111,7 @@ def _store(
             id=job_id,
             patient_name=patient_name,
             user_id=user_id,
+            profile_id=profile_id,
             pipeline_version=result.pipeline_version,
             result=data,
         )
@@ -123,6 +130,13 @@ def _name(given: str | None, user: User) -> str:
     return (given or "").strip() or (user.full_name or "").strip() or "Anonymous"
 
 
+def _subject(db: DBSession, user: User, profile_id: int | None, given: str | None) -> tuple[int | None, str]:
+    """Who is being measured: another adult on the account (their profile's name), or the holder."""
+    if profile_id is None:
+        return None, _name(given, user)
+    return profile_id, owned_profile(db, user, profile_id).name
+
+
 def _remove(path: str) -> None:
     # The raw video is never kept, whatever happened.
     if os.path.exists(path):
@@ -133,6 +147,7 @@ def _remove(path: str) -> None:
 def analyze(
     video: UploadFile = File(...),
     patient_name: str | None = Form(None),
+    profile_id: int | None = Form(None),
     test: str = Form(WALK),
     calib_x1: float | None = Form(None),
     calib_y1: float | None = Form(None),
@@ -144,6 +159,7 @@ def analyze(
 ) -> AnalyzeResponse:
     """Synchronous analysis (kept until every client uses POST /analyses)."""
     require_consent(db, current_user)
+    subject_id, subject_name = _subject(db, current_user, profile_id, patient_name)
     ext, calibration = _form_checks(video, test, [calib_x1, calib_y1, calib_x2, calib_y2], calib_distance_m)
     job_id = str(uuid.uuid4())
     video_path = f"data/raw/{job_id}{ext}"
@@ -158,7 +174,7 @@ def analyze(
         if not result.accepted:
             assert result.rejection is not None
             raise rejected(result.rejection.code, result.rejection.message)
-        return _store(db, job_id, current_user.id, _name(patient_name, current_user), result)
+        return _store(db, job_id, current_user.id, subject_name, result, subject_id)
     except HTTPException:
         raise
     except Exception:
@@ -174,6 +190,7 @@ def submit_analysis(
     background: BackgroundTasks,
     video: UploadFile = File(...),
     patient_name: str | None = Form(None),
+    profile_id: int | None = Form(None),
     test: str = Form(WALK),
     calib_x1: float | None = Form(None),
     calib_y1: float | None = Form(None),
@@ -186,6 +203,7 @@ def submit_analysis(
     """Queue an analysis and return at once; poll the status_url (Plan V3 Phase 4). Checks that need
     no pose model (file type, test, calibration, length, frame rate) answer here, straight away."""
     require_consent(db, current_user)
+    subject_id, subject_name = _subject(db, current_user, profile_id, patient_name)
     ext, calibration = _form_checks(video, test, [calib_x1, calib_y1, calib_x2, calib_y2], calib_distance_m)
     job_id = str(uuid.uuid4())
     video_path = f"data/raw/{job_id}{ext}"
@@ -211,7 +229,8 @@ def submit_analysis(
                 user_id=current_user.id,
                 status="queued",
                 test=test,
-                patient_name=_name(patient_name, current_user),
+                patient_name=subject_name,
+                profile_id=subject_id,
             )
         )
         db.commit()
@@ -236,7 +255,7 @@ def process_job(job_id: str, video_path: str, calibration: Calibration | None, t
             result = run_pipeline(video_path, calibration, test)
             if result.accepted:
                 assert job.user_id is not None
-                _store(db, job_id, job.user_id, job.patient_name or "Anonymous", result)
+                _store(db, job_id, job.user_id, job.patient_name or "Anonymous", result, job.profile_id)
                 job.status, job.session_id = "done", job_id
             else:
                 assert result.rejection is not None

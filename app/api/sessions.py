@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from sqlalchemy.orm import Session as DBSession
 
+from app.api.profiles import owned_profile
 from app.core.copy import DISCLAIMER, LEGACY_NOTE
 from app.core.security import get_current_user
 from app.db.database import get_db
@@ -28,6 +29,7 @@ def get_visible_session(db: DBSession, user: User, session_id: str) -> SessionMo
             return s
         if (
             user.role == "clinician"
+            and s.profile_id is None  # another adult on the account is not the clinician's patient
             and db.query(ClinicianPatient)
             .filter(
                 ClinicianPatient.clinician_id == user.id,
@@ -51,6 +53,7 @@ def session_out(s: SessionModel) -> SessionOut:
         note=LEGACY_NOTE if legacy else None,
         notes=s.notes,
         tags=list(s.tags or []),
+        profile_id=s.profile_id,
     )
 
 
@@ -73,14 +76,20 @@ def get_report(
 
 
 @router.get("/sessions", response_model=list[SessionOut])
-def list_sessions(current_user: User = Depends(get_current_user), db: DBSession = Depends(get_db)):
-    sessions = (
-        db.query(SessionModel)
-        .filter(SessionModel.user_id == current_user.id)
-        .order_by(SessionModel.created_at.desc())
-        .all()
-    )
-    return [session_out(s) for s in sessions]
+def list_sessions(
+    profile_id: str | None = None,
+    current_user: User = Depends(get_current_user),
+    db: DBSession = Depends(get_db),
+):
+    """All the account's sessions; `profile_id` narrows to one profile ('self' = the account holder)."""
+    q = db.query(SessionModel).filter(SessionModel.user_id == current_user.id)
+    if profile_id == "self":
+        q = q.filter(SessionModel.profile_id.is_(None))
+    elif profile_id is not None:
+        if not profile_id.isdigit():
+            raise HTTPException(422, "profile_id is a profile's id or 'self'.")
+        q = q.filter(SessionModel.profile_id == owned_profile(db, current_user, int(profile_id)).id)
+    return [session_out(s) for s in q.order_by(SessionModel.created_at.desc()).all()]
 
 
 @router.get("/sessions/{session_id}", response_model=SessionDetail)

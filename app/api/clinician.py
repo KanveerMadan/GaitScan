@@ -95,7 +95,7 @@ def get_patients(clinician: User = Depends(require_clinician), db: Session = Dep
             continue
         sessions = (
             db.query(GaitSession)
-            .filter(GaitSession.user_id == link.patient_id)
+            .filter(GaitSession.user_id == link.patient_id, GaitSession.profile_id.is_(None))
             .order_by(GaitSession.created_at.desc())
             .all()
         )
@@ -132,7 +132,7 @@ def get_patient_sessions(
         raise HTTPException(status_code=404, detail="Patient not found")
     sessions = (
         db.query(GaitSession)
-        .filter(GaitSession.user_id == patient_id)
+        .filter(GaitSession.user_id == patient_id, GaitSession.profile_id.is_(None))
         .order_by(GaitSession.created_at.desc())
         .all()
     )

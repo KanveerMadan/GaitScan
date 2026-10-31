@@ -112,7 +112,11 @@ def inbox(clinician: User = Depends(require_clinician), db: DBSession = Depends(
         db.query(SessionModel, User)
         .join(User, User.id == SessionModel.user_id)
         .join(ClinicianPatient, ClinicianPatient.patient_id == SessionModel.user_id)
-        .filter(ClinicianPatient.clinician_id == clinician.id, SessionModel.created_at >= since)
+        .filter(
+            ClinicianPatient.clinician_id == clinician.id,
+            SessionModel.profile_id.is_(None),  # the patient's own sessions, not other people on the account
+            SessionModel.created_at >= since,
+        )
         .order_by(SessionModel.created_at.desc())
         .limit(INBOX_LIMIT)
         .all()

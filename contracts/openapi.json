@@ -96,6 +96,17 @@
       ],
       "title": "Patient Name"
      },
+     "profile_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Profile Id"
+     },
      "test": {
       "default": "walk",
       "title": "Test",
@@ -180,6 +191,17 @@
        }
       ],
       "title": "Patient Name"
+     },
+     "profile_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Profile Id"
      },
      "test": {
       "default": "walk",
@@ -766,6 +788,69 @@
     "title": "PatientSummary",
     "type": "object"
    },
+   "ProfileIn": {
+    "properties": {
+     "birth_year": {
+      "title": "Birth Year",
+      "type": "integer"
+     },
+     "is_adult": {
+      "title": "Is Adult",
+      "type": "boolean"
+     },
+     "name": {
+      "maxLength": 80,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name",
+     "birth_year",
+     "is_adult"
+    ],
+    "title": "ProfileIn",
+    "type": "object"
+   },
+   "ProfileOut": {
+    "properties": {
+     "birth_year": {
+      "title": "Birth Year",
+      "type": "integer"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "birth_year"
+    ],
+    "title": "ProfileOut",
+    "type": "object"
+   },
+   "ProfileRename": {
+    "properties": {
+     "name": {
+      "maxLength": 80,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name"
+    ],
+    "title": "ProfileRename",
+    "type": "object"
+   },
    "RecoverRequest": {
     "properties": {
      "code": {
@@ -1007,6 +1092,17 @@
       "title": "Pipeline Version",
       "type": "string"
      },
+     "profile_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Profile Id"
+     },
      "result": {
       "anyOf": [
        {
@@ -1131,6 +1227,17 @@
      "pipeline_version": {
       "title": "Pipeline Version",
       "type": "string"
+     },
+     "profile_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Profile Id"
      },
      "result": {
       "anyOf": [
@@ -2636,6 +2743,175 @@
     ]
    }
   },
+  "/profiles": {
+   "get": {
+    "operationId": "list_profiles_profiles_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/ProfileOut"
+         },
+         "title": "Response List Profiles Profiles Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "List Profiles",
+    "tags": [
+     "profiles"
+    ]
+   },
+   "post": {
+    "operationId": "create_profile_profiles_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ProfileIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ProfileOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Create Profile",
+    "tags": [
+     "profiles"
+    ]
+   }
+  },
+  "/profiles/{profile_id}": {
+   "delete": {
+    "operationId": "delete_profile_profiles__profile_id__delete",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "profile_id",
+      "required": true,
+      "schema": {
+       "title": "Profile Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Delete Profile",
+    "tags": [
+     "profiles"
+    ]
+   },
+   "patch": {
+    "operationId": "rename_profile_profiles__profile_id__patch",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "profile_id",
+      "required": true,
+      "schema": {
+       "title": "Profile Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ProfileRename"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ProfileOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Rename Profile",
+    "tags": [
+     "profiles"
+    ]
+   }
+  },
   "/report/{job_id}": {
    "get": {
     "operationId": "get_report_report__job_id__get",
@@ -2683,7 +2959,26 @@
   },
   "/sessions": {
    "get": {
+    "description": "All the account's sessions; `profile_id` narrows to one profile ('self' = the account holder).",
     "operationId": "list_sessions_sessions_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "profile_id",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Profile Id"
+      }
+     }
+    ],
     "responses": {
      "200": {
       "content": {
@@ -2698,6 +2993,16 @@
        }
       },
       "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
      }
     },
     "security": [

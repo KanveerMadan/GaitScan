@@ -61,6 +61,8 @@ class Session(Base):
     result: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)  # the owner's own note
     tags: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
+    # Another adult on the account (Profile); NULL = the account holder. Clinicians see only NULL.
+    profile_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("profiles.id"), nullable=True)
     archive: Mapped["SessionArchive | None"] = relationship(back_populates="session", cascade="all, delete")
 
     @property
@@ -79,6 +81,7 @@ class AnalysisJob(Base):
     status: Mapped[str] = mapped_column(String, nullable=False)
     test: Mapped[str] = mapped_column(String, nullable=False, server_default="walk")
     patient_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    profile_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("profiles.id"), nullable=True)
     session_id: Mapped[str | None] = mapped_column(String, ForeignKey("sessions.id"), nullable=True)
     error_code: Mapped[str | None] = mapped_column(String, nullable=True)
     error_message: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -107,6 +110,18 @@ class RecoveryCode(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     code_hash: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Profile(Base):
+    """Another adult measured on this account, e.g. a partner or a parent (Plan V3 Phase 9). Adults
+    only: the birth year is self-declared and checked on the way in (app/api/profiles.py)."""
+
+    __tablename__ = "profiles"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    birth_year: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

@@ -19,6 +19,7 @@ from app.db.models import (
     ClinicianInvite,
     ClinicianPatient,
     Consent,
+    Profile,
     RecoveryCode,
     SessionArchive,
     SessionComment,
@@ -70,6 +71,7 @@ def export_my_data(
                 "id": s.id,
                 "created_at": _iso(s.created_at),
                 "patient_name": s.patient_name,
+                "profile_id": s.profile_id,
                 "pipeline_version": s.pipeline_version,
                 "result": s.result,
                 "notes": s.notes,
@@ -87,6 +89,10 @@ def export_my_data(
                 ],
             }
             for s in sessions
+        ],
+        "profiles": [
+            {"id": p.id, "name": p.name, "birth_year": p.birth_year}
+            for p in db.query(Profile).filter(Profile.owner_id == uid).order_by(Profile.id)
         ],
         "consents": [
             {"version": c.version, "accepted_at": _iso(c.accepted_at), "withdrawn_at": _iso(c.withdrawn_at)}
@@ -137,6 +143,7 @@ def delete_account(
     for (sid,) in db.query(SessionModel.id).filter(SessionModel.user_id == uid).all():
         delete_session_rows(db, sid)
     db.query(AnalysisJob).filter(AnalysisJob.user_id == uid).delete()
+    db.query(Profile).filter(Profile.owner_id == uid).delete()
     db.query(Consent).filter(Consent.user_id == uid).delete()
     db.query(AuthToken).filter(AuthToken.user_id == uid).delete()
     db.query(RecoveryCode).filter(RecoveryCode.user_id == uid).delete()

@@ -16,6 +16,7 @@ from app.api.consent import router as consent_router
 from app.api.google_auth import router as google_router
 from app.api.inbox import router as inbox_router
 from app.api.privacy import router as privacy_router
+from app.api.profiles import router as profiles_router
 from app.api.sessions import router as sessions_router
 from app.api.settings import router as settings_router
 from app.api.shares import router as shares_router
@@ -54,6 +55,7 @@ app.include_router(shares_router)
 app.include_router(settings_router)
 app.include_router(google_router)
 app.include_router(inbox_router)
+app.include_router(profiles_router)
 
 app.add_middleware(RequestLogMiddleware)
 app.add_middleware(
