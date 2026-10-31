@@ -6,7 +6,13 @@ import json
 import pytest
 from conftest import auth, register
 
-DEFAULTS = {"retest_weeks": None, "units": "metric", "language": "en", "theme": "system"}
+DEFAULTS = {
+    "retest_weeks": None,
+    "units": "metric",
+    "language": "en",
+    "theme": "system",
+    "goal_cadence": None,
+}
 
 
 def test_new_accounts_have_the_defaults(client):
@@ -38,6 +44,8 @@ def test_settings_change_one_field_at_a_time_and_stay_changed(client):
         {"language": "fr"},
         {"theme": "neon"},
         {"height_cm": 180},
+        {"goal_cadence": 30},
+        {"goal_cadence": 250},
     ],
 )
 def test_unknown_or_out_of_range_values_are_refused(client, body):
@@ -64,3 +72,15 @@ def test_sign_in_returns_the_settings(client):
 
     r = client.post("/auth/login", json={"email": email, "password": PASSWORD})
     assert r.json()["settings"] == {**DEFAULTS, "theme": "dark", "retest_weeks": 4}
+
+
+def test_a_cadence_goal_is_the_users_own_number_and_can_be_cleared(client):
+    _, token = register(client)
+    assert (
+        client.patch("/me/settings", headers=auth(token), json={"goal_cadence": 112}).json()["goal_cadence"]
+        == 112
+    )
+    assert (
+        client.patch("/me/settings", headers=auth(token), json={"goal_cadence": None}).json()["goal_cadence"]
+        is None
+    )
