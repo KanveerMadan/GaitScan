@@ -977,6 +977,130 @@
     "title": "SessionOut",
     "type": "object"
    },
+   "Settings": {
+    "properties": {
+     "language": {
+      "default": "en",
+      "enum": [
+       "en",
+       "hi"
+      ],
+      "title": "Language",
+      "type": "string"
+     },
+     "retest_weeks": {
+      "anyOf": [
+       {
+        "enum": [
+         1,
+         2,
+         4,
+         8,
+         12
+        ],
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Retest Weeks"
+     },
+     "theme": {
+      "default": "system",
+      "enum": [
+       "system",
+       "light",
+       "dark"
+      ],
+      "title": "Theme",
+      "type": "string"
+     },
+     "units": {
+      "default": "metric",
+      "enum": [
+       "metric",
+       "imperial"
+      ],
+      "title": "Units",
+      "type": "string"
+     }
+    },
+    "title": "Settings",
+    "type": "object"
+   },
+   "SettingsUpdate": {
+    "additionalProperties": false,
+    "description": "Only the fields sent change; retest_weeks: null turns reminders off.",
+    "properties": {
+     "language": {
+      "anyOf": [
+       {
+        "enum": [
+         "en",
+         "hi"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
+     },
+     "retest_weeks": {
+      "anyOf": [
+       {
+        "enum": [
+         1,
+         2,
+         4,
+         8,
+         12
+        ],
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Retest Weeks"
+     },
+     "theme": {
+      "anyOf": [
+       {
+        "enum": [
+         "system",
+         "light",
+         "dark"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Theme"
+     },
+     "units": {
+      "anyOf": [
+       {
+        "enum": [
+         "metric",
+         "imperial"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Units"
+     }
+    },
+    "title": "SettingsUpdate",
+    "type": "object"
+   },
    "ShareCreate": {
     "properties": {
      "days": {
@@ -2069,6 +2193,76 @@
     "summary": "Export My Data",
     "tags": [
      "privacy"
+    ]
+   }
+  },
+  "/me/settings": {
+   "get": {
+    "operationId": "get_settings_me_settings_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Settings"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Settings",
+    "tags": [
+     "settings"
+    ]
+   },
+   "patch": {
+    "operationId": "update_settings_me_settings_patch",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SettingsUpdate"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Settings"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Update Settings",
+    "tags": [
+     "settings"
     ]
    }
   },

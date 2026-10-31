@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session as DBSession
 
+from app.api.settings import settings_of
 from app.core.security import get_current_user, verify_password
 from app.db.database import get_db
 from app.db.models import (
@@ -89,6 +90,7 @@ def export_my_data(
             for j in db.query(AnalysisJob).filter(AnalysisJob.user_id == uid)
         ],
         "linked_clinicians": [{"name": u.full_name, "since": _iso(cp.created_at)} for cp, u in clinicians],
+        "settings": settings_of(current_user).model_dump(),
     }
     return Response(
         json.dumps(data, indent=1, default=str),

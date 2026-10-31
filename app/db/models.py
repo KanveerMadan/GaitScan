@@ -29,6 +29,8 @@ class User(Base):
     email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     # Logins issued before this are refused (a password change or reset ends other sessions).
     password_changed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Settings (app/api/settings.py); NULL = the defaults.
+    settings: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
 
 
 class AuthToken(Base):
