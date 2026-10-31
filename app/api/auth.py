@@ -51,6 +51,7 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"  # noqa: S105 (OAuth2 token type, not a secret)
     role: str
     full_name: str | None = None
+    recovery_codes_left: int | None = None  # on sign-in, so the app can prompt for a set
 
 
 class SignupResponse(TokenResponse):
@@ -102,7 +103,9 @@ def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)
     if not user or not ok:
         ratelimit.login_failures_per_email.hit(email_key)
         raise HTTPException(status_code=401, detail="Invalid email or password")
-    return _token_response(user)
+    out = _token_response(user)
+    out.recovery_codes_left = _codes_left(db, user)
+    return out
 
 
 @router.post("/change-password")

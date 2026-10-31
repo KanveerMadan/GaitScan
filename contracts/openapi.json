@@ -1133,6 +1133,17 @@
       "title": "Recovery Codes",
       "type": "array"
      },
+     "recovery_codes_left": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Recovery Codes Left"
+     },
      "role": {
       "title": "Role",
       "type": "string"
@@ -1167,6 +1178,17 @@
        }
       ],
       "title": "Full Name"
+     },
+     "recovery_codes_left": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Recovery Codes Left"
      },
      "role": {
       "title": "Role",
