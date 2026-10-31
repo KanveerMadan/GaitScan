@@ -55,3 +55,12 @@ def test_settings_are_in_the_export(client):
     client.patch("/me/settings", headers=auth(token), json={"retest_weeks": 2, "units": "imperial"})
     data = json.loads(client.get("/me/export", headers=auth(token)).content)
     assert data["settings"] == {**DEFAULTS, "retest_weeks": 2, "units": "imperial"}
+
+
+def test_sign_in_returns_the_settings(client):
+    email, token = register(client)
+    client.patch("/me/settings", headers=auth(token), json={"theme": "dark", "retest_weeks": 4})
+    from conftest import PASSWORD
+
+    r = client.post("/auth/login", json={"email": email, "password": PASSWORD})
+    assert r.json()["settings"] == {**DEFAULTS, "theme": "dark", "retest_weeks": 4}
