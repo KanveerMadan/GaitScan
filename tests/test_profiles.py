@@ -109,3 +109,10 @@ def test_deleting_a_profile_deletes_its_sessions_and_profiles_are_in_the_export(
     assert next(s for s in data["sessions"] if s["id"] == hers)["profile_id"] == p["id"]
     client.delete(f"/profiles/{p['id']}", headers=auth(t))
     assert client.get(f"/sessions/{hers}", headers=auth(t)).status_code == 404
+
+
+def test_sign_in_returns_the_accounts_profiles(client):
+    email, t = register(client)
+    make(client, t)
+    out = client.post("/auth/login", json={"email": email, "password": PASSWORD}).json()
+    assert out["profiles"] == [{"id": out["profiles"][0]["id"], "name": "Mum", "birth_year": ADULT}]
