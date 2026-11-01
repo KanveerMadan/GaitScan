@@ -30,6 +30,17 @@
    },
    "Body_analyze_analyze_post": {
     "properties": {
+     "belt_speed_kmh": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Belt Speed Kmh"
+     },
      "calib_distance_m": {
       "anyOf": [
        {
@@ -126,6 +137,17 @@
    },
    "Body_submit_analysis_analyses_post": {
     "properties": {
+     "belt_speed_kmh": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Belt Speed Kmh"
+     },
      "calib_distance_m": {
       "anyOf": [
        {

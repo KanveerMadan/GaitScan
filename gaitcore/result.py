@@ -16,7 +16,8 @@ from gaitcore.accuracy import accuracy_for
 from gaitcore.gait import CURVE_POINTS, Walk
 from gaitcore.quality import Rejection
 
-WALK = "walk"  # the test type: the only one so far (pipeline.TESTS)
+WALK = "walk"  # the test types (pipeline.TESTS): overground walking, validated on LJMU
+TREADMILL = "treadmill"  # walking on a treadmill at an entered belt speed: not yet validated
 MIN_STRIDES_PER_LEG = 3  # a median of >= 3 strides can't be set by one bad stride
 LEG = {"L": "left", "R": "right"}
 
@@ -101,6 +102,20 @@ def metrics_from_walk(walk: Walk) -> dict[str, Any]:
         else:
             m["step_length"] = None
             m["walking_speed"] = None
+    return m
+
+
+def metrics_from_treadmill(walk: Walk, belt_speed_m_s: float) -> dict[str, Any]:
+    """The walk's timing and knee values, plus the belt speed as entered and the step length it gives:
+    on a treadmill each step carries the foot back by the belt's travel in one step time."""
+    m = metrics_from_walk(walk)
+    m["belt_speed"] = {"value": round(belt_speed_m_s, 2), "unit": "m/s", "source": "entered"}
+    step = walk.mean_step_time
+    m["step_length"] = (
+        {"value": round(belt_speed_m_s * step, 3), "n": walk.step_count, "unit": "m"}
+        if math.isfinite(step)
+        else None
+    )
     return m
 
 
@@ -208,7 +223,7 @@ class AnalysisResult:
             if self.rejection is None
             else {"code": self.rejection.code, "message": self.rejection.message},
             "metrics": self.metrics,
-            "accuracy": accuracy_for(self.metrics),
+            "accuracy": accuracy_for(self.metrics, self.test),
             "quality": _clean(self.quality),
             "notes": list(self.notes),
             "passes": self.passes,

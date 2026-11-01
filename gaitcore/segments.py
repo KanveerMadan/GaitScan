@@ -29,6 +29,11 @@ Thresholds:
 - MIN_SEGMENT_S = 0.46 s: one step at 130 steps/min; a shorter span cannot hold the two heel
   strikes a step needs. (Short passes are normal when a narrow frame is crossed in ~1 s; steps from
   several passes are pooled.)
+
+On a treadmill (in_place_segments) the walker never crosses the frame. There a frame counts when the
+pelvis is in view and moves at < V_MIN (the same bound: slower than anyone walks, so not travelling),
+outside the dropped stretches, in runs of at least MIN_SEGMENT_S. No new threshold: whether the legs
+are actually walking is left to the step count and step regularity checks every walk passes.
 """
 
 from dataclasses import dataclass
@@ -101,3 +106,27 @@ def steady_segments(
             Segment(s + a, s + b, sign, k) for a, b in runs(steady) if b - a >= MIN_SEGMENT_S * tracks.fps
         )
     return out
+
+
+def in_place_segments(
+    clip: Clip,
+    tracks: Tracks,
+    leg_px: float,
+    direction: float,
+    usable: npt.NDArray[np.bool_] | None = None,
+) -> list[Segment]:
+    """Walking in place, as on a treadmill: the pelvis in view and not travelling (module docstring).
+    `direction` is the way the walker faces (gait.facing); every segment is pass 0."""
+    v = pelvis_speed(tracks, leg_px)
+    with np.errstate(invalid="ignore"):
+        still = pelvis_in_view(clip) & (np.abs(v) < V_MIN)
+    if usable is not None:
+        still &= usable
+    return [Segment(a, b, direction, 0) for a, b in runs(still) if b - a >= MIN_SEGMENT_S * tracks.fps]
+
+
+def travelling_s(clip: Clip, tracks: Tracks, leg_px: float) -> float:
+    """Seconds in which the pelvis is in view and moving across the frame at >= V_MIN."""
+    with np.errstate(invalid="ignore"):
+        moving = pelvis_in_view(clip) & (np.abs(pelvis_speed(tracks, leg_px)) >= V_MIN)
+    return float(moving.sum()) / tracks.fps

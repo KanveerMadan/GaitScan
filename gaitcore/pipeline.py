@@ -9,17 +9,26 @@ import cv2
 from gaitcore import quality
 from gaitcore.calibration import Calibration
 from gaitcore.clip import Clip
-from gaitcore.gait import leg_length, measure_passes, measure_walk, typical_step_s
+from gaitcore.gait import facing, leg_length, measure_passes, measure_walk, typical_step_s
 from gaitcore.result import (
+    TREADMILL,
     WALK,
     AnalysisResult,
     curves_from_walk,
+    metrics_from_treadmill,
     metrics_from_walk,
     notes_from_walk,
     pass_results,
     pass_variability,
 )
-from gaitcore.segments import SMOOTH_RANGE_S, SMOOTH_S, Segment, steady_segments
+from gaitcore.segments import (
+    SMOOTH_RANGE_S,
+    SMOOTH_S,
+    Segment,
+    in_place_segments,
+    steady_segments,
+    travelling_s,
+)
 from gaitcore.signals import Tracks, build_tracks
 
 
@@ -31,11 +40,19 @@ def _rejected(r: quality.Rejection, q: dict[str, object]) -> AnalysisResult:
     return AnalysisResult(status="rejected", rejection=r, quality=q)
 
 
-def analyse(clip: Clip, calibration: Calibration | None = None, test: str = WALK) -> AnalysisResult:
-    """Checks every test needs (length, frame rate, one upright person), then the test's own."""
+def analyse(
+    clip: Clip,
+    calibration: Calibration | None = None,
+    test: str = WALK,
+    belt_speed_m_s: float | None = None,
+) -> AnalysisResult:
+    """Checks every test needs (length, frame rate, one upright person), then the test's own. The
+    treadmill test needs the belt speed; the walk ignores it."""
     run_test = TESTS.get(test)
     if run_test is None:
         raise UnsupportedTest(test)
+    if test == TREADMILL and belt_speed_m_s is None:
+        raise ValueError("the treadmill test needs belt_speed_m_s")
     q: dict[str, object] = {
         "fps": round(clip.fps, 2),
         "duration_s": round(clip.duration_s, 2),
@@ -50,7 +67,7 @@ def analyse(clip: Clip, calibration: Calibration | None = None, test: str = WALK
     else:
         q["frames_with_pose"] = int(quality.has_pose(clip).sum())
         r = quality.people(clip) or quality.orientation(clip)
-        result = _rejected(r, q) if r else run_test(clip, calibration, q)
+        result = _rejected(r, q) if r else run_test(clip, calibration, q, belt_speed_m_s)
     result.test = test
     return result
 
@@ -72,7 +89,9 @@ def walking(clip: Clip, tracks: Tracks, leg_px: float) -> Walking:
     return Walking(steady_segments(clip, tracks, leg_px, window, dropped.usable), window, dropped)
 
 
-def _analyse_walk(clip: Clip, calibration: Calibration | None, q: dict[str, object]) -> AnalysisResult:
+def _analyse_walk(
+    clip: Clip, calibration: Calibration | None, q: dict[str, object], _belt: float | None = None
+) -> AnalysisResult:
     """Overground walk filmed side-on: steady passes across the frame (ADR-006)."""
     q["feet_visible_fraction"] = round(quality.feet_fraction(clip), 3)
     tracks = build_tracks(clip)
@@ -120,12 +139,66 @@ def _analyse_walk(clip: Clip, calibration: Calibration | None, q: dict[str, obje
     )
 
 
-# A test type is added here only with its own accuracy check (Plan V3 Phase 3). A walk on a
-# treadmill isn't the overground walk: it never crosses the frame, so steady_segments finds no pass
-# and path_view rejects it as view_unconfirmed. Treadmill mode needs its own pass finder and
-# side-view check, checked on treadmill clips; measure_walk already times a walker in place.
-TESTS: dict[str, Callable[[Clip, Calibration | None, dict[str, object]], AnalysisResult]] = {
+def _analyse_treadmill(
+    clip: Clip, _calibration: Calibration | None, q: dict[str, object], belt_speed_m_s: float | None
+) -> AnalysisResult:
+    """Walking on a treadmill filmed side-on (Plan V3 Phase 9). The walker stays in place, so the
+    stretches where the pelvis doesn't travel are measured (segments.in_place_segments), with the same
+    event detection, side-view, step-count and regularity checks as the walk. There is no path across
+    the floor to check, and no floor calibration: the belt moves under the feet. Step length comes
+    from the entered belt speed instead. Not yet validated: no treadmill reference clips yet."""
+    assert belt_speed_m_s is not None
+    q["feet_visible_fraction"] = round(quality.feet_fraction(clip), 3)
+    q["belt_speed_m_s"] = round(belt_speed_m_s, 2)
+    tracks = build_tracks(clip)
+    leg_px = leg_length(tracks)
+    dropped = quality.dropped_stretches(clip)
+    q["second_person_s"] = round(dropped.second_person_s, 2)
+    q["heels_hidden_s"] = round(dropped.heels_hidden_s, 2)
+    if not math.isfinite(leg_px):
+        segments: list[Segment] = []
+        moving_s = 0.0
+    else:
+        segments = in_place_segments(clip, tracks, leg_px, facing(tracks), dropped.usable)
+        moving_s = travelling_s(clip, tracks, leg_px)
+    ratio = quality.view_ratio(clip, tracks, segments)
+    q["view_ratio"] = round(ratio, 3) if math.isfinite(ratio) else None
+    still_frames = sum(s.end - s.start for s in segments)
+    q["in_place_s"] = round(still_frames / clip.fps, 2)
+    q["travelling_s"] = round(moving_s, 2)
+    q["usable_frame_fraction"] = round(still_frames / clip.n_frames, 3)
+    r = quality.side_view(ratio) or quality.in_place(still_frames / clip.fps, moving_s)
+    if r:
+        return _rejected(r, q)
+    walk = measure_walk(clip, segments, None, tracks=tracks)
+    q["steps_detected"] = walk.step_count
+    q["strides"] = {"left": len(walk.stride_times["L"]), "right": len(walk.stride_times["R"])}
+    cv = quality.step_time_cv(walk.contact_step_times)
+    q["step_time_cv"] = round(cv, 3) if math.isfinite(cv) else None
+    r = quality.name_the_cause(
+        quality.enough_walking(walk.step_count, still_frames / clip.fps), dropped
+    ) or quality.regular_steps(walk.contact_step_times)
+    if r:
+        return _rejected(r, q)
+    return AnalysisResult(
+        status="accepted",
+        metrics=metrics_from_treadmill(walk, belt_speed_m_s),
+        quality=q,
+        notes=[*notes_from_walk(walk), TREADMILL_NOTE],
+        curves=curves_from_walk(walk),
+    )
+
+
+TREADMILL_NOTE = (
+    "Measured on a treadmill. Treadmill walking isn't validated yet, and it differs from walking over "
+    "the ground, so compare it only with your other treadmill tests."
+)
+
+# A test type is added here with its own checks. The walk is validated on LJMU (Plan V3 Phase 3);
+# the treadmill isn't yet, and every value it gives says so (accuracy.TREADMILL_UNVALIDATED).
+TESTS: dict[str, Callable[[Clip, Calibration | None, dict[str, object], float | None], AnalysisResult]] = {
     WALK: _analyse_walk,
+    TREADMILL: _analyse_treadmill,
 }
 
 
@@ -175,7 +248,9 @@ def precheck(info: VideoInfo, test: str = WALK) -> AnalysisResult | None:
     return result
 
 
-def analyse_video(path: str, calibration: Calibration | None = None, test: str = WALK) -> AnalysisResult:
+def analyse_video(
+    path: str, calibration: Calibration | None = None, test: str = WALK, belt_speed_m_s: float | None = None
+) -> AnalysisResult:
     from gaitcore.landmarks import extract_clip
 
     if test not in TESTS:
@@ -186,4 +261,4 @@ def analyse_video(path: str, calibration: Calibration | None = None, test: str =
         return early
     if calibration is not None:
         calibration.check(info.width, info.height)
-    return analyse(extract_clip(path), calibration, test)
+    return analyse(extract_clip(path), calibration, test, belt_speed_m_s)

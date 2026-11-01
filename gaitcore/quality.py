@@ -236,6 +236,19 @@ def path_view(convergence: float) -> Rejection | None:
     return NOT_SIDE_VIEW if convergence > MAX_PATH_CONVERGENCE else None
 
 
+NOT_IN_PLACE = Rejection(
+    "not_in_place",
+    "The person doesn't seem to stay in one place, as on a treadmill: they move across the picture. "
+    "For a walk across a room or a corridor, choose the walking test instead.",
+)
+
+
+def in_place(in_place_s: float, travelling_s: float) -> Rejection | None:
+    """A treadmill walk needs as much walking in place as an overground walk needs steady walking
+    (MIN_STEADY_FOR_STEPS_S), and more time in place than travelling across the frame."""
+    return NOT_IN_PLACE if in_place_s < MIN_STEADY_FOR_STEPS_S or travelling_s > in_place_s else None
+
+
 def enough_walking(n_steps: int, steady_s: float) -> Rejection | None:
     if n_steps >= MIN_STEPS:
         return None
