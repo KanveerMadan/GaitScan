@@ -1569,6 +1569,20 @@
       ],
       "title": "Full Name"
      },
+     "profiles": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/ProfileOut"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Profiles"
+     },
      "recovery_codes": {
       "items": {
        "type": "string"
@@ -1631,6 +1645,20 @@
        }
       ],
       "title": "Full Name"
+     },
+     "profiles": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/ProfileOut"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Profiles"
      },
      "recovery_codes_left": {
       "anyOf": [

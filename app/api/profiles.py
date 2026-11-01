@@ -58,11 +58,13 @@ def _out(p: Profile) -> ProfileOut:
     return ProfileOut(id=p.id, name=p.name, birth_year=p.birth_year)
 
 
+def profiles_of(db: DBSession, user: User) -> list[ProfileOut]:
+    return [_out(p) for p in db.query(Profile).filter(Profile.owner_id == user.id).order_by(Profile.id)]
+
+
 @router.get("/profiles", response_model=list[ProfileOut])
 def list_profiles(current_user: User = Depends(get_current_user), db: DBSession = Depends(get_db)):
-    return [
-        _out(p) for p in db.query(Profile).filter(Profile.owner_id == current_user.id).order_by(Profile.id)
-    ]
+    return profiles_of(db, current_user)
 
 
 @router.post("/profiles", response_model=ProfileOut, status_code=201)

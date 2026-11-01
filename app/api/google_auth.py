@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.api.auth import SignupResponse, TokenResponse, _codes_left, _new_recovery_codes, _token_response
+from app.api.profiles import profiles_of
 from app.api.settings import settings_of
 from app.core import ratelimit
 from app.core.config import settings
@@ -78,6 +79,7 @@ def google_sign_in(
         out = _token_response(user)
         out.recovery_codes_left = _codes_left(db, user)
         out.settings = settings_of(user)
+        out.profiles = profiles_of(db, user)
         return out
     user = User(
         email=email,
