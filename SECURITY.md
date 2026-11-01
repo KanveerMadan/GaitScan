@@ -18,6 +18,9 @@ a one-person project.
 | Consent records | Postgres `consents` | Versioned; an analysis is refused (403) without current consent |
 | Share links | Postgres `share_links` | Only a SHA-256 hash of the token is stored; read-only, one session, 7 days by default (1–30), revocable |
 | Recovery codes | Postgres `recovery_codes` | 8 per account, 80 random bits each, single-use, only the SHA-256 stored; shown once |
+| Comments on sessions | Postgres `session_comments` | Readable and writable only by the session's owner and a linked clinician (others get 404); deleted with the session or the author's account; in the export |
+| Other people on an account (profiles) | Postgres `profiles` | Name and birth year only, adults only; owner-only (others get 404); a linked clinician never sees their sessions; deleting a profile deletes its sessions |
+| Google sign-in | No Google token is stored | The ID token is verified against Google's keys and `GOOGLE_CLIENT_ID`; an existing account is linked only when Google says the email is verified |
 | Reset / verification links (unused: no email is sent) | Postgres `auth_tokens` | Hashed, single-use, expiring (reset: 30 minutes) |
 
 ## Threat model
