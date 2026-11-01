@@ -98,3 +98,16 @@ def test_pdf_shows_the_error_range_next_to_each_validated_metric():
     assert f"± {VALIDATED['cadence']['error_95']} steps/min" in text.split("Cadence")[1][:200]
     assert f"± {VALIDATED['step_time']['error_95']} s" in text.split("Step time")[1][:200]
     assert "have not been measured yet" not in text
+
+
+def test_a_treadmill_pdf_says_treadmill_and_where_step_length_comes_from():
+    from app.services.report_pdf import build_pdf
+    from gaitcore.pipeline import analyse
+
+    clip, truth = synthetic_clip(treadmill=True, passes=1, pass_secs=12.0, ramp_secs=0.5)
+    result = analyse(clip, test="treadmill", belt_speed_m_s=truth.speed_m_s).to_dict()
+    pdf = build_pdf(result, patient_name="Anonymous", created_at=None)
+    text = " ".join("".join(page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages).split())
+    assert "Treadmill" in text and "Belt speed (entered)" in text
+    assert "Step length (from the belt speed)" in text
+    assert "floor calibration" not in text

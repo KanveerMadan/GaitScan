@@ -13,7 +13,7 @@ from gaitcore.result import TREADMILL, WALK
 
 
 def belt(**kw):
-    return synthetic_clip(treadmill=True, passes=1, pass_secs=12.0, ramp_secs=0.0, **kw)
+    return synthetic_clip(treadmill=True, passes=1, pass_secs=12.0, ramp_secs=0.5, **kw)
 
 
 @pytest.mark.parametrize("cadence", [90.0, 110.0, 125.0])
@@ -62,7 +62,7 @@ def submit(client, token, **data):
 
 def test_the_api_runs_a_treadmill_walk_and_stores_it(client, monkeypatch):
     clip, truth = belt()
-    fake_video(monkeypatch, treadmill=True, passes=1, pass_secs=12.0, ramp_secs=0.0)
+    fake_video(monkeypatch, treadmill=True, passes=1, pass_secs=12.0, ramp_secs=0.5)
     _, t = register(client)
     r = submit(client, t, test="treadmill", belt_speed_kmh=f"{truth.speed_m_s * 3.6:.2f}")
     assert r.status_code == 202, r.text
