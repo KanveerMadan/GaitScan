@@ -1,6 +1,6 @@
 # GaitScan API. Build: docker build -t gaitscan-api .
 # Run:   docker run -p 8000:8000 --env-file .env gaitscan-api
-FROM python:3.11-slim
+FROM python:3.15-slim
 
 # mediapipe 1.0.1's native library links libEGL/libGLESv2 even when inference runs on the CPU.
 RUN apt-get update \
