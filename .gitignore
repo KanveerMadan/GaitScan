@@ -34,7 +34,7 @@ build/
 dist/
 *.egg-info/
 
-# ML / Data files (optional - keep only if not needed on GitHub)
+# Models and data: never committed (videos and landmarks are personal data)
 *.h5
 *.pt
 *.pth

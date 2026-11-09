@@ -1,0 +1,24 @@
+name: Feature request
+description: Suggest a measurement, a check or an API change.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you're trying to do, and why it's hard today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you'd like
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: >
+        New measurements and threshold changes need a labelled dataset to check them against
+        (CONTRIBUTING.md). Link it here if you have one.
