@@ -30,6 +30,17 @@
    },
    "Body_analyze_analyze_post": {
     "properties": {
+     "belt_speed_kmh": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Belt Speed Kmh"
+     },
      "calib_distance_m": {
       "anyOf": [
        {
@@ -95,6 +106,17 @@
        }
       ],
       "title": "Patient Name"
+     },
+     "profile_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Profile Id"
      },
      "test": {
       "default": "walk",
@@ -115,6 +137,17 @@
    },
    "Body_submit_analysis_analyses_post": {
     "properties": {
+     "belt_speed_kmh": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Belt Speed Kmh"
+     },
      "calib_distance_m": {
       "anyOf": [
        {
@@ -180,6 +213,17 @@
        }
       ],
       "title": "Patient Name"
+     },
+     "profile_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Profile Id"
      },
      "test": {
       "default": "walk",
@@ -214,6 +258,73 @@
      "new_password"
     ],
     "title": "ChangePasswordRequest",
+    "type": "object"
+   },
+   "CommentIn": {
+    "properties": {
+     "body": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Body",
+      "type": "string"
+     }
+    },
+    "required": [
+     "body"
+    ],
+    "title": "CommentIn",
+    "type": "object"
+   },
+   "CommentOut": {
+    "properties": {
+     "author_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Author Name"
+     },
+     "author_role": {
+      "title": "Author Role",
+      "type": "string"
+     },
+     "body": {
+      "title": "Body",
+      "type": "string"
+     },
+     "created_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created At"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "mine": {
+      "title": "Mine",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "id",
+     "body",
+     "author_role",
+     "author_name",
+     "mine",
+     "created_at"
+    ],
+    "title": "CommentOut",
     "type": "object"
    },
    "ConsentAccept": {
@@ -336,6 +447,21 @@
     "title": "EmailRequest",
     "type": "object"
    },
+   "GoogleCredential": {
+    "properties": {
+     "credential": {
+      "maxLength": 4096,
+      "minLength": 20,
+      "title": "Credential",
+      "type": "string"
+     }
+    },
+    "required": [
+     "credential"
+    ],
+    "title": "GoogleCredential",
+    "type": "object"
+   },
    "HTTPValidationError": {
     "properties": {
      "detail": {
@@ -347,6 +473,110 @@
      }
     },
     "title": "HTTPValidationError",
+    "type": "object"
+   },
+   "Inbox": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/InboxItem"
+      },
+      "title": "Items",
+      "type": "array"
+     },
+     "seen_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Seen At"
+     }
+    },
+    "required": [
+     "items",
+     "seen_at"
+    ],
+    "title": "Inbox",
+    "type": "object"
+   },
+   "InboxItem": {
+    "properties": {
+     "cadence": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cadence"
+     },
+     "comments": {
+      "title": "Comments",
+      "type": "integer"
+     },
+     "created_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created At"
+     },
+     "last_comment_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Comment At"
+     },
+     "new": {
+      "title": "New",
+      "type": "boolean"
+     },
+     "patient_id": {
+      "title": "Patient Id",
+      "type": "integer"
+     },
+     "patient_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Patient Name"
+     },
+     "session_id": {
+      "title": "Session Id",
+      "type": "string"
+     }
+    },
+    "required": [
+     "session_id",
+     "patient_id",
+     "patient_name",
+     "created_at",
+     "cadence",
+     "comments",
+     "last_comment_at",
+     "new"
+    ],
+    "title": "InboxItem",
     "type": "object"
    },
    "JobQueued": {
@@ -578,6 +808,69 @@
      "linked_since"
     ],
     "title": "PatientSummary",
+    "type": "object"
+   },
+   "ProfileIn": {
+    "properties": {
+     "birth_year": {
+      "title": "Birth Year",
+      "type": "integer"
+     },
+     "is_adult": {
+      "title": "Is Adult",
+      "type": "boolean"
+     },
+     "name": {
+      "maxLength": 80,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name",
+     "birth_year",
+     "is_adult"
+    ],
+    "title": "ProfileIn",
+    "type": "object"
+   },
+   "ProfileOut": {
+    "properties": {
+     "birth_year": {
+      "title": "Birth Year",
+      "type": "integer"
+     },
+     "id": {
+      "title": "Id",
+      "type": "integer"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "birth_year"
+    ],
+    "title": "ProfileOut",
+    "type": "object"
+   },
+   "ProfileRename": {
+    "properties": {
+     "name": {
+      "maxLength": 80,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name"
+    ],
+    "title": "ProfileRename",
     "type": "object"
    },
    "RecoverRequest": {
@@ -821,6 +1114,17 @@
       "title": "Pipeline Version",
       "type": "string"
      },
+     "profile_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Profile Id"
+     },
      "result": {
       "anyOf": [
        {
@@ -946,6 +1250,17 @@
       "title": "Pipeline Version",
       "type": "string"
      },
+     "profile_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Profile Id"
+     },
      "result": {
       "anyOf": [
        {
@@ -975,6 +1290,156 @@
      "note"
     ],
     "title": "SessionOut",
+    "type": "object"
+   },
+   "Settings": {
+    "properties": {
+     "goal_cadence": {
+      "anyOf": [
+       {
+        "maximum": 180.0,
+        "minimum": 60.0,
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Goal Cadence"
+     },
+     "language": {
+      "default": "en",
+      "enum": [
+       "en",
+       "hi"
+      ],
+      "title": "Language",
+      "type": "string"
+     },
+     "retest_weeks": {
+      "anyOf": [
+       {
+        "enum": [
+         1,
+         2,
+         4,
+         8,
+         12
+        ],
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Retest Weeks"
+     },
+     "theme": {
+      "default": "system",
+      "enum": [
+       "system",
+       "light",
+       "dark"
+      ],
+      "title": "Theme",
+      "type": "string"
+     },
+     "units": {
+      "default": "metric",
+      "enum": [
+       "metric",
+       "imperial"
+      ],
+      "title": "Units",
+      "type": "string"
+     }
+    },
+    "title": "Settings",
+    "type": "object"
+   },
+   "SettingsUpdate": {
+    "additionalProperties": false,
+    "description": "Only the fields sent change; retest_weeks / goal_cadence: null turns them off.",
+    "properties": {
+     "goal_cadence": {
+      "anyOf": [
+       {
+        "maximum": 180.0,
+        "minimum": 60.0,
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Goal Cadence"
+     },
+     "language": {
+      "anyOf": [
+       {
+        "enum": [
+         "en",
+         "hi"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
+     },
+     "retest_weeks": {
+      "anyOf": [
+       {
+        "enum": [
+         1,
+         2,
+         4,
+         8,
+         12
+        ],
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Retest Weeks"
+     },
+     "theme": {
+      "anyOf": [
+       {
+        "enum": [
+         "system",
+         "light",
+         "dark"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Theme"
+     },
+     "units": {
+      "anyOf": [
+       {
+        "enum": [
+         "metric",
+         "imperial"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Units"
+     }
+    },
+    "title": "SettingsUpdate",
     "type": "object"
    },
    "ShareCreate": {
@@ -1126,6 +1591,20 @@
       ],
       "title": "Full Name"
      },
+     "profiles": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/ProfileOut"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Profiles"
+     },
      "recovery_codes": {
       "items": {
        "type": "string"
@@ -1147,6 +1626,16 @@
      "role": {
       "title": "Role",
       "type": "string"
+     },
+     "settings": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Settings"
+       },
+       {
+        "type": "null"
+       }
+      ]
      },
      "token_type": {
       "default": "bearer",
@@ -1179,6 +1668,20 @@
       ],
       "title": "Full Name"
      },
+     "profiles": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/ProfileOut"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Profiles"
+     },
      "recovery_codes_left": {
       "anyOf": [
        {
@@ -1193,6 +1696,16 @@
      "role": {
       "title": "Role",
       "type": "string"
+     },
+     "settings": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Settings"
+       },
+       {
+        "type": "null"
+       }
+      ]
      },
      "token_type": {
       "default": "bearer",
@@ -1462,6 +1975,55 @@
      }
     ],
     "summary": "Change Password",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/auth/google": {
+   "post": {
+    "operationId": "google_sign_in_auth_google_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/GoogleCredential"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "anyOf": [
+          {
+           "$ref": "#/components/schemas/SignupResponse"
+          },
+          {
+           "$ref": "#/components/schemas/TokenResponse"
+          }
+         ],
+         "title": "Response Google Sign In Auth Google Post"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Google Sign In",
     "tags": [
      "auth"
     ]
@@ -1797,6 +2359,51 @@
     ]
    }
   },
+  "/clinician/inbox": {
+   "get": {
+    "operationId": "inbox_clinician_inbox_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Inbox"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Inbox",
+    "tags": [
+     "inbox"
+    ]
+   }
+  },
+  "/clinician/inbox/seen": {
+   "post": {
+    "operationId": "mark_seen_clinician_inbox_seen_post",
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Mark Seen",
+    "tags": [
+     "inbox"
+    ]
+   }
+  },
   "/clinician/invite": {
    "post": {
     "operationId": "create_invite_clinician_invite_post",
@@ -2072,6 +2679,76 @@
     ]
    }
   },
+  "/me/settings": {
+   "get": {
+    "operationId": "get_settings_me_settings_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Settings"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Settings",
+    "tags": [
+     "settings"
+    ]
+   },
+   "patch": {
+    "operationId": "update_settings_me_settings_patch",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SettingsUpdate"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Settings"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Update Settings",
+    "tags": [
+     "settings"
+    ]
+   }
+  },
   "/patient/join": {
    "post": {
     "operationId": "join_clinician_patient_join_post",
@@ -2113,6 +2790,175 @@
     "summary": "Join Clinician",
     "tags": [
      "clinician"
+    ]
+   }
+  },
+  "/profiles": {
+   "get": {
+    "operationId": "list_profiles_profiles_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/ProfileOut"
+         },
+         "title": "Response List Profiles Profiles Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "List Profiles",
+    "tags": [
+     "profiles"
+    ]
+   },
+   "post": {
+    "operationId": "create_profile_profiles_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ProfileIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ProfileOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Create Profile",
+    "tags": [
+     "profiles"
+    ]
+   }
+  },
+  "/profiles/{profile_id}": {
+   "delete": {
+    "operationId": "delete_profile_profiles__profile_id__delete",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "profile_id",
+      "required": true,
+      "schema": {
+       "title": "Profile Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Delete Profile",
+    "tags": [
+     "profiles"
+    ]
+   },
+   "patch": {
+    "operationId": "rename_profile_profiles__profile_id__patch",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "profile_id",
+      "required": true,
+      "schema": {
+       "title": "Profile Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ProfileRename"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ProfileOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Rename Profile",
+    "tags": [
+     "profiles"
     ]
    }
   },
@@ -2163,7 +3009,26 @@
   },
   "/sessions": {
    "get": {
+    "description": "All the account's sessions; `profile_id` narrows to one profile ('self' = the account holder).",
     "operationId": "list_sessions_sessions_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "profile_id",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Profile Id"
+      }
+     }
+    ],
     "responses": {
      "200": {
       "content": {
@@ -2178,6 +3043,16 @@
        }
       },
       "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
      }
     },
     "security": [
@@ -2329,6 +3204,112 @@
     "summary": "Label Session",
     "tags": [
      "sessions"
+    ]
+   }
+  },
+  "/sessions/{session_id}/comments": {
+   "get": {
+    "operationId": "list_comments_sessions__session_id__comments_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "session_id",
+      "required": true,
+      "schema": {
+       "title": "Session Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/CommentOut"
+         },
+         "title": "Response List Comments Sessions  Session Id  Comments Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "List Comments",
+    "tags": [
+     "inbox"
+    ]
+   },
+   "post": {
+    "operationId": "add_comment_sessions__session_id__comments_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "session_id",
+      "required": true,
+      "schema": {
+       "title": "Session Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CommentIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CommentOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Add Comment",
+    "tags": [
+     "inbox"
     ]
    }
   },

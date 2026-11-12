@@ -19,12 +19,14 @@ ERROR_RANGES = (
 
 # Consent before the first analysis (ADR-007). Changing the text means a new version: accounts then
 # consent again before their next analysis.
-CONSENT_VERSION = "2026-10-27"
+CONSENT_VERSION = "2026-11-01"
 CONSENT_TEXT = (
     "Before you analyse a video, please confirm:\n"
     "- I am 18 or older, and I am the person in the videos I upload, or I have that adult's permission.\n"
     "- GaitScan reads the video to measure how I walk. The video is deleted as soon as the analysis "
     "ends; the measurements are kept in my account until I delete them.\n"
+    "- To compare my walks, GaitScan also keeps an outline of one average stride: the positions of the "
+    "hips, knees, ankles, heels and toes, scaled to my leg length. Never the video or my face.\n"
     "- Only clinicians I choose to link with can see my results.\n"
     "- I can withdraw this consent, export my data, or delete sessions or my whole account at any time "
     "in Privacy.\n"

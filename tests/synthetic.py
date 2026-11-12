@@ -68,6 +68,7 @@ def synthetic_clip(
     camera_distance=None,  # px from the walking line; None = orthographic (no perspective)
     camera_height=None,  # px above the floor; default: hip height
     pelvis_surge=(0.0, 0.0),  # pelvis speed ripple: amplitude (fraction of the speed) per step, per stride
+    treadmill=False,  # walk on a belt: the same body motion seen from a frame that moves with the pelvis
 ) -> tuple[Clip, Truth]:
     rng = np.random.default_rng(seed)
     step_t = 60.0 / steps_per_min
@@ -157,8 +158,12 @@ def synthetic_clip(
 
     cx = width / 2
     eye_y = floor - (LEG if camera_height is None else camera_height)
+    # On a treadmill the belt carries the feet back as fast as the walker steps forward, so the pelvis
+    # stays where it is: subtract its travel from every point.
+    travel = px - cx if treadmill else np.zeros(n)
 
     def proj(x_world, z_world, y_world):
+        x_world = x_world - travel
         # camera yaw: image x = x cos(yaw) + z sin(yaw), about the frame centre. With a camera
         # distance, a pinhole camera at that distance (scale 1 at the frame centre on the walking
         # line): points further away shrink towards the horizon at eye_y.

@@ -6,6 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session
 
+from app.api.profiles import ProfileOut, profiles_of
+from app.api.settings import Settings, settings_of
 from app.core import ratelimit
 from app.core.config import settings
 from app.core.security import create_access_token, get_current_user, hash_password, verify_password
@@ -52,6 +54,8 @@ class TokenResponse(BaseModel):
     role: str
     full_name: str | None = None
     recovery_codes_left: int | None = None  # on sign-in, so the app can prompt for a set
+    settings: Settings | None = None  # on sign-in, so the app needn't ask for them on every screen
+    profiles: list[ProfileOut] | None = None  # likewise: the other adults on the account
 
 
 class SignupResponse(TokenResponse):
@@ -105,6 +109,8 @@ def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)
         raise HTTPException(status_code=401, detail="Invalid email or password")
     out = _token_response(user)
     out.recovery_codes_left = _codes_left(db, user)
+    out.settings = settings_of(user)
+    out.profiles = profiles_of(db, user)
     return out
 
 

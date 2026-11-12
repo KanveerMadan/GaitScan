@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session as DBSession
 
+from app.api.settings import settings_of
 from app.core.security import get_current_user, verify_password
 from app.db.database import get_db
 from app.db.models import (
@@ -18,8 +19,10 @@ from app.db.models import (
     ClinicianInvite,
     ClinicianPatient,
     Consent,
+    Profile,
     RecoveryCode,
     SessionArchive,
+    SessionComment,
     ShareLink,
     User,
 )
@@ -34,6 +37,7 @@ def _iso(d: datetime | None) -> str | None:
 
 
 def delete_session_rows(db: DBSession, session_id: str) -> None:
+    db.query(SessionComment).filter(SessionComment.session_id == session_id).delete()
     db.query(ShareLink).filter(ShareLink.session_id == session_id).delete()
     db.query(AnalysisJob).filter(AnalysisJob.session_id == session_id).delete()
     db.query(SessionArchive).filter(SessionArchive.session_id == session_id).delete()
@@ -67,13 +71,28 @@ def export_my_data(
                 "id": s.id,
                 "created_at": _iso(s.created_at),
                 "patient_name": s.patient_name,
+                "profile_id": s.profile_id,
                 "pipeline_version": s.pipeline_version,
                 "result": s.result,
                 "notes": s.notes,
                 "tags": s.tags or [],
                 "archived_values": s.archive.data if s.archive else None,
+                "comments": [
+                    {
+                        "by": "you" if c.author_id == uid else "clinician",
+                        "body": c.body,
+                        "at": _iso(c.created_at),
+                    }
+                    for c in db.query(SessionComment)
+                    .filter(SessionComment.session_id == s.id)
+                    .order_by(SessionComment.id)
+                ],
             }
             for s in sessions
+        ],
+        "profiles": [
+            {"id": p.id, "name": p.name, "birth_year": p.birth_year}
+            for p in db.query(Profile).filter(Profile.owner_id == uid).order_by(Profile.id)
         ],
         "consents": [
             {"version": c.version, "accepted_at": _iso(c.accepted_at), "withdrawn_at": _iso(c.withdrawn_at)}
@@ -89,6 +108,7 @@ def export_my_data(
             for j in db.query(AnalysisJob).filter(AnalysisJob.user_id == uid)
         ],
         "linked_clinicians": [{"name": u.full_name, "since": _iso(cp.created_at)} for cp, u in clinicians],
+        "settings": settings_of(current_user).model_dump(),
     }
     return Response(
         json.dumps(data, indent=1, default=str),
@@ -123,9 +143,11 @@ def delete_account(
     for (sid,) in db.query(SessionModel.id).filter(SessionModel.user_id == uid).all():
         delete_session_rows(db, sid)
     db.query(AnalysisJob).filter(AnalysisJob.user_id == uid).delete()
+    db.query(Profile).filter(Profile.owner_id == uid).delete()
     db.query(Consent).filter(Consent.user_id == uid).delete()
     db.query(AuthToken).filter(AuthToken.user_id == uid).delete()
     db.query(RecoveryCode).filter(RecoveryCode.user_id == uid).delete()
+    db.query(SessionComment).filter(SessionComment.author_id == uid).delete()  # theirs on others' sessions
     db.query(ClinicianPatient).filter(
         (ClinicianPatient.patient_id == uid) | (ClinicianPatient.clinician_id == uid)
     ).delete(synchronize_session=False)

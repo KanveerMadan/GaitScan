@@ -17,6 +17,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPExcepti
 from sqlalchemy.orm import Session as DBSession
 
 from app.api.consent import require_consent
+from app.api.profiles import owned_profile
 from app.core.config import settings
 from app.core.copy import DISCLAIMER
 from app.core.security import get_current_user
@@ -27,7 +28,7 @@ from app.schemas import AnalyzeResponse, JobQueued, JobStatus, Rejection, Result
 from gaitcore.calibration import Calibration, CalibrationError
 from gaitcore.landmarks import VideoReadError, extract_clip
 from gaitcore.pipeline import TESTS, analyse, precheck, probe
-from gaitcore.result import WALK, AnalysisResult
+from gaitcore.result import TREADMILL, WALK, AnalysisResult
 
 VIDEO_EXTENSIONS = (".mp4", ".mov", ".avi")
 
@@ -57,10 +58,12 @@ def parse_calibration(values: list[float | None], distance_m: float | None) -> C
     return Calibration(x1, y1, x2, y2, float(distance_m or 0.0))
 
 
-def run_pipeline(path: str, calibration: Calibration | None, test: str = WALK) -> AnalysisResult:
+def run_pipeline(
+    path: str, calibration: Calibration | None, test: str = WALK, belt_speed_m_s: float | None = None
+) -> AnalysisResult:
     with _PIPELINE_LOCK:
         try:
-            return _run_pipeline(path, calibration, test)
+            return _run_pipeline(path, calibration, test, belt_speed_m_s)
         finally:
             if settings.analysis_log_memory:
                 # High-water mark of the whole process so far, in KiB on Linux.
@@ -69,14 +72,44 @@ def run_pipeline(path: str, calibration: Calibration | None, test: str = WALK) -
                 )
 
 
-def _run_pipeline(path: str, calibration: Calibration | None, test: str) -> AnalysisResult:
+def _run_pipeline(
+    path: str, calibration: Calibration | None, test: str, belt_speed_m_s: float | None
+) -> AnalysisResult:
     info = probe(path)
     result = precheck(info, test)
     if result is None:
         if calibration is not None:
             calibration.check(info.width, info.height)
-        result = analyse(extract_clip(path), calibration, test)
+        result = analyse(extract_clip(path), calibration, test, belt_speed_m_s)
     return result
+
+
+# Treadmill belt speeds that are walking (Plan V3 Phase 9): from 0.5 km/h, the slowest setting
+# rehabilitation treadmills offer, to 10 km/h, above which people run rather than walk (the
+# walk-run transition is at about 7-8 km/h). Physical bounds, not tuned on data.
+BELT_KMH_RANGE = (0.5, 10.0)
+
+
+def _belt_speed(test: str, belt_speed_kmh: float | None, calibrated: bool) -> float | None:
+    """The belt speed in m/s for the treadmill test; nothing for any other."""
+    if test != TREADMILL:
+        if belt_speed_kmh is not None:
+            raise rejected("belt_speed_not_used", "A belt speed is only used by the treadmill test.")
+        return None
+    if belt_speed_kmh is None:
+        raise rejected("belt_speed_required", "Enter the treadmill's belt speed for the treadmill test.")
+    lo, hi = BELT_KMH_RANGE
+    if not lo <= belt_speed_kmh <= hi:
+        raise rejected(
+            "bad_belt_speed",
+            f"Enter a walking belt speed from {lo:g} to {hi:g} km/h, as the treadmill shows it.",
+        )
+    if calibrated:
+        raise rejected(
+            "calibration_not_used",
+            "Floor points aren't used on a treadmill: the belt moves under the feet. Analyse without them.",
+        )
+    return belt_speed_kmh / 3.6
 
 
 def _form_checks(
@@ -97,7 +130,12 @@ UNREADABLE = "We couldn't read this file as a video. Please upload an .mp4, .mov
 
 
 def _store(
-    db: DBSession, job_id: str, user_id: int, patient_name: str, result: AnalysisResult
+    db: DBSession,
+    job_id: str,
+    user_id: int,
+    patient_name: str,
+    result: AnalysisResult,
+    profile_id: int | None = None,
 ) -> AnalyzeResponse:
     data = result.to_dict()
     db.add(
@@ -105,6 +143,7 @@ def _store(
             id=job_id,
             patient_name=patient_name,
             user_id=user_id,
+            profile_id=profile_id,
             pipeline_version=result.pipeline_version,
             result=data,
         )
@@ -123,6 +162,13 @@ def _name(given: str | None, user: User) -> str:
     return (given or "").strip() or (user.full_name or "").strip() or "Anonymous"
 
 
+def _subject(db: DBSession, user: User, profile_id: int | None, given: str | None) -> tuple[int | None, str]:
+    """Who is being measured: another adult on the account (their profile's name), or the holder."""
+    if profile_id is None:
+        return None, _name(given, user)
+    return profile_id, owned_profile(db, user, profile_id).name
+
+
 def _remove(path: str) -> None:
     # The raw video is never kept, whatever happened.
     if os.path.exists(path):
@@ -133,7 +179,9 @@ def _remove(path: str) -> None:
 def analyze(
     video: UploadFile = File(...),
     patient_name: str | None = Form(None),
+    profile_id: int | None = Form(None),
     test: str = Form(WALK),
+    belt_speed_kmh: float | None = Form(None),
     calib_x1: float | None = Form(None),
     calib_y1: float | None = Form(None),
     calib_x2: float | None = Form(None),
@@ -144,13 +192,15 @@ def analyze(
 ) -> AnalyzeResponse:
     """Synchronous analysis (kept until every client uses POST /analyses)."""
     require_consent(db, current_user)
+    subject_id, subject_name = _subject(db, current_user, profile_id, patient_name)
     ext, calibration = _form_checks(video, test, [calib_x1, calib_y1, calib_x2, calib_y2], calib_distance_m)
+    belt = _belt_speed(test, belt_speed_kmh, calibration is not None)
     job_id = str(uuid.uuid4())
     video_path = f"data/raw/{job_id}{ext}"
     try:
         save_upload(video.file, video_path, settings.max_upload_bytes)
         try:
-            result = run_pipeline(video_path, calibration, test)
+            result = run_pipeline(video_path, calibration, test, belt)
         except VideoReadError:
             raise HTTPException(422, UNREADABLE) from None
         except CalibrationError as e:
@@ -158,7 +208,7 @@ def analyze(
         if not result.accepted:
             assert result.rejection is not None
             raise rejected(result.rejection.code, result.rejection.message)
-        return _store(db, job_id, current_user.id, _name(patient_name, current_user), result)
+        return _store(db, job_id, current_user.id, subject_name, result, subject_id)
     except HTTPException:
         raise
     except Exception:
@@ -174,7 +224,9 @@ def submit_analysis(
     background: BackgroundTasks,
     video: UploadFile = File(...),
     patient_name: str | None = Form(None),
+    profile_id: int | None = Form(None),
     test: str = Form(WALK),
+    belt_speed_kmh: float | None = Form(None),
     calib_x1: float | None = Form(None),
     calib_y1: float | None = Form(None),
     calib_x2: float | None = Form(None),
@@ -186,7 +238,9 @@ def submit_analysis(
     """Queue an analysis and return at once; poll the status_url (Plan V3 Phase 4). Checks that need
     no pose model (file type, test, calibration, length, frame rate) answer here, straight away."""
     require_consent(db, current_user)
+    subject_id, subject_name = _subject(db, current_user, profile_id, patient_name)
     ext, calibration = _form_checks(video, test, [calib_x1, calib_y1, calib_x2, calib_y2], calib_distance_m)
+    belt = _belt_speed(test, belt_speed_kmh, calibration is not None)
     job_id = str(uuid.uuid4())
     video_path = f"data/raw/{job_id}{ext}"
     queued = False
@@ -211,11 +265,12 @@ def submit_analysis(
                 user_id=current_user.id,
                 status="queued",
                 test=test,
-                patient_name=_name(patient_name, current_user),
+                patient_name=subject_name,
+                profile_id=subject_id,
             )
         )
         db.commit()
-        background.add_task(process_job, job_id, video_path, calibration, test)
+        background.add_task(process_job, job_id, video_path, calibration, test, belt)
         queued = True
         return JobQueued(job_id=job_id, status="queued", status_url=f"/analyses/{job_id}")
     finally:
@@ -223,7 +278,13 @@ def submit_analysis(
             _remove(video_path)
 
 
-def process_job(job_id: str, video_path: str, calibration: Calibration | None, test: str) -> None:
+def process_job(
+    job_id: str,
+    video_path: str,
+    calibration: Calibration | None,
+    test: str,
+    belt_speed_m_s: float | None = None,
+) -> None:
     """Run one queued job (FastAPI background task; runs after the 202 is sent)."""
     db = SessionLocal()
     try:
@@ -233,10 +294,10 @@ def process_job(job_id: str, video_path: str, calibration: Calibration | None, t
         job.status = "running"
         db.commit()
         try:
-            result = run_pipeline(video_path, calibration, test)
+            result = run_pipeline(video_path, calibration, test, belt_speed_m_s)
             if result.accepted:
                 assert job.user_id is not None
-                _store(db, job_id, job.user_id, job.patient_name or "Anonymous", result)
+                _store(db, job_id, job.user_id, job.patient_name or "Anonymous", result, job.profile_id)
                 job.status, job.session_id = "done", job_id
             else:
                 assert result.rejection is not None

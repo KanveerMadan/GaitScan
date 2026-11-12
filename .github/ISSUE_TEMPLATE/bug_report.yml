@@ -1,0 +1,34 @@
+name: Bug report
+description: Something in the API or the measurements is wrong.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please don't attach walking videos or anything that identifies a person. Security problems go
+        through private reporting (Security → Report a vulnerability), not here.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you got instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: Steps, the request (without tokens), or a failing test.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The `pipeline_version` in the result, or the commit you ran.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or error reference
+      description: The error message or the 12-character reference from a 500 response.
+      render: text

@@ -39,6 +39,23 @@ UNVALIDATED: dict[str, str] = {
     "walking_speed": _CALIBRATED,
 }
 
+# Treadmill mode (Plan V3 Phase 9): the accuracy check above used walks over the ground, so nothing
+# measured on a treadmill is validated yet, cadence and step time included.
+_TREADMILL = (
+    "Not yet validated on treadmill walking: the accuracy check used walks over the ground. Use it to "
+    "compare your own treadmill recordings."
+)
+TREADMILL_UNVALIDATED: dict[str, str] = {
+    "cadence": _TREADMILL,
+    "step_time": _TREADMILL,
+    "peak_knee_flexion": _KNEE,
+    "step_length": (
+        "Not yet validated: worked out from the belt speed you entered and the measured step time, so it "
+        "is only as right as the treadmill's speed display."
+    ),
+    "belt_speed": "The speed you entered: it isn't measured from the video.",
+}
+
 
 def _validated(name: str) -> dict[str, Any]:
     v = VALIDATED[name]
@@ -54,8 +71,10 @@ def _validated(name: str) -> dict[str, Any]:
     }
 
 
-def accuracy_for(metrics: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    """One entry per metric in `metrics`."""
+def accuracy_for(metrics: dict[str, Any], test: str = "walk") -> dict[str, dict[str, Any]]:
+    """One entry per metric in `metrics`, for the test they come from (result.WALK / TREADMILL)."""
+    if test != "walk":
+        return {name: {"status": NOT_YET_VALIDATED, "note": TREADMILL_UNVALIDATED[name]} for name in metrics}
     return {
         name: _validated(name)
         if name in VALIDATED

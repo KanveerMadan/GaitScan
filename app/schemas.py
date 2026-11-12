@@ -59,6 +59,7 @@ class SessionOut(BaseModel):
     note: str | None  # why a legacy session shows no measurements
     notes: str | None = None  # the owner's own note
     tags: list[str] = []
+    profile_id: int | None = None  # another adult on the account; None = the account holder
 
 
 MAX_NOTES = 1000

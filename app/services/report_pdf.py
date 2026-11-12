@@ -19,12 +19,19 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, Tabl
 from app.core.copy import DISCLAIMER, ERROR_RANGES
 from gaitcore.accuracy import NOT_YET_VALIDATED, accuracy_for
 
-ROWS = (  # (metric key, label); per-leg metrics have "left"/"right"
+WALK_ROWS = (  # (metric key, label); per-leg metrics have "left"/"right"
     ("cadence", "Cadence"),
     ("step_time", "Step time"),
     ("peak_knee_flexion", "Peak knee flexion (per stride)"),
     ("step_length", "Step length (floor calibration)"),
     ("walking_speed", "Walking speed (floor calibration)"),
+)
+TREADMILL_ROWS = (  # a treadmill has no floor calibration; step length comes from the entered belt speed
+    ("cadence", "Cadence"),
+    ("step_time", "Step time"),
+    ("peak_knee_flexion", "Peak knee flexion (per stride)"),
+    ("belt_speed", "Belt speed (entered)"),
+    ("step_length", "Step length (from the belt speed)"),
 )
 
 TITLE = ParagraphStyle("title", fontName="Helvetica-Bold", fontSize=16, leading=20, spaceAfter=4)
@@ -43,7 +50,8 @@ def _fmt(item: dict[str, Any] | None) -> str:
     if not item or item.get("value") is None:
         return "not measured"
     sd = f" ± {item['sd']} SD" if item.get("sd") is not None else ""
-    return f"{item['value']}{sd} {item['unit']} (n = {item['n']})"
+    n = f" (n = {item['n']})" if "n" in item else ""  # an entered value (belt speed) has no count
+    return f"{item['value']}{sd} {item['unit']}{n}"
 
 
 def _accuracy(a: dict[str, Any] | None) -> str:
@@ -75,8 +83,11 @@ def build_pdf(result: dict[str, Any], patient_name: str | None, created_at: date
     accuracy: dict[str, Any] = result.get("accuracy") or accuracy_for(metrics)
     quality: dict[str, Any] = result.get("quality", {})
     model: dict[str, str] = result.get("model", {})
+    treadmill = result.get("test") == "treadmill"
+    shown = TREADMILL_ROWS if treadmill else WALK_ROWS
     story: list[Any] = [
-        _p("GaitScan walking measurements", TITLE),
+        _p("GaitScan walking measurements" + (": treadmill" if treadmill else ""), TITLE),
+        _p("Test: Treadmill walk" if treadmill else "Test: Walk across the floor"),
         _p(f"Name: {patient_name or 'Not given'}"),
         _p(f"Recorded: {created_at.strftime('%d %b %Y %H:%M') if created_at else 'unknown'}"),
         Spacer(1, 6),
@@ -84,7 +95,7 @@ def build_pdf(result: dict[str, Any], patient_name: str | None, created_at: date
         _p("Measurements", H2),
     ]
     rows: list[list[Any]] = [[_p("Measurement"), _p("Left"), _p("Right"), _p("Both legs"), _p("Error range")]]
-    for key, label in ROWS:
+    for key, label in shown:
         if key not in metrics:
             continue
         m = metrics[key]
@@ -97,11 +108,11 @@ def build_pdf(result: dict[str, Any], patient_name: str | None, created_at: date
     story += [_p(note) for note in result.get("notes") or []]
     story += [
         _p(f"{label}: {accuracy[key]['note']}", SMALL)
-        for key, label in ROWS
+        for key, label in shown
         if key in metrics and key in accuracy and accuracy[key].get("status") == NOT_YET_VALIDATED
     ]
     story.append(_p(ERROR_RANGES, SMALL))
-    if "step_length" not in metrics:
+    if "step_length" not in metrics and not treadmill:
         story.append(
             _p("Step length and walking speed need a floor calibration and were not measured.", SMALL)
         )

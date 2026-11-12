@@ -16,7 +16,8 @@ from gaitcore.accuracy import accuracy_for
 from gaitcore.gait import CURVE_POINTS, Walk
 from gaitcore.quality import Rejection
 
-WALK = "walk"  # the test type: the only one so far (pipeline.TESTS)
+WALK = "walk"  # the test types (pipeline.TESTS): overground walking, validated on LJMU
+TREADMILL = "treadmill"  # walking on a treadmill at an entered belt speed: not yet validated
 MIN_STRIDES_PER_LEG = 3  # a median of >= 3 strides can't be set by one bad stride
 LEG = {"L": "left", "R": "right"}
 
@@ -104,6 +105,20 @@ def metrics_from_walk(walk: Walk) -> dict[str, Any]:
     return m
 
 
+def metrics_from_treadmill(walk: Walk, belt_speed_m_s: float) -> dict[str, Any]:
+    """The walk's timing and knee values, plus the belt speed as entered and the step length it gives:
+    on a treadmill each step carries the foot back by the belt's travel in one step time."""
+    m = metrics_from_walk(walk)
+    m["belt_speed"] = {"value": round(belt_speed_m_s, 2), "unit": "m/s", "source": "entered"}
+    step = walk.mean_step_time
+    m["step_length"] = (
+        {"value": round(belt_speed_m_s * step, 3), "n": walk.step_count, "unit": "m"}
+        if math.isfinite(step)
+        else None
+    )
+    return m
+
+
 def pass_results(walks: list[tuple[int, float, Walk]], min_steps: int) -> list[dict[str, Any]]:
     """Cadence and step time of each walk across the frame (pass_index, direction, walk) that holds
     at least `min_steps` steps (quality.MIN_STEPS, the same resolution bound as the whole clip)."""
@@ -147,7 +162,29 @@ def curves_from_walk(walk: Walk) -> dict[str, Any]:
             if shown and len(c) >= MIN_STRIDES_PER_LEG
             else None
         )
-    return {"knee_flexion": knee}
+    return {"knee_flexion": knee, "stride_outline": stride_outline_from_walk(walk, shown)}
+
+
+def stride_outline_from_walk(walk: Walk, shown: bool) -> dict[str, Any] | None:
+    """The mean stride outline (gait.stride_outline) for ghost replay: kept, and hidden, exactly like
+    the knee curves; no absolute position, head, arms or hands. Each point is the mean over the strides
+    in which it was visible throughout; a point visible in fewer than MIN_STRIDES_PER_LEG is null."""
+    if not shown or len(walk.stride_outlines) < MIN_STRIDES_PER_LEG:
+        return None
+    points: dict[str, list[list[float]] | None] = {}
+    for key in walk.stride_outlines[0]:
+        tracks = [t for o in walk.stride_outlines if (t := o[key]) is not None]
+        points[key] = (
+            [[round(float(x), 3), round(float(y), 3)] for x, y in np.mean(np.stack(tracks), axis=0)]
+            if len(tracks) >= MIN_STRIDES_PER_LEG
+            else None
+        )
+    return {
+        "points": points,
+        "strides": len(walk.stride_outlines),
+        "trail_strike": round(float(np.mean(walk.trail_strikes)), 3),
+        "units": "leg lengths; x from the pelvis in the walking direction, y above the floor",
+    }
 
 
 def model_info() -> dict[str, str]:
@@ -186,7 +223,7 @@ class AnalysisResult:
             if self.rejection is None
             else {"code": self.rejection.code, "message": self.rejection.message},
             "metrics": self.metrics,
-            "accuracy": accuracy_for(self.metrics),
+            "accuracy": accuracy_for(self.metrics, self.test),
             "quality": _clean(self.quality),
             "notes": list(self.notes),
             "passes": self.passes,

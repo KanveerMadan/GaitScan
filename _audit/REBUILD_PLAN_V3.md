@@ -132,3 +132,15 @@ Decisions: no email (no domain, and Render's free tier blocks SMTP); knee valida
 - [ ] [S] Hindi UI strings (the owner reviews before release)
 - [ ] [ ] Reference norms by age and sex: waiting on the owner's decision
 
+## Phase 10 — Repository cleanup (2026-11-01)
+Goal: a repository that reads as professionally maintained. Nothing tracked is removed without being
+looked at first; local data (`_audit/sandbox/`, `data/`, `probe.db`, `outputs/`) is ignored, not deleted.
+- [x] Check every tracked file for junk (caches, binaries, data, duplicates): none tracked; `.gitignore` tidied
+- [x] Issue templates (bug, feature; blank issues off, security to private reporting), pull-request template, CODEOWNERS
+- [x] CODE_OF_CONDUCT.md; CONTRIBUTING.md (setup, tests first, thresholds need labelled data, templates)
+- [x] Documentation index (docs/README.md) and a guide to `_audit/` (_audit/README.md)
+- [x] README: CI badge, current test count, treadmill row, every API route, project layout, licence status
+- [x] Makefile: help, test, lint, format, typecheck, check, contract
+- [x] SECURITY.md: comments, profiles and Google sign-in in the asset table
+- [x] Frontend: the same files, README badges and layout
+- [ ] LICENSE: the owner's decision (until then: all rights reserved)

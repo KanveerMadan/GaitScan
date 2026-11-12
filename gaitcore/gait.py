@@ -158,6 +158,10 @@ class Walk:
     hip_excursion: dict[str, list[float]] = field(default_factory=lambda: {"L": [], "R": []})
     # Knee flexion over each stride, resampled to CURVE_POINTS samples from heel strike to heel strike.
     knee_curves: dict[str, list[list[float]]] = field(default_factory=lambda: {"L": [], "R": []})
+    # Each stride's outline (stride_outline): leading leg "L", the other "R", CURVE_POINTS x 2 per point;
+    # and where in the stride (0-1) the other foot struck.
+    stride_outlines: list[dict[str, npt.NDArray[np.float64] | None]] = field(default_factory=list)
+    trail_strikes: list[float] = field(default_factory=list)
     step_lengths_m: list[float] | None = None
     step_length_times: list[float] = field(default_factory=list)  # step times of the measured lengths
 
@@ -251,6 +255,38 @@ def measure_passes(
     return [walks[k] for k in sorted(walks)]
 
 
+OUTLINE_NAMES = ("hip", "knee", "ankle", "heel", "toe")
+
+
+def stride_outline(
+    tracks: Tracks, lead: str, sl: slice, direction: float, leg_px: float
+) -> dict[str, npt.NDArray[np.float64] | None] | None:
+    """One stride of both legs (ghost replay): the leading leg (whose heel strikes at 0 and 1) as "L",
+    the other as "R"; x relative to the pelvis in the walking direction, y above the lowest visible foot
+    point of the stride, both in leg lengths; CURVE_POINTS samples. A point not visible for the whole
+    stride is None (never filled in); None for the stride unless the pelvis and the leading leg are."""
+    trail = "R" if lead == "L" else "L"
+    pts = {
+        (role, n): tracks[(side, n)][sl] for role, side in (("L", lead), ("R", trail)) for n in OUTLINE_NAMES
+    }
+    pelvis = tracks.pelvis[sl]
+    ok = {key: bool(np.isfinite(xy).all()) for key, xy in pts.items()}
+    if not (np.isfinite(pelvis).all() and all(ok[("L", n)] for n in OUTLINE_NAMES)):
+        return None
+    floor = max(float(np.max(pts[key][:, 1])) for key in pts if key[1] in ("heel", "toe") and ok[key])
+    u = np.linspace(0, 1, len(pelvis))
+    grid = np.linspace(0, 1, CURVE_POINTS)
+    out: dict[str, npt.NDArray[np.float64] | None] = {}
+    for (role, name), xy in pts.items():
+        if not ok[(role, name)]:
+            out[f"{role}_{name}"] = None
+            continue
+        x = direction * (xy[:, 0] - pelvis[:, 0]) / leg_px
+        y = (floor - xy[:, 1]) / leg_px
+        out[f"{role}_{name}"] = np.c_[np.interp(grid, u, x), np.interp(grid, u, y)]
+    return out
+
+
 def _measure_segment(
     walk: Walk,
     tracks: Tracks,
@@ -296,3 +332,7 @@ def _measure_segment(
             walk.knee_curves[s0].append(np.interp(np.linspace(0, 1, CURVE_POINTS), u, flex).tolist())
             th = thigh_angle(hip, knee, seg.direction)
             walk.hip_excursion[s0].append(float(np.max(th) - np.min(th)))
+        outline = stride_outline(tracks, s0, sl, seg.direction, leg_px)
+        if outline is not None:
+            walk.stride_outlines.append(outline)
+            walk.trail_strikes.append((events[k - 1][0] - f0) / (f1 - f0))
