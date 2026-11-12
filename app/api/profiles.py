@@ -1,14 +1,14 @@
 """Other adults on one account (Plan V3 Phase 9): someone can measure a partner or a parent without
-a second account. A profile is a name and a self-declared birth year; under-18s are refused, because
-GaitScan is for adults. Deleting a profile deletes its sessions."""
-
-from datetime import date
+a second account. A profile is a name and a self-declared birth year, and optionally a sex (only for
+the published cadence reference by age and sex, 2026-11-12); under-18s are refused, because GaitScan is
+for adults. Deleting a profile deletes its sessions."""
 
 from fastapi import APIRouter, Depends, HTTPException, Response
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy.orm import Session as DBSession
 
 from app.api.privacy import delete_session_rows
+from app.core.people import Sex, adult_birth_years
 from app.core.security import get_current_user
 from app.db.database import get_db
 from app.db.models import AnalysisJob, Profile, User
@@ -16,8 +16,6 @@ from app.db.models import Session as SessionModel
 
 router = APIRouter(tags=["profiles"])
 
-ADULT_AGE = 18
-OLDEST_BIRTH_YEAR = 1900
 MAX_PROFILES = 10
 
 
@@ -25,25 +23,29 @@ class ProfileIn(BaseModel):
     name: str = Field(min_length=1, max_length=80)
     birth_year: int
     is_adult: bool  # the account holder confirms the person is 18 or over
+    sex: Sex | None = None
 
     @model_validator(mode="after")
     def adults_only(self) -> "ProfileIn":
-        latest = date.today().year - ADULT_AGE
-        if not self.is_adult or not OLDEST_BIRTH_YEAR <= self.birth_year <= latest:
-            raise ValueError(
-                f"Profiles are for adults (18 or over): a birth year from {OLDEST_BIRTH_YEAR} to {latest}."
-            )
+        oldest, latest = adult_birth_years()
+        if not self.is_adult or not oldest <= self.birth_year <= latest:
+            raise ValueError(f"Profiles are for adults (18 or over): a birth year from {oldest} to {latest}.")
         return self
 
 
-class ProfileRename(BaseModel):
-    name: str = Field(min_length=1, max_length=80)
+class ProfileUpdate(BaseModel):
+    """Only the fields sent change; "sex": null removes it."""
+
+    model_config = ConfigDict(extra="forbid")
+    name: str | None = Field(None, min_length=1, max_length=80)
+    sex: Sex | None = None
 
 
 class ProfileOut(BaseModel):
     id: int
     name: str
     birth_year: int
+    sex: Sex | None = None
 
 
 def owned_profile(db: DBSession, user: User, profile_id: int) -> Profile:
@@ -55,7 +57,7 @@ def owned_profile(db: DBSession, user: User, profile_id: int) -> Profile:
 
 
 def _out(p: Profile) -> ProfileOut:
-    return ProfileOut(id=p.id, name=p.name, birth_year=p.birth_year)
+    return ProfileOut.model_validate({"id": p.id, "name": p.name, "birth_year": p.birth_year, "sex": p.sex})
 
 
 def profiles_of(db: DBSession, user: User) -> list[ProfileOut]:
@@ -73,7 +75,7 @@ def create_profile(
 ) -> ProfileOut:
     if db.query(Profile).filter(Profile.owner_id == current_user.id).count() >= MAX_PROFILES:
         raise HTTPException(409, f"An account can hold up to {MAX_PROFILES} other people.")
-    p = Profile(owner_id=current_user.id, name=body.name.strip(), birth_year=body.birth_year)
+    p = Profile(owner_id=current_user.id, name=body.name.strip(), birth_year=body.birth_year, sex=body.sex)
     db.add(p)
     db.commit()
     db.refresh(p)
@@ -81,14 +83,17 @@ def create_profile(
 
 
 @router.patch("/profiles/{profile_id}", response_model=ProfileOut)
-def rename_profile(
+def update_profile(
     profile_id: int,
-    body: ProfileRename,
+    body: ProfileUpdate,
     current_user: User = Depends(get_current_user),
     db: DBSession = Depends(get_db),
 ) -> ProfileOut:
     p = owned_profile(db, current_user, profile_id)
-    p.name = body.name.strip()
+    if body.name is not None:
+        p.name = body.name.strip()
+    if "sex" in body.model_fields_set:
+        p.sex = body.sex
     db.commit()
     return _out(p)
 

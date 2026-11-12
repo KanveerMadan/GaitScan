@@ -825,6 +825,21 @@
       "minLength": 1,
       "title": "Name",
       "type": "string"
+     },
+     "sex": {
+      "anyOf": [
+       {
+        "enum": [
+         "female",
+         "male"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sex"
      }
     },
     "required": [
@@ -848,6 +863,21 @@
      "name": {
       "title": "Name",
       "type": "string"
+     },
+     "sex": {
+      "anyOf": [
+       {
+        "enum": [
+         "female",
+         "male"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sex"
      }
     },
     "required": [
@@ -858,19 +888,40 @@
     "title": "ProfileOut",
     "type": "object"
    },
-   "ProfileRename": {
+   "ProfileUpdate": {
+    "additionalProperties": false,
+    "description": "Only the fields sent change; \"sex\": null removes it.",
     "properties": {
      "name": {
-      "maxLength": 80,
-      "minLength": 1,
-      "title": "Name",
-      "type": "string"
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "minLength": 1,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name"
+     },
+     "sex": {
+      "anyOf": [
+       {
+        "enum": [
+         "female",
+         "male"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sex"
      }
     },
-    "required": [
-     "name"
-    ],
-    "title": "ProfileRename",
+    "title": "ProfileUpdate",
     "type": "object"
    },
    "RecoverRequest": {
@@ -1294,6 +1345,17 @@
    },
    "Settings": {
     "properties": {
+     "birth_year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Birth Year"
+     },
      "goal_cadence": {
       "anyOf": [
        {
@@ -1334,6 +1396,21 @@
       ],
       "title": "Retest Weeks"
      },
+     "sex": {
+      "anyOf": [
+       {
+        "enum": [
+         "female",
+         "male"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sex"
+     },
      "theme": {
       "default": "system",
       "enum": [
@@ -1361,6 +1438,17 @@
     "additionalProperties": false,
     "description": "Only the fields sent change; retest_weeks / goal_cadence: null turns them off.",
     "properties": {
+     "birth_year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Birth Year"
+     },
      "goal_cadence": {
       "anyOf": [
        {
@@ -1406,6 +1494,21 @@
        }
       ],
       "title": "Retest Weeks"
+     },
+     "sex": {
+      "anyOf": [
+       {
+        "enum": [
+         "female",
+         "male"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sex"
      },
      "theme": {
       "anyOf": [
@@ -2907,7 +3010,7 @@
     ]
    },
    "patch": {
-    "operationId": "rename_profile_profiles__profile_id__patch",
+    "operationId": "update_profile_profiles__profile_id__patch",
     "parameters": [
      {
       "in": "path",
@@ -2923,7 +3026,7 @@
      "content": {
       "application/json": {
        "schema": {
-        "$ref": "#/components/schemas/ProfileRename"
+        "$ref": "#/components/schemas/ProfileUpdate"
        }
       }
      },
@@ -2956,7 +3059,7 @@
       "OAuth2PasswordBearer": []
      }
     ],
-    "summary": "Rename Profile",
+    "summary": "Update Profile",
     "tags": [
      "profiles"
     ]

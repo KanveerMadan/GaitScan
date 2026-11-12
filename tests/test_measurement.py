@@ -8,7 +8,7 @@ import math
 
 import numpy as np
 import pytest
-from synthetic import LEG, M_PER_PX, knee_flexion_truth, synthetic_clip
+from synthetic import LEG, M_PER_PX, synthetic_clip
 
 from gaitcore import quality
 from gaitcore.calibration import Calibration, CalibrationError
@@ -36,13 +36,13 @@ def test_low_visibility_landmarks_are_masked_and_never_filled():
     assert np.isnan(tracks[("L", "knee")][200:205]).all()  # no interpolation across the gap
 
 
-def test_strides_touching_a_masked_frame_give_no_knee_value():
+def test_strides_touching_a_masked_frame_give_no_angle_value():
     clip, _ = synthetic_clip()
     full, _ = walk_of(clip)
     clip.landmarks.loc[:, "lm25_vis"] = np.where(np.arange(clip.n_frames) % 20 == 0, 0.3, 0.99)
     gappy, _ = walk_of(clip)
-    assert full.knee_peak_flexion["L"]
-    assert gappy.knee_peak_flexion["L"] == []  # every stride (> 20 frames) contains a masked frame
+    assert full.hip_excursion["L"]
+    assert gappy.hip_excursion["L"] == []  # every stride (> 20 frames) contains a masked frame
 
 
 def test_frames_with_two_people_are_masked():
@@ -219,17 +219,6 @@ def test_step_and_stride_times():
     for side in "LR":
         assert len(walk.stride_times[side]) >= 3
         assert np.mean(walk.stride_times[side]) == pytest.approx(1.2, abs=0.03)
-
-
-def test_per_stride_peak_knee_flexion_matches_the_pixels():
-    clip, _ = synthetic_clip()
-    walk, _ = walk_of(clip)
-    for side in "LR":
-        truth = knee_flexion_truth(clip, side)
-        hs = walk.heel_strikes[side]
-        expected = [float(np.max(truth[a : b + 1])) for a, b in zip(hs, hs[1:], strict=False) if b - a < 60]
-        assert walk.knee_peak_flexion[side], side
-        assert np.median(walk.knee_peak_flexion[side]) == pytest.approx(np.median(expected), abs=1.0)
 
 
 # ---- calibration ---------------------------------------------------------------------------------
@@ -508,11 +497,11 @@ def test_cadence_is_immune_to_a_constant_timing_offset_on_one_leg():
 
 
 def test_per_leg_values_are_hidden_when_left_and_right_steps_are_too_variable():
-    """Knee flexion per leg needs the left/right labels. When the steps between
+    """The stride outline (ghost replay) needs the left/right labels. When the steps between
     labelled heel strikes vary by more than 20% (coefficient of variation), the labels are not
-    trusted: per-leg values are withheld with a note, and cadence and step time (label-free) stay."""
+    trusted: per-leg output is withheld with a note, and cadence and step time (label-free) stay."""
     from gaitcore.gait import Walk
-    from gaitcore.result import LEGS_NOT_TOLD_APART, metrics_from_walk, notes_from_walk
+    from gaitcore.result import LEGS_NOT_TOLD_APART, legs_told_apart, metrics_from_walk, notes_from_walk
 
     def walk(step_times):
         return Walk(
@@ -520,17 +509,15 @@ def test_per_leg_values_are_hidden_when_left_and_right_steps_are_too_variable():
             contact_runs=[[0.0, 0.55, 1.1, 1.65, 2.2, 2.75, 3.3]],
             step_times=step_times,
             stride_times={"L": [1.1, 1.1, 1.1], "R": [1.1, 1.1, 1.1]},
-            knee_peak_flexion={"L": [60.0, 61.0, 59.0], "R": [58.0, 60.0, 59.0]},
         )
 
     steady = walk([0.55, 0.56, 0.54, 0.55, 0.55, 0.56])  # CV 0.01
-    m = metrics_from_walk(steady)
-    assert m["peak_knee_flexion"]["left"]["value"] == pytest.approx(60.0) and m["peak_knee_flexion"]["right"]
+    assert legs_told_apart(steady)
     assert notes_from_walk(steady) == []
 
     erratic = walk([0.55, 0.30, 0.80, 0.25, 0.85, 0.55])  # CV 0.44: labels swapping
+    assert not legs_told_apart(erratic)
     m = metrics_from_walk(erratic)
-    assert m["peak_knee_flexion"] == {"left": None, "right": None}
     assert m["cadence"]["value"] == pytest.approx(60 / 0.55, abs=0.1)
     assert notes_from_walk(erratic) == [LEGS_NOT_TOLD_APART]
     assert "left and right legs" in LEGS_NOT_TOLD_APART.lower()
@@ -540,9 +527,9 @@ def test_per_leg_values_are_hidden_when_left_and_right_steps_are_too_variable():
 def test_per_leg_values_are_hidden_when_a_legs_strides_are_not_two_steps_long():
     """On LJMU the labels often follow the legs' position in the image, and a 'stride' of one label is
     then one step. A leg's median stride time must be within MAX_STRIDE_MISMATCH of twice the
-    label-free step time, or per-leg values are withheld."""
+    label-free step time, or per-leg output is withheld."""
     from gaitcore.gait import Walk
-    from gaitcore.result import LEGS_NOT_TOLD_APART, metrics_from_walk, notes_from_walk
+    from gaitcore.result import LEGS_NOT_TOLD_APART, legs_told_apart, notes_from_walk
 
     def walk(left_strides):
         return Walk(
@@ -550,24 +537,12 @@ def test_per_leg_values_are_hidden_when_a_legs_strides_are_not_two_steps_long():
             contact_runs=[[0.0, 0.55, 1.1, 1.65, 2.2, 2.75, 3.3]],
             step_times=[0.55, 0.56, 0.54, 0.55, 0.55, 0.56],
             stride_times={"L": left_strides, "R": [1.1, 1.1, 1.1]},
-            knee_peak_flexion={"L": [60.0, 61.0, 59.0], "R": [58.0, 60.0, 59.0]},
         )
 
-    assert metrics_from_walk(walk([1.05, 1.1, 1.15]))["peak_knee_flexion"]["left"] is not None
+    assert legs_told_apart(walk([1.05, 1.1, 1.15]))
     halved = walk([0.55, 0.55, 1.1])
-    assert metrics_from_walk(halved)["peak_knee_flexion"] == {"left": None, "right": None}
+    assert not legs_told_apart(halved)
     assert notes_from_walk(halved) == [LEGS_NOT_TOLD_APART]
-
-
-@pytest.mark.parametrize("seed", range(8))
-def test_knee_values_under_brief_leg_flips_are_hidden_or_right(seed):
-    """10% of frames flipped: the stride check hides the per-leg values whenever a leg's strides come
-    out short. (At 5%, 2 of 8 seeds still show a left knee 4-6 deg low with normal strides: Phase 8.)"""
-    base = analyse(synthetic_clip()[0]).metrics["peak_knee_flexion"]
-    knee = analyse(flip_legs(synthetic_clip()[0], 0.10, seed)).metrics["peak_knee_flexion"]
-    for side in ("left", "right"):
-        if knee[side] is not None:
-            assert knee[side]["value"] == pytest.approx(base[side]["value"], abs=1.0), side
 
 
 def test_result_carries_user_facing_notes():
@@ -628,10 +603,11 @@ def test_step_time_irregularity_threshold():
 
 
 def test_only_kept_metrics_are_returned():
-    """Plan V3: hip sagittal excursion is CONDITIONAL (must pass the Phase 3 accuracy check). Stride
-    time is withheld until Phase 3: brief left/right flips make it wrong without any warning."""
+    """Hip sagittal excursion and stride time are never returned (no reference to pass; brief
+    left/right flips make stride time wrong without warning), and peak knee flexion was removed on
+    2026-11-12 (Phase 8 cancelled)."""
     metrics = analyse(synthetic_clip()[0]).to_dict()["metrics"]
-    assert set(metrics) == {"cadence", "step_time", "peak_knee_flexion"}
+    assert set(metrics) == {"cadence", "step_time"}
 
 
 # ---- passes, test types, treadmill (Phase 3) ---------------------------------------------------
@@ -681,7 +657,7 @@ def test_per_pass_walks_pool_to_the_whole_walk():
         assert p.step_count >= 6 and p.cadence == pytest.approx(truth.cadence, abs=2)
     for name in ("contact_runs", "step_times", "step_ends"):
         assert [x for p in passes for x in getattr(p, name)] == getattr(whole, name)
-    for name in ("heel_strikes", "stride_times", "knee_peak_flexion", "hip_excursion"):
+    for name in ("heel_strikes", "stride_times", "hip_excursion"):
         for s in ("L", "R"):
             assert [x for p in passes for x in getattr(p, name)[s]] == getattr(whole, name)[s]
 
@@ -710,11 +686,11 @@ def test_event_timing_works_for_a_walker_who_never_crosses_the_frame():
 
 
 def test_metrics_without_a_reference_check_are_marked_not_yet_validated():
-    """No knee-angle reference without OpenCap (Phase 8); calibrated distances are checked on the
-    synthetic walker only."""
+    """Calibrated distances are checked on the synthetic walker only, and stay "not yet validated" for
+    good: no more video will be collected (owner decision 2026-11-12)."""
     clip, truth = synthetic_clip()
     acc = analyse(clip, floor_calibration(truth)).to_dict()["accuracy"]
-    for name in ("peak_knee_flexion", "step_length", "walking_speed"):
+    for name in ("step_length", "walking_speed"):
         assert acc[name]["status"] == "not_yet_validated", name
         assert "not yet validated" in acc[name]["note"].lower()
     assert analyse(synthetic_clip(fps=15)[0]).to_dict()["accuracy"] == {}  # rejected: no metrics
@@ -747,21 +723,9 @@ def test_passes_with_too_few_steps_get_no_values_of_their_own():
     assert d["status"] == "accepted" and d["passes"] == [] and d["pass_variability"] is None
 
 
-def test_each_leg_gets_a_mean_knee_curve_over_the_stride():
-    d = analyse(synthetic_clip()[0]).to_dict()
-    curves = d["curves"]["knee_flexion"]
-    assert curves["unit"] == "deg" and curves["points"] == 101
-    for side in ("left", "right"):
-        c = curves[side]
-        assert len(c) == 101
-        # Its peak is the average stride's peak: close to the median per-stride peak reported.
-        assert max(c) == pytest.approx(d["metrics"]["peak_knee_flexion"][side]["value"], abs=3)
-
-
-def test_no_knee_curve_when_per_leg_values_are_hidden():
+def test_curves_hold_only_the_stride_outline_and_none_when_legs_are_mixed_up():
     d = analyse(flip_legs(synthetic_clip()[0], 0.10, 1)).to_dict()  # strides come out short: hidden
-    assert d["status"] == "accepted" and d["metrics"]["peak_knee_flexion"] == {"left": None, "right": None}
-    assert d["curves"]["knee_flexion"]["left"] is None and d["curves"]["knee_flexion"]["right"] is None
+    assert d["status"] == "accepted" and d["curves"] == {"stride_outline": None}
     assert analyse(synthetic_clip(fps=15)[0]).to_dict()["curves"] == {}
 
 

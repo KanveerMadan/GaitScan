@@ -122,6 +122,8 @@ class Profile(Base):
     owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     birth_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    # Optional, only for the published cadence reference by age and sex (2026-11-12): "female" / "male".
+    sex: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

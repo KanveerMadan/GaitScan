@@ -24,17 +24,14 @@ VALIDATED: dict[str, dict[str, Any]] = {
     "step_time": {"error_95": 0.024, "mdc_95": 0.025, "unit": "s", "clips": 97, "test_clips": 21},
 }
 
-_KNEE = (
-    "Not yet validated: there is no knee-angle reference to check it against yet. Use it to compare "
-    "your own recordings, not as an exact angle."
-)
 _CALIBRATED = (
     "Not yet validated on real recordings: checked only on simulated walking, and its accuracy "
     "depends on where the two floor points were marked."
 )
 
+# Step length and walking speed exist only with a floor calibration and stay "not yet validated" for
+# good: no more video will be collected to check them (owner decision 2026-11-12).
 UNVALIDATED: dict[str, str] = {
-    "peak_knee_flexion": _KNEE,
     "step_length": _CALIBRATED,
     "walking_speed": _CALIBRATED,
 }
@@ -48,7 +45,6 @@ _TREADMILL = (
 TREADMILL_UNVALIDATED: dict[str, str] = {
     "cadence": _TREADMILL,
     "step_time": _TREADMILL,
-    "peak_knee_flexion": _KNEE,
     "step_length": (
         "Not yet validated: worked out from the belt speed you entered and the measured step time, so it "
         "is only as right as the treadmill's speed display."

@@ -69,10 +69,3 @@ def segment_angle(top: Array, bottom: Array, direction: Array | float) -> Array:
 def thigh_angle(hip: Array, knee: Array, direction: Array | float) -> Array:
     """Sagittal thigh angle from vertical (+ = knee ahead of hip). The V3 'hip sagittal angle'."""
     return segment_angle(hip, knee, direction)
-
-
-def knee_flexion(hip: Array, knee: Array, ankle: Array, direction: Array | float) -> Array:
-    """Signed knee flexion in degrees: thigh angle minus shank angle. 0 = straight leg; equals
-    180 - interior angle when flexed; negative when the knee is hyperextended."""
-    f = thigh_angle(hip, knee, direction) - segment_angle(knee, ankle, direction)
-    return (f + 180.0) % 360.0 - 180.0

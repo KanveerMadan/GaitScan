@@ -46,8 +46,7 @@ def test_accepted_analysis_returns_and_stores_measurements(client, monkeypatch):
     assert res["pipeline_version"] == "2.0.0" and res["status"] == "accepted" and res["test"] == "walk"
     assert res["metrics"]["cadence"]["value"] == pytest.approx(110, abs=2)
     assert res["metrics"]["cadence"]["unit"] == "steps/min"
-    assert res["metrics"]["peak_knee_flexion"]["left"]["unit"] == "deg"
-    assert res["accuracy"]["peak_knee_flexion"]["status"] == "not_yet_validated"
+    assert "peak_knee_flexion" not in res["metrics"] and "peak_knee_flexion" not in res["accuracy"]
     assert res["quality"]["steps_detected"] >= 6
     assert "step_length" not in res["metrics"]  # no calibration -> absent, not estimated
     assert not keys(body) & REMOVED_KEYS
@@ -123,7 +122,7 @@ def test_report_is_built_from_the_stored_result(client):
     email, t = register(client)
     sid = seed_session(email)
     text = pdf_text(client.get(f"/report/{sid}", headers=auth(t)).content)
-    assert "Cadence" in text and "steps/min" in text and "Peak knee flexion" in text
+    assert "Cadence" in text and "steps/min" in text and "knee" not in text.lower()
     assert "not measured" in text or "floor calibration" in text.lower()
     assert "Risk" not in text and "Mode" not in text
     again = pdf_text(client.get(f"/report/{sid}", headers=auth(t)).content)
