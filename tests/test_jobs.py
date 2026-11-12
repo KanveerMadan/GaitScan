@@ -103,3 +103,30 @@ def test_jobs_left_unfinished_by_a_restart_are_marked_failed():
         db.query(AnalysisJob).filter_by(id="stale-job").delete()
         db.commit()
         db.close()
+
+
+def test_each_job_logs_when_it_starts_and_how_it_ended(client, monkeypatch, capfd):
+    """2026-11-12: an analysis on Render showed "Analysing…" with nothing in the logs to say whether
+    it was waiting behind another job, still running, or had ended. Each job now logs both ends."""
+    import re
+
+    fake_video(monkeypatch)
+    _, t = register(client)
+    job = submit(client, t).json()
+    err = capfd.readouterr().err
+    jid = job["job_id"]
+    assert re.search(rf"analysis started job={jid} waited_s=\d+\.\d", err), err
+    assert re.search(rf"analysis ended job={jid} status=done seconds=\d+\.\d", err), err
+
+
+def test_a_rejected_or_failed_job_logs_its_status(client, monkeypatch, capfd):
+    import app.api.analysis as m
+
+    fake_video(monkeypatch, yaw_deg=40)
+    _, t = register(client)
+    rejected = submit(client, t).json()["job_id"]
+    monkeypatch.setattr(m, "extract_clip", lambda path: (_ for _ in ()).throw(RuntimeError("boom")))
+    failed = submit(client, t).json()["job_id"]
+    err = capfd.readouterr().err
+    assert f"analysis ended job={rejected} status=rejected" in err
+    assert f"analysis ended job={failed} status=failed" in err

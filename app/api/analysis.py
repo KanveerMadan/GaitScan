@@ -10,7 +10,9 @@ import logging
 import os
 import resource
 import threading
+import time
 import uuid
+from collections.abc import Callable
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile
@@ -59,9 +61,16 @@ def parse_calibration(values: list[float | None], distance_m: float | None) -> C
 
 
 def run_pipeline(
-    path: str, calibration: Calibration | None, test: str = WALK, belt_speed_m_s: float | None = None
+    path: str,
+    calibration: Calibration | None,
+    test: str = WALK,
+    belt_speed_m_s: float | None = None,
+    on_start: Callable[[], None] | None = None,
 ) -> AnalysisResult:
+    """on_start runs once this run holds the lock, i.e. when it stops waiting behind another one."""
     with _PIPELINE_LOCK:
+        if on_start is not None:
+            on_start()
         try:
             return _run_pipeline(path, calibration, test, belt_speed_m_s)
         finally:
@@ -270,7 +279,7 @@ def submit_analysis(
             )
         )
         db.commit()
-        background.add_task(process_job, job_id, video_path, calibration, test, belt)
+        background.add_task(process_job, job_id, video_path, calibration, test, belt, time.monotonic())
         queued = True
         return JobQueued(job_id=job_id, status="queued", status_url=f"/analyses/{job_id}")
     finally:
@@ -284,17 +293,31 @@ def process_job(
     calibration: Calibration | None,
     test: str,
     belt_speed_m_s: float | None = None,
+    queued_at: float | None = None,
 ) -> None:
-    """Run one queued job (FastAPI background task; runs after the 202 is sent)."""
+    """Run one queued job (FastAPI background task; runs after the 202 is sent).
+
+    The job stays "queued" while it waits behind another analysis (one at a time, _PIPELINE_LOCK) and
+    is "running" once its own starts. Both ends are logged with how long they took, so Render's logs
+    show whether a job is waiting, running or over (2026-11-12: an analysis that seemed to never end
+    left no trace)."""
+    queued_at = time.monotonic() if queued_at is None else queued_at
+    started_at: list[float] = []
     db = SessionLocal()
     try:
         job = db.get(AnalysisJob, job_id)
         if job is None:
             return
-        job.status = "running"
-        db.commit()
+        queued_job = job
+
+        def start() -> None:
+            started_at.append(time.monotonic())
+            log.info("analysis started job=%s waited_s=%.1f", job_id, started_at[0] - queued_at)
+            queued_job.status = "running"
+            db.commit()
+
         try:
-            result = run_pipeline(video_path, calibration, test, belt_speed_m_s)
+            result = run_pipeline(video_path, calibration, test, belt_speed_m_s, on_start=start)
             if result.accepted:
                 assert job.user_id is not None
                 _store(db, job_id, job.user_id, job.patient_name or "Anonymous", result, job.profile_id)
@@ -319,6 +342,12 @@ def process_job(
             job.error_message = f"Analysis failed due to an internal error. Reference: {ref}"
         job.finished_at = datetime.now(UTC)
         db.commit()
+        log.info(
+            "analysis ended job=%s status=%s seconds=%.1f",
+            job_id,
+            job.status,
+            time.monotonic() - (started_at[0] if started_at else queued_at),
+        )
     finally:
         db.close()
         _remove(video_path)
