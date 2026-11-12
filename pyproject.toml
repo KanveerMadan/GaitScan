@@ -14,7 +14,7 @@ dependencies = [
     # auth (passlib + bcrypt<4 until ADR-004 moves hashing to bcrypt directly in Phase 4)
     "pyjwt[crypto]>=2.10",
     "passlib[bcrypt]==1.7.4",
-    "bcrypt==3.2.2",
+    "bcrypt==5.0.0",
     # data
     "sqlalchemy>=2.0.43",
     "alembic>=1.16",
