@@ -55,7 +55,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import numpy.typing as npt
 
-from gaitcore.angles import knee_flexion, thigh_angle
+from gaitcore.angles import thigh_angle
 from gaitcore.calibration import Calibration
 from gaitcore.clip import Clip
 from gaitcore.dsp import find_peaks, peak_half_width_edges
@@ -154,10 +154,7 @@ class Walk:
     step_times: list[float] = field(default_factory=list)  # between labelled strikes of alternate feet
     step_ends: list[str] = field(default_factory=list)  # foot whose strike ends each labelled step
     stride_times: dict[str, list[float]] = field(default_factory=lambda: {"L": [], "R": []})
-    knee_peak_flexion: dict[str, list[float]] = field(default_factory=lambda: {"L": [], "R": []})
     hip_excursion: dict[str, list[float]] = field(default_factory=lambda: {"L": [], "R": []})
-    # Knee flexion over each stride, resampled to CURVE_POINTS samples from heel strike to heel strike.
-    knee_curves: dict[str, list[list[float]]] = field(default_factory=lambda: {"L": [], "R": []})
     # Each stride's outline (stride_outline): leading leg "L", the other "R", CURVE_POINTS x 2 per point;
     # and where in the stride (0-1) the other foot struck.
     stride_outlines: list[dict[str, npt.NDArray[np.float64] | None]] = field(default_factory=list)
@@ -326,10 +323,6 @@ def _measure_segment(
         sl = slice(f0, f1 + 1)
         hip, knee, ankle = (tracks[(s0, n)][sl] for n in ("hip", "knee", "ankle"))
         if np.isfinite(np.c_[hip, knee, ankle]).all():
-            flex = knee_flexion(hip, knee, ankle, seg.direction)
-            walk.knee_peak_flexion[s0].append(float(np.max(flex)))
-            u = np.linspace(0, 1, len(flex))
-            walk.knee_curves[s0].append(np.interp(np.linspace(0, 1, CURVE_POINTS), u, flex).tolist())
             th = thigh_angle(hip, knee, seg.direction)
             walk.hip_excursion[s0].append(float(np.max(th) - np.min(th)))
         outline = stride_outline(tracks, s0, sl, seg.direction, leg_px)

@@ -2,8 +2,16 @@
 
 The app gets an ID token from Google Identity Services and posts it here. The token is checked
 against Google's published signing keys (RS256), with the issuer, the audience (our client ID) and the
-expiry. A Google account signs in to the GaitScan account with the same email only when Google says
-that email is verified; otherwise a new patient account is made (with recovery codes, like sign-up).
+expiry (all required, with the account id). A Google account whose email Google has verified signs in
+to the GaitScan account it made before, or gets a new patient account (with recovery codes, like
+sign-up).
+
+It never signs in to an account made with a password (2026-11-12 review). Sign-up can't check an
+address (there is no email channel), so anyone can make a password account with someone else's
+address; signing that person in to it with Google would put them in an account whose password the
+other person knows (account pre-hijacking). Such an account keeps its password; Google sign-in
+answers 409 and says to use it. Addresses are matched without regard to capitals: sign-up keeps them,
+Google doesn't.
 """
 
 import secrets
@@ -13,6 +21,7 @@ from typing import Any
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.api.auth import SignupResponse, TokenResponse, _codes_left, _new_recovery_codes, _token_response
@@ -43,7 +52,12 @@ def check_id_token(token: str, client_id: str) -> dict[str, Any]:
             _jwks = jwt.PyJWKClient(GOOGLE_CERTS, cache_keys=True)
         key = _jwks.get_signing_key_from_jwt(token)
         claims: dict[str, Any] = jwt.decode(
-            token, key.key, algorithms=["RS256"], audience=client_id, issuer=GOOGLE_ISSUERS
+            token,
+            key.key,
+            algorithms=["RS256"],
+            audience=client_id,
+            issuer=GOOGLE_ISSUERS,
+            options={"require": ["exp", "iat", "iss", "aud", "sub"]},
         )
         return claims
     except jwt.PyJWTError as e:
@@ -71,11 +85,16 @@ def google_sign_in(
     if not email or claims.get("email_verified") is not True:
         raise HTTPException(400, "Google hasn't verified this email address, so it can't be used to sign in.")
     now = datetime.now(UTC)
-    user = db.query(User).filter(User.email == email).first()
-    if user is not None:
-        if user.email_verified_at is None:
-            user.email_verified_at = now  # Google verified it
-            db.commit()
+    matches = db.query(User).filter(func.lower(User.email) == email).all()
+    if matches:
+        # Only an account Google made (its address verified when it was made) signs in this way.
+        user = next((u for u in matches if u.email_verified_at is not None), None)
+        if user is None:
+            raise HTTPException(
+                409,
+                "An account with this email already exists and uses a password. "
+                "Sign in with your email and password.",
+            )
         out = _token_response(user)
         out.recovery_codes_left = _codes_left(db, user)
         out.settings = settings_of(user)

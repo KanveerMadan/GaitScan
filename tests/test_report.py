@@ -55,27 +55,6 @@ def test_pdf_never_shows_stride_time_even_from_an_older_stored_result():
     assert "stride time" not in text.lower()
 
 
-def test_pdf_marks_knee_flexion_not_yet_validated():
-    from app.services.report_pdf import build_pdf
-    from gaitcore.pipeline import analyse
-
-    pdf = build_pdf(analyse(synthetic_clip()[0]).to_dict(), patient_name="Anonymous", created_at=None)
-    text = " ".join("".join(page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages).split())
-    assert "Not yet validated" in text.split("Peak knee flexion")[1][:200]
-
-
-def test_pdf_marks_older_stored_knee_values_not_yet_validated():
-    """Results stored before the accuracy block existed still get the label."""
-    from app.services.report_pdf import build_pdf
-    from gaitcore.pipeline import analyse
-
-    result = analyse(synthetic_clip()[0]).to_dict()
-    del result["accuracy"]
-    pdf = build_pdf(result, patient_name="Anonymous", created_at=None)
-    text = " ".join("".join(page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages).split())
-    assert "Not yet validated" in text.split("Peak knee flexion")[1][:200]
-
-
 def test_pdf_shows_each_pass_and_the_spread_between_passes():
     from app.services.report_pdf import build_pdf
     from gaitcore.pipeline import analyse

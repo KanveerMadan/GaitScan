@@ -182,17 +182,13 @@ def test_healthy_walker_measured_without_activity_label():
     assert_removed_outputs_absent()
     w = measure(synthetic_walk_landmarks(110))
     assert w.cadence == pytest.approx(110, rel=0.1), w.cadence
-    for side in "LR":   # peak knee angle 118 deg = 62 deg flexion (2 deg in stance + 60)
-        assert np.median(w.knee_peak_flexion[side]) == pytest.approx(62, abs=3), (side, w.knee_peak_flexion)
 
 # ---- knee range-of-motion loss on one side ----------------------------------------
-def test_halved_knee_rom_shows_in_per_leg_peak_flexion():
-    """EXPECTED FAIL: right knee flexes 30 deg vs left 60 deg (50% ROM loss). The pre-V3 app
-    hid this in a symmetry index on MEAN absolute angle (7.3%, 'good'). V3 removes the index;
-    the loss must show directly in the right leg's peak knee flexion."""
+def test_halved_knee_rom_is_not_reported_as_a_symmetry_index():
+    """The pre-V3 app hid a 50% knee ROM loss in a symmetry index on MEAN absolute angle (7.3%,
+    'good'). V3 removed the index; knee angle itself was removed on 2026-11-12 (Phase 8 cancelled,
+    so it can never be validated). The walk is still timed, and no knee value is reported."""
     assert_removed_outputs_absent()
     w = measure(synthetic_walk_landmarks(110, knee_scale_R=0.5))
-    left, right = np.median(w.knee_peak_flexion["L"]), np.median(w.knee_peak_flexion["R"])
-    assert left == pytest.approx(62, abs=3), left     # 2 + 60
-    assert right == pytest.approx(32, abs=3), right   # 2 + 30
-    assert left - right >= 25, (left, right)          # expected 30 deg; threshold 25 deg
+    assert w.cadence == pytest.approx(110, rel=0.1), w.cadence
+    assert not hasattr(w, "knee_peak_flexion")

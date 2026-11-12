@@ -13,7 +13,7 @@ import numpy as np
 
 from gaitcore import __version__, model
 from gaitcore.accuracy import accuracy_for
-from gaitcore.gait import CURVE_POINTS, Walk
+from gaitcore.gait import Walk
 from gaitcore.quality import Rejection
 
 WALK = "walk"  # the test types (pipeline.TESTS): overground walking, validated on LJMU
@@ -38,8 +38,8 @@ MAX_LABELLED_STEP_CV = 0.20
 # legs and <= 0.88 for the rest (37 at 0.48-0.62: one step), so +-10% keeps every correct leg.
 MAX_STRIDE_MISMATCH = 0.10
 LEGS_NOT_TOLD_APART = (
-    "Left and right legs couldn't be told apart reliably in this video, so peak knee flexion isn't "
-    "shown for each leg. Cadence and step time don't depend on telling the legs apart."
+    "Left and right legs couldn't be told apart reliably in this video, so there's no outline of the "
+    "walk to replay. Cadence and step time don't depend on telling the legs apart."
 )
 
 
@@ -52,13 +52,6 @@ def _summary(values: list[float], unit: str, digits: int, centre: str = "median"
         "sd": None if sd is None else round(sd, digits),
         "n": len(arr),
         "unit": unit,
-    }
-
-
-def _per_leg(values: dict[str, list[float]], unit: str, digits: int, centre: str) -> dict[str, Any]:
-    return {
-        LEG[s]: _summary(values[s], unit, digits, centre) if len(values[s]) >= MIN_STRIDES_PER_LEG else None
-        for s in ("L", "R")
     }
 
 
@@ -82,13 +75,12 @@ def metrics_from_walk(walk: Walk) -> dict[str, Any]:
     # walk.hip_excursion is computed but not returned: CONDITIONAL until it passes Phase 3.
     # walk.stride_times likewise: brief left/right label flips (5-10% of frames) make it read up to
     # 26% short on the synthetic walker without tripping legs_told_apart. Phase 3.
+    # Peak knee flexion was removed on 2026-11-12 (owner decision: Phase 8, the only way to validate a
+    # knee angle, is cancelled), so no analysis reports a knee angle.
     steps = walk.contact_step_times
-    per_leg = legs_told_apart(walk)
-    no_legs = {"left": None, "right": None}
     m: dict[str, Any] = {
         "cadence": {"value": round(walk.cadence, 1), "n": walk.step_count, "unit": "steps/min"},
         "step_time": {**_summary(steps, "s", 3, "mean"), "value": round(walk.mean_step_time, 3)},
-        "peak_knee_flexion": _per_leg(walk.knee_peak_flexion, "deg", 1, "median") if per_leg else no_legs,
     }
     if walk.step_lengths_m is not None:
         if walk.step_lengths_m:
@@ -106,7 +98,7 @@ def metrics_from_walk(walk: Walk) -> dict[str, Any]:
 
 
 def metrics_from_treadmill(walk: Walk, belt_speed_m_s: float) -> dict[str, Any]:
-    """The walk's timing and knee values, plus the belt speed as entered and the step length it gives:
+    """The walk's timing, plus the belt speed as entered and the step length it gives:
     on a treadmill each step carries the foot back by the belt's travel in one step time."""
     m = metrics_from_walk(walk)
     m["belt_speed"] = {"value": round(belt_speed_m_s, 2), "unit": "m/s", "source": "entered"}
@@ -151,23 +143,14 @@ def pass_variability(passes: list[dict[str, Any]]) -> dict[str, Any] | None:
 
 
 def curves_from_walk(walk: Walk) -> dict[str, Any]:
-    """Mean knee flexion over the stride (heel strike to heel strike, 0-100%) per leg: shown and
-    hidden exactly like peak knee flexion (same strides, same label checks). Not yet validated."""
-    shown = legs_told_apart(walk)
-    knee: dict[str, Any] = {"unit": "deg", "points": CURVE_POINTS}
-    for s in ("L", "R"):
-        c = walk.knee_curves[s]
-        knee[LEG[s]] = (
-            [round(float(v), 1) for v in np.mean(np.asarray(c), axis=0)]
-            if shown and len(c) >= MIN_STRIDES_PER_LEG
-            else None
-        )
-    return {"knee_flexion": knee, "stride_outline": stride_outline_from_walk(walk, shown)}
+    """The stride outline for the ghost replay. (The knee-flexion curve was removed with peak knee
+    flexion on 2026-11-12.)"""
+    return {"stride_outline": stride_outline_from_walk(walk, legs_told_apart(walk))}
 
 
 def stride_outline_from_walk(walk: Walk, shown: bool) -> dict[str, Any] | None:
-    """The mean stride outline (gait.stride_outline) for ghost replay: kept, and hidden, exactly like
-    the knee curves; no absolute position, head, arms or hands. Each point is the mean over the strides
+    """The mean stride outline (gait.stride_outline) for ghost replay: hidden when the legs can't be
+    told apart (legs_told_apart); no absolute position, head, arms or hands. Each point is the mean over the strides
     in which it was visible throughout; a point visible in fewer than MIN_STRIDES_PER_LEG is null."""
     if not shown or len(walk.stride_outlines) < MIN_STRIDES_PER_LEG:
         return None

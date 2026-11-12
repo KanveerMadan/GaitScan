@@ -11,8 +11,8 @@ Phase 5 re-run is the `*_phase5.txt` files (API security probe: 15/16 PASS, the 
 | F02 | No auth or ownership on sessions and reports | Closed | Auth + owner-or-linked-clinician check on every session, report and share route | `315a654`; `tests/test_access_control.py`; probe F02 ×2 PASS |
 | F03 | Anyone can register as a clinician | Closed | Client-supplied role ignored; `/debug/links` removed | `58831bb`; probe F03 PASS |
 | F04 | Plaintext password printed on registration | Closed | Print removed; JSON logging with redaction; `print` banned by lint | `679164a`, `d792c67`; probe F04 PASS |
-| F05 | Frontend stores email + password in `localStorage` | Closed, part accepted | Password never stored; token not logged. The access token is still in `localStorage` (see SECURITY.md) | `f7956ee` *(frontend)* |
-| F06 | No consent, retention or deletion; video kept on failure; data sent to Groq | Closed, part accepted | Consent before the first analysis; export and deletion; video deleted in `finally:`; LLM removed. No scheduled purge: data is kept until the user deletes it | `8048daf`, `c021909`, `82df61b`; probe F06/F07 PASS |
+| F05 | Frontend stores email + password in `localStorage` | Closed, part accepted | Password never stored; token not logged. The access token is still in `localStorage` (see SECURITY.md); accepted by the owner 2026-11-12 | `f7956ee` *(frontend)* |
+| F06 | No consent, retention or deletion; video kept on failure; data sent to Groq | Closed, part accepted | Consent before the first analysis; export and deletion; video deleted in `finally:`; LLM removed. No scheduled purge: data is kept until the user deletes it, as the Privacy page now states (owner decision 2026-11-12) | `8048daf`, `c021909`, `82df61b`; probe F06/F07 PASS |
 | F07 | Upload validation is a case-sensitive extension check | Closed | Case-insensitive allow-list, streamed size cap, decoded before analysis, generic 422 | `a1e511f`; probe F06/F07 PASS |
 | F08 | CORS `*`, token logged, 365-day tokens | Closed | CORS allow-list; 12-hour tokens; password change ends other logins | `78ff1e1`, `47c11db`; probe F08 ×2 PASS |
 | F09 | Internal errors returned; Swagger public | Closed | Generic errors with a reference; `/docs` only in dev | `78ff1e1`, `a1e511f`; probe F09 PASS |
@@ -27,13 +27,13 @@ Phase 5 re-run is the `*_phase5.txt` files (API security probe: 15/16 PASS, the 
 | F18 | Tracked database file, stray files, `.gitignore` typo | Closed | Database untracked, stubs deleted, ignore fixed | `38c8db3`, `e47fd9b`, `ee86286` |
 | F19 | matplotlib backend never set | Closed | `Agg` selected; server-side plots later removed with the old PDF | `6b28629`, `82df61b` |
 | F20 | Unescaped text crashes the PDF build | Closed | All interpolated text escaped | `2cd1474` |
-| F21 | 42 s cold start on Render | Accepted | Free-tier instance. Polling with timeouts tolerates it; a paid instance or keep-warm ping removes it | — |
+| F21 | 42 s cold start on Render | Accepted | Free-tier instance. Polling with timeouts tolerates it. Owner decision 2026-11-12: an external uptime check calls `GET /healthz` every 10 minutes to keep it awake; `/healthz` is one `SELECT 1` (tests/test_healthz.py) | — |
 | F22 | No ground truth or accuracy numbers | Closed | `make evaluate` on LJMU (Topham et al. 2023): cadence ±4.5 steps/min, step time ±0.024 s (95%); knee, step length, speed labelled not yet validated | `7dd653e`, `4f06451`; [model card](model-card.md) |
 | F23 | Invented "risk score" | Closed | Removed; measurements only | `82df61b`; `03286dd` *(frontend)* |
 | F24 | Cadence from one knee crossing 155° | Closed | Label-free step events from heel separation, both feet | `3f9eae5`, `d201767` |
 | F25 | Angles on normalised coordinates | Closed | Angles in pixel space | `3f9eae5` |
 | F26 | No visibility gating, smoothing, quality or multi-person handling | Closed | Visibility masking without filling; 6 Hz zero-phase filter; recording checks; frames with two people masked | `3f9eae5`, `d8aec1e` |
-| F27 | Knee flexion = 180 − min over the clip | Closed | Per-stride peak, median across strides | `3f9eae5` |
+| F27 | Knee flexion = 180 − min over the clip | Closed | Per-stride peak, median across strides; knee angle then removed entirely on 2026-11-12 (Phase 8 cancelled) | `3f9eae5` |
 | F28 | Symmetry index on mean angles | Closed | Symmetry indices removed | `82df61b`; `03286dd` *(frontend)* |
 | F29 | View-dependent angles; "any angle" claims | Closed | Side-on view required: shoulder-width and path-convergence checks | `3f9eae5`; `out_view_dependency_phase5.txt` |
 | F30 | Activity classifier of hand thresholds | Closed | Removed | `82df61b`; `03286dd` *(frontend)* |
@@ -46,7 +46,7 @@ Phase 5 re-run is the `*_phase5.txt` files (API security probe: 15/16 PASS, the 
 | F37 | "RAG" overclaim; blocking LLM call | Closed | LLM made opt-in, then removed | `2367d0f`, `82df61b` |
 | F38 | Zero tests | Closed | ~300 backend tests (synthetic ground truth, golden file, API, migrations); ~60 frontend unit + Playwright e2e | `437a0f1`; CI in both repos |
 | F39 | 1,100-line `App.js`, CRA, no router or a11y | Closed | Vite, React Router, typed client from the OpenAPI contract, design system, axe checks | `96ebe3c`, `8105c82` *(frontend)* |
-| F40 | Patient name missing; clinicians can't upload | Closed, part accepted | The name (or the account holder's) is on sessions and PDFs. Clinicians uploading for a patient is not built | `62cf428`; probe F40 PASS |
+| F40 | Patient name missing; clinicians can't upload | Closed, part accepted | The name (or the account holder's) is on sessions and PDFs. Clinicians uploading for a patient is not built; accepted by the owner 2026-11-12 | `62cf428`; probe F40 PASS |
 | F41 | `print` logging; no error tracking; poor commit messages | Closed | JSON logging, Sentry (opt-in), Conventional Commits | `3908373`, `d792c67` |
 | F42 | Epsilon in angle denominators | Closed | Zero-length vectors give NaN | `3f9eae5` |
 | F43 | Unused imports | Closed | ruff in pre-commit and CI | `f385e5c`, `99a88f8` |

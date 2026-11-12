@@ -16,7 +16,7 @@ with PoseLandmarker.create_from_options(landmarks._options()):
 
 r = analyse(synthetic_clip(steps_per_min=110)[0]).to_dict()
 assert r["status"] == "accepted", r["rejection"]
-assert set(r["metrics"]) == {"cadence", "step_time", "peak_knee_flexion"}, set(r["metrics"])
+assert set(r["metrics"]) == {"cadence", "step_time"}, set(r["metrics"])
 assert abs(r["metrics"]["cadence"]["value"] - 110) <= 2, r["metrics"]["cadence"]
 assert r["model"]["sha256"] == model.SHA256
 print(f"ok: {path} sha256 {model.SHA256[:12]}..., cadence {r['metrics']['cadence']['value']} steps/min")

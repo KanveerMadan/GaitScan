@@ -108,8 +108,9 @@ clip:
 - **The learned reliability model** (above).
 
 ## What's left
-- **Knee angle, step length and walking speed** stay "not yet validated" until there is a
-  reference: OpenCap for knee angles (optional Phase 8), and a known walking distance for speed.
+- **Step length, walking speed and the treadmill test** stay "not yet validated" for good: no more
+  video will be collected (owner decision 2026-11-12). **Knee angle was removed** the same day:
+  OpenCap (Phase 8), its only route to a reference, was cancelled.
 - **The step-regularity limit and heel-visibility handling** were chosen on lab video and need
   checking on more phone recordings.
 - **Accounts:** email delivery (password reset, verified sign-up, which closes account enumeration)

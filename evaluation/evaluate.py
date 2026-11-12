@@ -149,7 +149,7 @@ def evaluate_clip(ref: Reference, clip: Clip) -> dict[str, Any]:
         window_first=first,
         window_last=last,
         steps=r.quality["steps_detected"],
-        per_leg_shown=any(v is not None for v in r.metrics["peak_knee_flexion"].values()),
+        per_leg_shown=bool(r.curves.get("stride_outline")),
         cadence=cadence,
         step_time=step,
         ref_cadence=round(60 / ref_t, 2) if math.isfinite(ref_t) else None,

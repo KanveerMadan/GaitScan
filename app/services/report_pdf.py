@@ -17,19 +17,18 @@ from reportlab.lib.units import cm
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from app.core.copy import DISCLAIMER, ERROR_RANGES
+from app.schemas import public_result
 from gaitcore.accuracy import NOT_YET_VALIDATED, accuracy_for
 
 WALK_ROWS = (  # (metric key, label); per-leg metrics have "left"/"right"
     ("cadence", "Cadence"),
     ("step_time", "Step time"),
-    ("peak_knee_flexion", "Peak knee flexion (per stride)"),
     ("step_length", "Step length (floor calibration)"),
     ("walking_speed", "Walking speed (floor calibration)"),
 )
 TREADMILL_ROWS = (  # a treadmill has no floor calibration; step length comes from the entered belt speed
     ("cadence", "Cadence"),
     ("step_time", "Step time"),
-    ("peak_knee_flexion", "Peak knee flexion (per stride)"),
     ("belt_speed", "Belt speed (entered)"),
     ("step_length", "Step length (from the belt speed)"),
 )
@@ -78,6 +77,7 @@ def _table(rows: list[list[Any]], widths: list[float]) -> Table:
 
 
 def build_pdf(result: dict[str, Any], patient_name: str | None, created_at: datetime | None) -> bytes:
+    result = public_result(result)
     metrics: dict[str, Any] = result.get("metrics", {})
     # Results stored before the accuracy block existed get today's labels.
     accuracy: dict[str, Any] = result.get("accuracy") or accuracy_for(metrics)

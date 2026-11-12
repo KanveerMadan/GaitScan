@@ -27,6 +27,7 @@ from app.db.models import (
     User,
 )
 from app.db.models import Session as SessionModel
+from app.schemas import public_result
 
 log = logging.getLogger("gaitscan")
 router = APIRouter(tags=["privacy"])
@@ -73,7 +74,7 @@ def export_my_data(
                 "patient_name": s.patient_name,
                 "profile_id": s.profile_id,
                 "pipeline_version": s.pipeline_version,
-                "result": s.result,
+                "result": public_result(s.result) if s.result else None,
                 "notes": s.notes,
                 "tags": s.tags or [],
                 "archived_values": s.archive.data if s.archive else None,
@@ -91,7 +92,7 @@ def export_my_data(
             for s in sessions
         ],
         "profiles": [
-            {"id": p.id, "name": p.name, "birth_year": p.birth_year}
+            {"id": p.id, "name": p.name, "birth_year": p.birth_year, "sex": p.sex}
             for p in db.query(Profile).filter(Profile.owner_id == uid).order_by(Profile.id)
         ],
         "consents": [
