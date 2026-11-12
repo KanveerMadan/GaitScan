@@ -6,9 +6,15 @@ updates:
       interval: weekly
     open-pull-requests-limit: 5
     ignore:
-      # Held by mediapipe 0.10.9; upgraded together in Phase 2 (ADR-006).
+      # mediapipe is pinned to 1.0.1, the release the LJMU accuracy check was run with and the same as
+      # the app's @mediapipe/tasks-vision; protobuf is held by it. Upgrading means re-running
+      # `make evaluate` and moving the frontend in step, not a version bump (ADR-006).
       - dependency-name: mediapipe
       - dependency-name: protobuf
+      # passlib 1.7.4 fails with bcrypt >= 4 ("password cannot be longer than 72 bytes"); moving on
+      # means replacing passlib with direct bcrypt calls (ADR-004). Closed: #9 (2026-11-12).
+      - dependency-name: bcrypt
+        versions: [">=4"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -17,3 +23,8 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    ignore:
+      # The image's Python follows mediapipe: 1.0.1 is built for Python 3.11, and the 3.15 image
+      # didn't start ("No module named 'encodings'"). Closed: #32 (2026-11-12).
+      - dependency-name: python
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
