@@ -50,7 +50,8 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     except jwt.PyJWTError:
         raise credentials_exception from None
 
-    user = db.query(User).filter(User.email == email).first()
+    # Lower case: tokens issued before migration 0014 carry the address as it was typed.
+    user = db.query(User).filter(User.email == email.lower()).first()
 
     if user is None:
         raise credentials_exception

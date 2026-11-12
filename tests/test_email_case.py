@@ -12,13 +12,13 @@ def sign_up(client, email):
 
 
 def test_an_address_is_stored_in_lower_case_and_signs_in_however_it_is_typed(client):
-    r = sign_up(client, "Ana.Caps@Example.com")
+    r = sign_up(client, "Mixed.Signup@Example.com")
     assert r.status_code == 201, r.text
     assert (
         client.get("/auth/me", headers=auth(r.json()["access_token"])).json()["email"]
-        == "ana.caps@example.com"
+        == "mixed.signup@example.com"
     )
-    for typed in ("ana.caps@example.com", "ANA.CAPS@EXAMPLE.COM", "Ana.Caps@Example.com"):
+    for typed in ("mixed.signup@example.com", "MIXED.SIGNUP@EXAMPLE.COM", "Mixed.Signup@Example.com"):
         assert client.post("/auth/login", json={"email": typed, "password": PASSWORD}).status_code == 200, (
             typed
         )

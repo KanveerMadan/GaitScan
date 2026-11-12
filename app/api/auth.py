@@ -3,13 +3,14 @@ import secrets
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.api.profiles import ProfileOut, profiles_of
 from app.api.settings import Settings, settings_of
 from app.core import ratelimit
 from app.core.config import settings
+from app.core.email import Email
 from app.core.security import create_access_token, get_current_user, hash_password, verify_password
 from app.db.database import get_db
 from app.db.models import AuthToken, RecoveryCode, User, UserRole
@@ -32,14 +33,14 @@ def require_new_password(password: str) -> None:
 
 
 class RegisterRequest(BaseModel):
-    email: EmailStr
+    email: Email
     password: str
     full_name: str | None = None
     # No role field: roles are never client-supplied. Clinicians are promoted by an admin.
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: Email
     password: str
 
 
@@ -97,12 +98,12 @@ def register(payload: RegisterRequest, request: Request, db: Session = Depends(g
 
 @router.post("/login", response_model=TokenResponse)
 def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)):
-    email_key = payload.email.lower()
+    email_key = payload.email  # already lower case (app.core.email)
     ip = ratelimit.client_ip(request)
     ratelimit.enforce((ratelimit.login_failures_per_email, email_key), (ratelimit.login_attempts_per_ip, ip))
     ratelimit.login_attempts_per_ip.hit(ip)
 
-    user = db.query(User).filter(User.email == payload.email).first()
+    user = db.query(User).filter(User.email == email_key).first()
     ok = verify_password(payload.password, user.hashed_password if user else _DUMMY_HASH)
     if not user or not ok:
         ratelimit.login_failures_per_email.hit(email_key)
@@ -156,7 +157,7 @@ RESET_SENT = "If an account uses this email address, we've sent it a link to cho
 
 
 class EmailRequest(BaseModel):
-    email: EmailStr
+    email: Email
 
 
 class ResetConfirm(BaseModel):
@@ -200,7 +201,7 @@ def _link(path: str, raw: str) -> str:
 def request_password_reset(payload: EmailRequest, request: Request, db: Session = Depends(get_db)):
     if not mailer.available():
         raise HTTPException(503, NO_MAIL)
-    email_key = str(payload.email).lower()
+    email_key = payload.email  # already lower case (app.core.email)
     ip = ratelimit.client_ip(request)
     ratelimit.enforce((ratelimit.reset_requests_per_email, email_key), (ratelimit.reset_requests_per_ip, ip))
     ratelimit.reset_requests_per_email.hit(email_key)
@@ -271,7 +272,7 @@ BAD_CODE = "That email address and recovery code don't match an unused code."
 
 
 class RecoverRequest(BaseModel):
-    email: EmailStr
+    email: Email
     code: str = Field(min_length=16, max_length=40)
     new_password: str
 
@@ -316,7 +317,7 @@ def make_recovery_codes(
 
 @router.post("/recover")
 def recover(payload: RecoverRequest, request: Request, db: Session = Depends(get_db)):
-    email_key = str(payload.email).lower()
+    email_key = payload.email  # already lower case (app.core.email)
     ip = ratelimit.client_ip(request)
     ratelimit.enforce(
         (ratelimit.recovery_attempts_per_email, email_key), (ratelimit.recovery_attempts_per_ip, ip)
