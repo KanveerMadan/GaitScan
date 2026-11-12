@@ -116,3 +116,26 @@ def test_sign_in_returns_the_accounts_profiles(client):
     make(client, t)
     out = client.post("/auth/login", json={"email": email, "password": PASSWORD}).json()
     assert out["profiles"] == [{"id": out["profiles"][0]["id"], "name": "Mum", "birth_year": ADULT}]
+
+
+def test_a_profile_can_have_an_optional_sex_that_can_be_changed_and_cleared(client):
+    """Reference bands (owner decision 2026-11-12): optional, for the published norms by age and sex."""
+    _, t = register(client)
+    plain = make(client, t, name="Dad").json()
+    assert plain["sex"] is None
+    r = client.post(
+        "/profiles",
+        headers=auth(t),
+        json={"name": "Mum", "birth_year": ADULT, "is_adult": True, "sex": "female"},
+    )
+    assert r.status_code == 201 and r.json()["sex"] == "female"
+    pid = r.json()["id"]
+    assert client.patch(f"/profiles/{pid}", headers=auth(t), json={"sex": "male"}).json()["sex"] == "male"
+    cleared = client.patch(f"/profiles/{pid}", headers=auth(t), json={"sex": None}).json()
+    assert cleared["sex"] is None and cleared["name"] == "Mum"
+    renamed = client.patch(f"/profiles/{pid}", headers=auth(t), json={"name": "Amma"}).json()
+    assert renamed["name"] == "Amma" and renamed["sex"] is None
+    assert client.patch(f"/profiles/{pid}", headers=auth(t), json={"sex": "x"}).status_code == 422
+    exported = client.get("/me/export", headers=auth(t)).json()
+    assert {p["name"]: p["sex"] for p in exported["profiles"]} == {"Dad": None, "Amma": None}
+    assert "sex" in exported["settings"] and "birth_year" in exported["settings"]

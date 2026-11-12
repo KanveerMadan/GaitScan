@@ -12,6 +12,8 @@ DEFAULTS = {
     "language": "en",
     "theme": "system",
     "goal_cadence": None,
+    "sex": None,
+    "birth_year": None,
 }
 
 
@@ -84,3 +86,33 @@ def test_a_cadence_goal_is_the_users_own_number_and_can_be_cleared(client):
         client.patch("/me/settings", headers=auth(token), json={"goal_cadence": None}).json()["goal_cadence"]
         is None
     )
+
+
+def test_sex_and_birth_year_are_optional_and_can_be_cleared(client):
+    """Reference bands (owner decision 2026-11-12): published cadence norms are by age and sex, so the
+    account holder may give both; neither is required, and either can be removed again."""
+    from datetime import date
+
+    _, token = register(client)
+    year = date.today().year - 45
+    r = client.patch("/me/settings", headers=auth(token), json={"sex": "female", "birth_year": year})
+    assert r.status_code == 200 and r.json()["sex"] == "female" and r.json()["birth_year"] == year
+    client.patch("/me/settings", headers=auth(token), json={"sex": None, "birth_year": None})
+    got = client.get("/me/settings", headers=auth(token)).json()
+    assert got["sex"] is None and got["birth_year"] is None
+
+
+@pytest.mark.parametrize(
+    "body", [{"sex": "other"}, {"sex": ""}, {"birth_year": 1899}, {"birth_year": "1980x"}]
+)
+def test_sex_and_birth_year_reject_values_the_norms_dont_cover(client, body):
+    _, token = register(client)
+    assert client.patch("/me/settings", headers=auth(token), json=body).status_code == 422
+
+
+def test_a_birth_year_under_18_is_refused(client):
+    from datetime import date
+
+    _, token = register(client)
+    r = client.patch("/me/settings", headers=auth(token), json={"birth_year": date.today().year - 10})
+    assert r.status_code == 422
