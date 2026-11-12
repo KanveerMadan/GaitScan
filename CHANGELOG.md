@@ -4,6 +4,15 @@ The rebuild of GaitScan after the technical audit (`_audit/GAITSCAN_AUDIT.md`), 
 (`_audit/REBUILD_PLAN_V3.md`). Backend PRs are in this repository; frontend PRs are in
 `gaitscan-frontend`. "Fxx" refers to the audit findings ([docs/findings.md](docs/findings.md)).
 
+## Owner decisions — 2026-11-12
+- Knee angle removed from the API, PDF, export and app (Phase 8 cancelled: it can never be
+  validated); migration 0013 deleted it from stored results.
+- Optional sex and birth year (settings) and sex (profiles) for a published cadence reference by
+  age and sex in the app (Mobbs et al. 2025, CC BY 4.0).
+- Google sign-in never signs in to an account made with a password (account pre-hijacking), matches
+  addresses without regard to capitals, and requires the token's expiry and account id.
+- MIT licence. Data-blocked items closed: no more video will be collected.
+
 ## Real-world recording checks — backend #18
 - The steadiness window is now the walker's own step time (0.5–1.0 s), not a fixed 0.5 s. Slow
   walkers were losing most of their steps.

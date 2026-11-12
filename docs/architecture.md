@@ -39,7 +39,7 @@ This page describes the system as it is now. The decisions behind it are recorde
    3. The walk: `signals` (visibility masking without filling, 6 Hz zero-phase low-pass) →
       `segments` (steady passes, averaged over the walker's own step time, minus stretches with a
       second person or no visible heel) → side-on checks → `gait` (label-free step events from
-      heel separation; per-foot strikes for strides and knee angles) → step-count and regularity
+      heel separation; per-foot strikes for strides and the stride outline) → step-count and regularity
       checks → `result` (units, the accuracy block, a quality block, versions, the model's SHA-256).
 4. The video is deleted in a `finally:` block. An accepted result is stored as JSON in
    `sessions.result` with `pipeline_version`. A rejected one is stored on the job with its code and

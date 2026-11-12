@@ -19,8 +19,9 @@ a one-person project.
 | Share links | Postgres `share_links` | Only a SHA-256 hash of the token is stored; read-only, one session, 7 days by default (1–30), revocable |
 | Recovery codes | Postgres `recovery_codes` | 8 per account, 80 random bits each, single-use, only the SHA-256 stored; shown once |
 | Comments on sessions | Postgres `session_comments` | Readable and writable only by the session's owner and a linked clinician (others get 404); deleted with the session or the author's account; in the export |
-| Other people on an account (profiles) | Postgres `profiles` | Name and birth year only, adults only; owner-only (others get 404); a linked clinician never sees their sessions; deleting a profile deletes its sessions |
-| Google sign-in | No Google token is stored | The ID token is verified against Google's keys and `GOOGLE_CLIENT_ID`; an existing account is linked only when Google says the email is verified |
+| Other people on an account (profiles) | Postgres `profiles` | Name, birth year and an optional sex only, adults only; owner-only (others get 404); a linked clinician never sees their sessions; deleting a profile deletes its sessions |
+| Google sign-in | No Google token is stored | The ID token is verified against Google's keys and `GOOGLE_CLIENT_ID`, and must carry `exp`, `iat`, `iss`, `aud` and `sub`; Google's address must be verified. It signs in only to an account Google made: an account made with a password is never linked (sign-up can't check an address, so linking would allow account pre-hijacking); addresses match without regard to capitals |
+| Sex and birth year (optional) | `users.settings`, `profiles.sex` | Only for the cadence reference in the app; never in shared links or PDFs; in the export; removable at any time |
 | Reset / verification links (unused: no email is sent) | Postgres `auth_tokens` | Hashed, single-use, expiring (reset: 30 minutes) |
 
 ## Threat model
@@ -56,8 +57,9 @@ Vercel account, a compromised developer machine, and physical access to a user's
 - **Token in `localStorage` (part of F05).** An XSS bug would expose the access token. Mitigations:
   no third-party scripts, React escaping, 12-hour tokens. Moving to an httpOnly cookie needs CSRF
   protection and a same-site API domain.
-- **No scheduled retention purge (part of F06).** Results are kept until the user deletes them
-  (privacy center: delete sessions or the whole account, export everything).
+- **No scheduled retention purge (part of F06, accepted 2026-11-12).** Results are kept until the
+  user deletes them (privacy center: delete sessions or the whole account, export everything); the
+  Privacy page says so.
 - **Rate limits live in process memory.** They are correct for the current single worker and instance,
   but reset on restart and would not be shared across instances.
 - **No per-user analysis quota.** Analyses are serialised, so a user submitting many long videos

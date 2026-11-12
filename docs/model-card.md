@@ -10,7 +10,7 @@ files in `evaluation/results/`, produced by `make evaluate` (accuracy, repeatabi
   pinned by SHA-256. Frames are downscaled to 640 px on the long side first.
 - **Measurement:** `gaitcore`, deterministic and with no learned parameters of its own. It covers
   the recording checks, steady-pass detection, label-free step events from heel separation, and
-  per-foot heel strikes (Zeni et al. 2008) for strides and knee angles.
+  per-foot heel strikes (Zeni et al. 2008) for strides and the stride outline.
 - **Output:** values with units, the error range below, a quality block, and the pipeline and model
   versions. A video that fails a check gets a reason instead of numbers.
 
@@ -55,11 +55,21 @@ from measurement noise. Day-to-day variation isn't in it and is likely larger.
 ## Not yet validated
 | Measurement | Why |
 |---|---|
-| Peak knee flexion | No knee-angle reference (planned: OpenCap, Phase 8). On synthetic data it is exact; a camera 30° off side-on reads a 60° bend as 53.5°. |
-| Step length, walking speed | Need a floor calibration; LJMU has no distance reference. Checked only on simulated walking. |
+| Step length, walking speed | Need a floor calibration; LJMU has no distance reference. Checked only on simulated walking. Permanent: no more video will be collected (2026-11-12). |
+| Treadmill test | No treadmill reference clips; permanent for the same reason. |
 | Stride time | Withheld: in LJMU, left/right labels follow position, so 37 of 110 legs read one step as a stride. |
 
 The API, the PDF and the app label these "not yet validated" wherever they appear.
+
+**Removed: peak knee flexion** (2026-11-12). Its only route to validation, OpenCap (Phase 8), was
+cancelled, so it is no longer measured or shown, and migration 0013 deleted it from stored results.
+On synthetic data it was exact; a camera 30° off side-on read a 60° bend as 53.5°.
+
+**Cadence reference (app only).** With the person's sex and birth year in their settings, the app
+shows the mean ± 1 SD cadence of healthy adults of that sex and age group from Mobbs et al. 2025
+(*Sensors* 25(2):581, doi:10.3390/s25020581, CC BY 4.0; 313 adults, chest-worn IMU, 50 m walk).
+Groups with fewer than 10 people in the study get no band. It is context, not a target: that study
+measured with a different instrument, and its authors note the method isn't validated.
 
 ## How it degrades
 54 clips, one per participant, each re-analysed after a degradation. These are the files

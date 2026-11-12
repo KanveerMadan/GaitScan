@@ -1,34 +1,16 @@
 # GaitScan Rebuild — Progress
 
-Plan: [REBUILD_PLAN_V3.md](REBUILD_PLAN_V3.md). Full history of Phases 0–2 is in git and `phase-reports/`.
+Plan: [REBUILD_PLAN_V3.md](REBUILD_PLAN_V3.md). Full history of each phase is in git, `phase-reports/` and [CHANGELOG.md](../CHANGELOG.md).
 
-- Done and deployed: Phase 0 + Phase 1 merged to main (#1, #2); backend on Render `gaitscan-api`, frontend on Vercel
-- Merged since: #11 per-IP rate limits keyed on CLIENT_IP_HEADER (Render: True-Client-IP), #12 pillow 13.0.0 / certifi 2026.10.19
-- Phase 2 merged and deployed 2026-10-24: backend #10 (e6432fe, Render), frontend #10 (88cc8e7, Vercel)
-- Current phase: **7 — Documentation, done** (backend rebuild/phase-7-docs, frontend #16). All phases 0-7 built; only owner decisions and data remain (below)
-- Phase 2 LJMU gates (Topham et al. 2023, CC BY 4.0): path-convergence side-view check + view_unconfirmed; duplicate pose = one person; legs_not_tracked (>= 4 s steady, < 6 steps); irregular_steps (label-free step CV > 0.15)
-- Cadence/step time label-free (heel-separation peaks); per-leg knee hidden with a note when labelled step CV > 0.2; stride time withheld (Phase 3)
-  - 27 AI-annotated + cross-checked clips: MAE 12.0 -> 1.6 steps/min (max 4.9); held-out 54 clips / 34 participants vs RTMPose: MAE 1.7 (max 5.4)
-- Blockers / human actions:
-  - hip_sagittal_excursion hidden from API/PDF/UI (CONDITIONAL); still computed for the Phase 3 check
-  - No protocol-conforming real clip yet (walk01 is rejected: no complete step)
-  - Dependabot PRs #7–#9 open, untriaged
-- Phase 3 (PR #14, frontend #11, 2026-10-26): per-pass results, test-type registry, accuracy block; knee/step length/speed "not yet validated"; floor calibration UI
-  - make evaluate on LJMU: cadence MAE 1.55 steps/min, p95 4.67 (97 clips); test 21 clips MAE 1.10, p95 2.36; app shows ±4.7 steps/min, ±0.024 s
-  - Stride time stays withheld (labels follow position: 37/110 legs read one step as a stride); per-leg values need strides two steps long
-  - Blocked: walking-speed reference (no 8 m start/end in clips), norms (no age/sex), sit-to-stand (OpenCap, Phase 8), irregular_steps + heel visibility (phone clips)
-- Phase 3.5 (frontend #12, stacked on #11): Tailwind v4 + owned shadcn/ui, tokens (light/dark, one teal accent), app shell, all screens migrated, App.jsx split
-- Phase 3.2 (2026-10-27): degradation curves on LJMU (54 participants, 896 runs): the gate's acceptance falls steeply as quality drops; some accepted degraded clips reach 9 steps/min error (published range 4.7)
-  - Learned per-clip error model (GBM + conformal, leave-participant-out): coverage OK but no discrimination (Spearman 0.11); not shipped
-- Phase 4 (backend #16, frontend #13; stacked): background analysis + polling, typed client from a drift-checked contract, router, dashboard, notes/tags, comparison vs LJMU repeatability (MDC95 4.4 steps/min), knee curves, live framing check, onboarding, demo, PWA manifest, Playwright e2e, Locust
-  - Blocked: in-browser recording (frame timing on real phones); cut: goals, visual explanations; normative knee band and ghost replay need decisions/data
-- Phase 5 (backend #17, frontend #14; stacked): consent, privacy center, password reset + verification (mailer: console/none), share links, F40 name, F10 invite expiry + join limit
-  - Audit re-run (probes out_*_phase5): API probe 15 PASS / 1 FAIL (F12 enumeration: accepted until an email provider enables verified sign-up); F13 /status max 0.03 s during an analysis
-  - F01-F44: closed except accepted F12 (enumeration), F21 (Render cold start), F40 part (clinicians can't upload for a patient), F05 part (token in localStorage, not an httpOnly cookie), F06 part (no scheduled retention purge: data kept until the user deletes it)
-- Real-world gates (backend #18, 2026-10-28): steadiness window = own step time (0.5-1.0 s); second person / no heel >= 1 step dropped, cause named in rejections
-  - Phone clips (visual, AI-annotated 85.1 / ~101 / 88.3): 84.7 / 101.9 / rejected -> 85.0 / 98.8 / 89.9; LJMU 97/109, cadence p95 4.67 -> 4.48 (app ±4.5), MDC 4.6
-  - All 210 cached side-view clips: accepted 100 -> 108. Degraded runs: accepted 473 -> 482, but > 5 steps/min off 4.0% -> 6.0% (owner to weigh before merging)
-- Phase 6 (frontend #15): code splitting, landing, phone layout (360 px checked), icons, Learn pages; axe WCAG 2.1 AA clean light/dark; Lighthouse mobile 97/100/100/100
-- Phase 7 (backend rebuild/phase-7-docs, frontend #16): READMEs, architecture + ADR as-built, model card, SECURITY.md, capture protocol, changelog, findings F01-F44, case study, reliability write-up
-  - Owner actions: email provider + key (closes F12, enables reset), merge order of stacked PRs (#15-#18, frontend #11-#16), Dependabot PRs, OpenCap (Phase 8), more phone clips (irregular_steps, heel visibility, slow walkers)
-- perf/numpy-signal (#21, draft, owner decides after production peak_rss_mb): scipy replaced by gaitcore.dsp, identical outputs (golden, make evaluate byte-identical); x86 CI peak 445 -> 377 MB. test_memory had measured pytest (ru_maxrss survives exec); now VmHWM
+**State on 2026-11-12: Phases 0–7, 9 and 10 are built and in `main` on both repositories (backend on Render `gaitscan-api`, frontend on Vercel). Phase 8 is cancelled. No item is data-blocked any more: no more video will be collected, so those items are closed (owner decisions 2026-11-12, recorded at the top of the plan).**
+
+- Backend PRs merged to main: #1, #2 (Phases 0–1), #10 (Phase 2), #11 rate limits, #12 deps, #13 CI smoke, #14 (Phase 3), #20 (Phase 3.2; #15 had merged into the stacked Phase 3 branch), #16 (Phase 4), #17 (Phase 5), #18 real-world gates, #21 scipy out (Phase 7 docs reached main with it; #19 closed, nothing to merge), #22–#23 (Phase 9: recovery codes, walking figure), #24 reminders, #33 the rest of Phases 9–10 (stack #25–#31), #34 analysis job logs
+- Frontend PRs merged to main: #1, #2, #10, #11 (Phase 3), #12 (Phase 3.5), #14 (Phase 5, carried Phase 4 after #13 closed), #15 (Phase 6), #16 (Phase 7), #19–#20 (Phase 9: recovery codes, experience), #21 settings, #32 the rest of Phases 9–10 (stack #22–#31, which remain open with no new commits), #33 sign-up autofill fix, #34 analysis survives navigation and never waits forever
+- Measurements: cadence ±4.5 steps/min, step time ±0.024 s (LJMU, Topham et al. 2023, CC BY 4.0; MDC95 4.6 steps/min). Step length and walking speed (floor calibration only) and every treadmill value stay "not yet validated" for good. Stride time and hip excursion are withheld; knee angle was removed on 2026-11-12 (migration 0013 deleted it from stored results)
+- Cadence reference (2026-11-12): optional sex and birth year (settings) and sex (profiles); the app shows Mobbs et al. 2025 (Sensors 25(2):581, CC BY 4.0) mean ± 1 SD for that sex and age group, groups with at least 10 people only, with the source
+- Google sign-in configured (GOOGLE_CLIENT_ID / VITE_GOOGLE_CLIENT_ID); 2026-11-12 review: never signs in to a password account (pre-hijacking), case-insensitive addresses, token must have exp and sub
+- Memory: CI peak 386 MB for a 1080p 60 fps 10 s clip (Render limit 512 MB); each job logs `analysis started/ended` with wait and run time (#34)
+- Findings F01–F44: all closed or accepted. Accepted: F05 part (token in localStorage), F06 part (no scheduled purge; the Privacy page says data stays until deleted), F12 (enumeration: no email channel), F21 (cold start; an external uptime check calls GET /healthz every 10 minutes, one SELECT 1), F40 part (clinicians can't upload)
+- Accepted trade-offs: #18's degraded-video share > 5 steps/min off 4.0% → 6.0%; the learned reliability model not shipped (no retry); visual explanations, step-timing breakdown and visual regression CI cut
+- Licence: MIT (both repositories, 2026-11-12)
+- Open for the owner: review the Hindi draft text; try in-browser recording on a phone; Dependabot PRs (backend #3–#9, #32; frontend #3, #4, #7–#9, #17, #18, #28); close the leftover frontend stack PRs #22–#31

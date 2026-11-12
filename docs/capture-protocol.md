@@ -6,8 +6,7 @@ catch the clearest problems and say what to change. They can't catch every probl
 
 ## Set-up
 1. **Side-on.** Point the phone at right angles to the walking line. A diagonal view makes the walk
-   look shorter and knee angles read wrong: in the audit's projection probe, a true 60° knee bend
-   read 58° at 15° of camera yaw and 53.5° at 30°.
+   look shorter and the recording checks turn it down as not side-on.
 2. **Landscape**, held still: on a tripod, a shelf or propped on something, at about **waist
    height**.
 3. **3–4 m from the walking line**, so the whole body fits with room at both sides. This distance is

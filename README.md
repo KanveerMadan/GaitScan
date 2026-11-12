@@ -4,6 +4,7 @@
 ![Python 3.11](https://img.shields.io/badge/python-3.11-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.118%2B-009688)
 ![Status: experimental](https://img.shields.io/badge/status-experimental-orange)
+![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
 Measures how you walk from a phone video: cadence and step time, with error ranges from a published
 accuracy check. FastAPI + MediaPipe Pose. The web app is in
@@ -17,9 +18,13 @@ accuracy check. FastAPI + MediaPipe Pose. The web app is in
 |---|---|---|
 | Cadence (steps/min) | Validated on LJMU | ±4.5 steps/min |
 | Step time (s) | Validated on LJMU | ±0.024 s |
-| Peak knee flexion per stride, per leg (°) | **Not yet validated** (no knee-angle reference) | — |
 | Step length (m), walking speed (m/s) | **Not yet validated**; only with a floor calibration | — |
 | Treadmill test: cadence, step time, step length from the entered belt speed | **Not yet validated** (no treadmill reference clips) | — |
+
+These labels are permanent: no more video will be collected to check them (owner decision
+2026-11-12). Knee angle was removed the same day: with OpenCap (Phase 8) cancelled, it can never be
+validated. The app can show a published cadence reference for the person's age and sex (Mobbs et al.
+2025, *Sensors* 25(2):581, CC BY 4.0) when they give both in their settings.
 
 Cadence and step time come from heel-separation peaks, which don't depend on left/right leg labels.
 Every value is from the steady part of each walk across the frame; turns, speeding up and slowing
@@ -73,7 +78,7 @@ make check                                           # all of the above in one g
 
 What the suites rely on:
 - **Synthetic ground truth.** `tests/synthetic.py` simulates a walker whose heel strikes, cadence,
-  step length and knee angles are known exactly.
+  step length and joint positions are known exactly.
 - **Golden file.** `tests/golden/v2_pipeline.json` pins the whole output. After an intended change,
   regenerate it with `ENV=dev uv run python tests/test_golden.py --regenerate` and say so in the
   commit.
@@ -141,8 +146,12 @@ it, and CI in both repos fails on drift.
 | `_audit/` | The audit, plans, ADRs and phase evidence ([what's in it](_audit/README.md)) |
 
 ## License
-No licence has been chosen yet, so the default applies: all rights reserved. The LJMU reference data
-used by `make evaluate` is Topham et al. 2023, CC BY 4.0.
+[MIT](LICENSE). The licence covers this code only. It doesn't make GaitScan a medical device or
+its measurements clinically validated: see the statement at the top.
+
+Third-party material keeps its own terms: the LJMU reference data used by `make evaluate` is Topham
+et al. 2023 (CC BY 4.0), the MediaPipe pose model is Apache 2.0, and the cadence reference shown in
+the app is Mobbs et al. 2025 (CC BY 4.0).
 
 ## More
 - [Documentation index](docs/README.md)
