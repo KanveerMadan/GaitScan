@@ -101,6 +101,10 @@ def truth_events(clip, truth):
     for side, hs, to, nxt in truth_strides(clip, truth):
         knee, hip = ang[side]["knee"][hs : nxt + 1], ang[side]["hip"][hs : nxt + 1]
         ev["knee_ic"].append(knee[0])
+        # The strike is timed to +-1 frame (33 ms at 30 fps; the stance test checks timing): the knee
+        # at contact may be anywhere in that span.
+        ev.setdefault("knee_ic_lo", []).append(ang[side]["knee"][hs - 1 : hs + 2].min())
+        ev.setdefault("knee_ic_hi", []).append(ang[side]["knee"][hs - 1 : hs + 2].max())
         ev["knee_peak_swing"].append(ang[side]["knee"][to : nxt + 1].max())
         ev["knee_rom"].append(np.ptp(knee))
         ev["hip_peak_ext"].append(ang[side]["hip"][hs : to + 1].min())
@@ -123,7 +127,7 @@ def position_labels(clip):
 
 
 def test_toe_off_stance_and_double_support_match_the_walker():
-    clip, truth = synthetic_clip(passes=3, pass_secs=6.0, width=2000)
+    clip, truth = synthetic_clip(passes=3, pass_secs=6.0, width=2000, swing_profile="brisk")
     k = kinematics(clip)
     assert len(k.strides) >= 10
     assert k.summary()["stance_pct"]["value"] == pytest.approx(100 * STANCE, abs=2.0)
@@ -134,18 +138,21 @@ def test_toe_off_stance_and_double_support_match_the_walker():
 
 
 def test_knee_and_hip_key_events_and_ranges_match_the_pixels():
-    clip, truth = synthetic_clip(passes=3, pass_secs=6.0, width=2000)
+    clip, truth = synthetic_clip(passes=3, pass_secs=6.0, width=2000, swing_profile="brisk")
     got = kinematics(clip).summary()
     want = truth_events(clip, truth)
-    for name in ("knee_ic", "knee_peak_swing", "knee_rom", "hip_peak_ext", "hip_peak_flex", "hip_rom"):
+    for name in ("knee_peak_swing", "knee_rom", "hip_peak_ext", "hip_peak_flex", "hip_rom"):
         assert got[name]["value"] == pytest.approx(want[name], abs=3.0), name
+    assert want["knee_ic_lo"] - 1.5 <= got["knee_ic"]["value"] <= want["knee_ic_hi"] + 1.5
     assert 40 <= got["knee_peak_swing"]["value"] <= 75  # the walker bends its knees like a person
 
 
 @pytest.mark.parametrize("scramble", ["brief_flips", "labels_follow_position"])
 def test_left_right_label_errors_dont_change_the_values(scramble):
-    clean = kinematics(synthetic_clip(passes=3, pass_secs=6.0, width=2000)[0]).summary()
-    clip, _ = synthetic_clip(passes=3, pass_secs=6.0, width=2000)
+    clean = kinematics(
+        synthetic_clip(passes=3, pass_secs=6.0, width=2000, swing_profile="brisk")[0]
+    ).summary()
+    clip, _ = synthetic_clip(passes=3, pass_secs=6.0, width=2000, swing_profile="brisk")
     clip = flip_legs(clip, 0.10, 3) if scramble == "brief_flips" else position_labels(clip)
     got = kinematics(clip).summary()
     for name in ("knee_peak_swing", "knee_rom", "hip_peak_ext", "hip_peak_flex", "hip_rom", "stance_pct"):
@@ -154,7 +161,7 @@ def test_left_right_label_errors_dont_change_the_values(scramble):
 
 
 def test_the_mean_curves_follow_the_true_curves():
-    clip, truth = synthetic_clip(passes=3, pass_secs=6.0, width=2000)
+    clip, truth = synthetic_clip(passes=3, pass_secs=6.0, width=2000, swing_profile="brisk")
     curves = kinematics(clip).curves()
     ang = truth_angles(clip)
     for joint in ("knee", "hip", "ankle"):
@@ -173,7 +180,7 @@ def test_the_mean_curves_follow_the_true_curves():
 
 
 def test_both_walking_directions_read_the_same():
-    clip, _ = synthetic_clip(passes=4, pass_secs=6.0, width=2000)
+    clip, _ = synthetic_clip(passes=4, pass_secs=6.0, width=2000, swing_profile="brisk")
     k = kinematics(clip)
     by_dir = {d: [s.knee_peak_swing for s in k.strides if s.direction == d] for d in (1.0, -1.0)}
     assert len(by_dir[1.0]) >= 3 and len(by_dir[-1.0]) >= 3
@@ -181,7 +188,9 @@ def test_both_walking_directions_read_the_same():
 
 
 def test_trunk_lean_pelvis_oscillation_and_arm_swing():
-    clip, truth = synthetic_clip(passes=3, pass_secs=6.0, width=2000, trunk_lean_deg=8.0, arm_swing_deg=40.0)
+    clip, truth = synthetic_clip(
+        passes=3, pass_secs=6.0, width=2000, swing_profile="brisk", trunk_lean_deg=8.0, arm_swing_deg=40.0
+    )
     s = kinematics(clip).summary()
     assert s["trunk_lean_deg"]["value"] == pytest.approx(8.0, abs=0.5)
     assert s["arm_swing_deg"]["value"] == pytest.approx(40.0, abs=3.0)
@@ -193,28 +202,39 @@ def test_trunk_lean_pelvis_oscillation_and_arm_swing():
 
 
 def test_without_wrists_there_is_no_arm_swing():
-    s = kinematics(synthetic_clip(passes=3, pass_secs=6.0, width=2000)[0]).summary()
+    s = kinematics(synthetic_clip(passes=3, pass_secs=6.0, width=2000, swing_profile="brisk")[0]).summary()
     assert s["arm_swing_deg"] is None
 
 
-def test_strides_through_missing_landmarks_are_left_out_not_guessed():
-    clip, _ = synthetic_clip(passes=3, pass_secs=6.0, width=2000)
-    full = kinematics(clip)
-    lm = clip.landmarks
-    hidden = np.arange(clip.n_frames) % 100 < 3  # both knees invisible for 3 frames in every 100
-    lm.loc[hidden, ["lm25_vis", "lm26_vis"]] = 0.1
-    gappy = kinematics(clip)
-    assert 0 < len(gappy.strides) < len(full.strides)
-    assert gappy.summary()["knee_rom"]["value"] == pytest.approx(full.summary()["knee_rom"]["value"], abs=3.0)
+def test_a_knee_hidden_too_long_leaves_its_strides_knee_values_out_not_guessed():
+    clip, _ = synthetic_clip(passes=3, pass_secs=6.0, width=2000, swing_profile="brisk")
+    full = kinematics(clip).summary()
+    hidden = np.arange(clip.n_frames) % 100 < 4  # both knees hidden 4 frames in every 100: not filled
+    clip.landmarks.loc[hidden, ["lm25_vis", "lm26_vis"]] = 0.1
+    gappy = kinematics(clip).summary()
+    assert 0 < gappy["knee_rom"]["n"] < full["knee_rom"]["n"]
+    assert gappy["knee_rom"]["value"] == pytest.approx(full["knee_rom"]["value"], abs=3.0)
+    assert gappy["stance_pct"]["n"] == full["stance_pct"]["n"]  # the feet were seen: timing is kept
+
+
+def test_a_knee_hidden_for_a_frame_or_two_is_bridged():
+    clip, _ = synthetic_clip(passes=3, pass_secs=6.0, width=2000, swing_profile="brisk")
+    full = kinematics(clip).summary()
+    hidden = np.arange(clip.n_frames) % 20 < 2  # 2 frames in every 20: short enough to interpolate
+    clip.landmarks.loc[hidden, ["lm25_vis", "lm26_vis"]] = 0.1
+    bridged = kinematics(clip).summary()
+    # Bridged everywhere but at a run's first or last frame, which has nothing on one side to bridge from.
+    assert bridged["knee_rom"]["n"] >= full["knee_rom"]["n"] - 1
+    assert bridged["knee_peak_swing"]["value"] == pytest.approx(full["knee_peak_swing"]["value"], abs=3.0)
 
 
 def test_fewer_than_three_strides_give_no_values():
-    clip, _ = synthetic_clip(passes=1, pass_secs=2.6, ramp_secs=0.3)
+    clip, _ = synthetic_clip(passes=1, pass_secs=2.6, ramp_secs=0.3, swing_profile="brisk")
     s = kinematics(clip).summary()
     assert s["knee_rom"] is None and s["hip_rom"] is None and s["stance_pct"] is None
 
 
 def test_the_analysis_carries_the_kinematics_but_its_result_dict_is_unchanged():
-    r = analyse(synthetic_clip(passes=3, pass_secs=6.0, width=2000)[0])
+    r = analyse(synthetic_clip(passes=3, pass_secs=6.0, width=2000, swing_profile="brisk")[0])
     assert r.accepted and r.kinematics is not None and r.kinematics.summary()["knee_rom"] is not None
     assert "kinematics" not in r.to_dict()  # the result schema changes in BE-B, not here

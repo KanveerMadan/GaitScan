@@ -49,6 +49,24 @@ def _profile(t, pass_secs, ramp, turn):
     return np.where(k % 2 == 0, 1.0, -1.0) * mag, k, u
 
 
+def _swing_shape(u, profile):
+    """Fraction of the way from one footprint to the next at swing fraction u (0 at toe-off, 1 at heel
+    strike). "brisk": speed rising linearly over the first RAMP of the swing, constant, then falling to
+    zero over the last RAMP (a trapezoid); the distance is its integral."""
+    if profile == "cosine":
+        return (1 - np.cos(np.pi * u)) / 2
+    ramp = 0.1
+    total = 1 - ramp  # area under the trapezoid with peak speed 1
+    if u < ramp:
+        d = u * u / (2 * ramp)
+    elif u <= 1 - ramp:
+        d = ramp / 2 + (u - ramp)
+    else:
+        r = 1 - u
+        d = total - r * r / (2 * ramp)
+    return d / total
+
+
 def synthetic_clip(
     steps_per_min=110.0,
     passes=3,
@@ -72,6 +90,8 @@ def synthetic_clip(
     treadmill=False,  # walk on a belt: the same body motion seen from a frame that moves with the pelvis
     trunk_lean_deg=0.0,  # shoulders ahead of the hips in the walking direction (Phase 11)
     arm_swing_deg=0.0,  # each arm swings this far (peak to peak) about the shoulder, against its leg
+    swing_profile="cosine",  # "cosine": smooth over the whole swing; "brisk": as real feet, the foot
+    # speeds up in the first 10% of the swing and brakes in the last 10% (Phase 11 event timing)
 ) -> tuple[Clip, Truth]:
     rng = np.random.default_rng(seed)
     step_t = 60.0 / steps_per_min
@@ -132,7 +152,7 @@ def synthetic_clip(
                 hx[i] = land[j]
                 continue
             u = (ti - off) / (hs[j + 1] - off)
-            hx[i] = land[j] + (land[j + 1] - land[j]) * (1 - np.cos(np.pi * u)) / 2
+            hx[i] = land[j] + (land[j + 1] - land[j]) * _swing_shape(u, swing_profile)
             if hs[j + 1] - off <= T:
                 lift[i] = LIFT * np.sin(np.pi * u)
         feet[side] = (hx, lift)
