@@ -163,3 +163,26 @@ looked at first; local data (`_audit/sandbox/`, `data/`, `probe.db`, `outputs/`)
 - [x] SECURITY.md: comments, profiles and Google sign-in in the asset table
 - [x] Frontend: the same files, README badges and layout
 - [x] LICENSE: the owner's decision (until then: all rights reserved) **Done 2026-11-12: MIT, both repositories; README licence sections updated, not-a-medical-device statement kept.**
+
+## Phase 11 — Gait profile and report (2026-11-13)
+Decisions (owner, 2026-11-13):
+- **Reverses part of 2026-11-12 decision 4:** knee, hip and ankle angles come back, labelled
+  **experimental estimates**. Phase 8's sit-to-stand and chair stand stay cancelled. Stored results
+  keep what they have (0013 deleted knee values; they aren't restorable, and old videos were never kept).
+- **Verdict policy:** per-metric 🟢 typical / 🟡 slightly outside / 🔴 clearly outside against cited
+  ranges, and an overall summary ("Looks typical" / "Worth keeping an eye on" / "Consider getting this
+  checked") that says what to do next, never what is wrong. It names no conditions, uses no banned
+  words, gives no verdict when quality is too low, and always carries "Experimental estimate from a
+  phone video, not a medical assessment".
+- Unchanged: no new video data; sagittal plane only; 512 MB on Render (peak < 450 MB); additive
+  migrations only.
+
+Design note: [docs/design/gait-profile.md](../docs/design/gait-profile.md) (draft PR). Waiting on the
+owner's decisions D1–D8 there before any implementation.
+- [ ] Design note approved (D1–D8 decided)
+- [ ] BE-A1: LJMU thigh-sensor and anthropometry validation (label correctness, right stride time, thigh range); per-side gate
+- [ ] BE-A2: toe-off, timing, kinematics, symmetry, GPS (gaitcore)
+- [ ] BE-B: norms and same-method references, verdict engine, quality gate, schema v3, snapshots (consent v3), trends, contract
+- [ ] BE-C: multi-page PDF (English, Hindi)
+- [ ] FE-A: result page
+- [ ] FE-B: history, progress, settings prompt, clinician view, Hindi strings
