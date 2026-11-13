@@ -27,6 +27,7 @@ ANKLE_UP, ANKLE_FWD, TOE_FWD = 0.04 * LEG, 0.05 * LEG, 0.25 * LEG
 STANCE = 0.6
 LIFT = 0.10 * LEG
 M_PER_PX = 0.9 / LEG  # a 0.9 m leg
+ARM = 0.35 * LEG  # shoulder to wrist
 
 
 @dataclass
@@ -69,6 +70,8 @@ def synthetic_clip(
     camera_height=None,  # px above the floor; default: hip height
     pelvis_surge=(0.0, 0.0),  # pelvis speed ripple: amplitude (fraction of the speed) per step, per stride
     treadmill=False,  # walk on a belt: the same body motion seen from a frame that moves with the pelvis
+    trunk_lean_deg=0.0,  # shoulders ahead of the hips in the walking direction (Phase 11)
+    arm_swing_deg=0.0,  # each arm swings this far (peak to peak) about the shoulder, against its leg
 ) -> tuple[Clip, Truth]:
     rng = np.random.default_rng(seed)
     step_t = 60.0 / steps_per_min
@@ -192,7 +195,15 @@ def synthetic_clip(
         for name, (x, y) in (("hip", hip), ("knee", knee), ("ankle", ankle), ("heel", heel), ("toe", toe)):
             pts[(side, name)] = proj(x, z, y)
         sh_z = zs * SHOULDER_HALF * lateral
-        pts[(side, "shoulder")] = proj(px, sh_z, pelvis_y - TORSO)
+        lean = np.radians(trunk_lean_deg)
+        sh = (px + face_x * TORSO * np.sin(lean), pelvis_y - TORSO * np.cos(lean))
+        pts[(side, "shoulder")] = proj(sh[0], sh_z, sh[1])
+        if arm_swing_deg:
+            # The arm swings opposite its leg: forward when the same-side heel is behind the pelvis.
+            hx, _ = feet[side]
+            rel = np.clip((hx - px) * direction / (0.5 * s), -1, 1)
+            arm = -np.radians(arm_swing_deg) / 2 * rel  # + = wrist ahead of the shoulder
+            pts[(side, "wrist")] = proj(sh[0] + face_x * ARM * np.sin(arm), sh_z, sh[1] + ARM * np.cos(arm))
 
     idx = {
         ("L", "shoulder"): 11,
@@ -208,6 +219,8 @@ def synthetic_clip(
         ("L", "toe"): 31,
         ("R", "toe"): 32,
     }
+    if arm_swing_deg:
+        idx.update({("L", "wrist"): 15, ("R", "wrist"): 16})
     cols = {}
     for i in range(33):  # head/arms: a point above the shoulders (unused by the pipeline)
         cols[f"lm{i}_x"], cols[f"lm{i}_y"] = proj(px, 0.0, pelvis_y - TORSO - 0.2 * LEG)
