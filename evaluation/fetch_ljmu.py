@@ -1,4 +1,5 @@
-"""Download the LJMU side-view clips that ljmu_reference.csv lists (Topham et al. 2023, CC BY 4.0).
+"""Download the LJMU side-view clips that ljmu_reference.csv lists (Topham et al. 2023, CC BY 4.0), or with
+--imu the right-thigh goniometer files of tasks 1-2.
 
 Reads only those members of the 19 GB dataset zip, with HTTP range requests, and saves them as
 <out>/<clip>.mp4. Needs remotezip and zipfile-deflate64 (`make fetch-ljmu` adds them for the run).
@@ -25,6 +26,22 @@ def member(clip: str) -> str:
     return f"Participant_{p}/Experiment_{e}/E{e}T{t}/{clip}.mp4"
 
 
+SENSOR = re.compile(r"Participant_\d+/Experiment_[12]/E[12]T[12]/P\d+_E[12]T[12]\.csv")
+
+
+def fetch_sensor(out: str) -> None:
+    """The right-thigh goniometer files of tasks 1 and 2 (experiments 1 and 2) for every participant
+    who wore it, saved as <out>/P<p>_E<e>T<t>.csv (about 100 KB each; evaluation/leg_labels.py)."""
+    os.makedirs(out, exist_ok=True)
+    with RemoteZip(URL) as z:
+        for m in sorted(n for n in z.namelist() if SENSOR.fullmatch(n)):
+            dest = os.path.join(out, m.rsplit("/", 1)[1])
+            if not os.path.exists(dest):
+                with z.open(m) as src, open(dest, "wb") as dst:
+                    shutil.copyfileobj(src, dst)
+                print("ok", m, flush=True)
+
+
 def main(out: str) -> None:
     os.makedirs(out, exist_ok=True)
     todo = [r.clip for r in load_reference() if not os.path.exists(os.path.join(out, f"{r.clip}.mp4"))]
@@ -36,4 +53,7 @@ def main(out: str) -> None:
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    if sys.argv[1] == "--imu":
+        fetch_sensor(sys.argv[2])
+    else:
+        main(sys.argv[1])

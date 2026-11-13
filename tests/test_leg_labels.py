@@ -4,15 +4,18 @@ from its quaternions, and its strides, on synthetic recordings with known answer
 import numpy as np
 import pandas as pd
 import pytest
+
 from evaluation.leg_labels import sagittal_angle, sensor_strides
 
 
 def recording(stride_s=1.1, secs=8.0, fs=84.0, flex=28.0, ext=-14.0, tilt_deg=20.0):
     """A thigh swinging about one axis (flexion +28 deg, extension -14 deg per stride), mounted with a
-    fixed tilt, as unit quaternions q0..q3 like the MOTI files."""
+    fixed tilt, as unit quaternions q0..q3 like the MOTI files. As in walking, the thigh flexes during
+    swing (40% of the stride, fast) and extends during stance (60%, slow)."""
     t = np.arange(0, secs, 1 / fs)
-    phase = 2 * np.pi * t / stride_s
-    angle = (flex + ext) / 2 + (flex - ext) / 2 * np.sin(phase)  # deg about the swing axis
+    u = (t / stride_s) % 1.0
+    warped = np.where(u < 0.4, -np.pi / 2 + np.pi * u / 0.4, np.pi / 2 + np.pi * (u - 0.4) / 0.6)
+    angle = (flex + ext) / 2 + (flex - ext) / 2 * np.sin(warped)  # deg about the swing axis
     axis = np.array([0.2, 0.9, 0.39])
     axis /= np.linalg.norm(axis)
     half = np.radians(angle) / 2

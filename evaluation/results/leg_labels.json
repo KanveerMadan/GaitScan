@@ -1,0 +1,83 @@
+{
+ "generated": "2026-11-13T16:01:57+00:00",
+ "recordings": 102,
+ "with_three_sensor_strides": 102,
+ "legs_told_apart": 45,
+ "video_vs_sensor_length_s": {
+  "median_abs_diff": 1.38,
+  "max_abs_diff": 9.0
+ },
+ "sync": {
+  "lag0": {
+   "clips": 101,
+   "labelled_right_matches_better": 0.535,
+   "median_r_R": -0.0,
+   "median_r_L": -0.01
+  },
+  "onset": {
+   "clips": 101,
+   "labelled_right_matches_better": 0.545,
+   "median_r_R": -0.02,
+   "median_r_L": -0.08
+  },
+  "best_within_2s": {
+   "clips": 101,
+   "median_r": 0.65,
+   "iqr_r": [
+    0.53,
+    0.78
+   ],
+   "iqr_lag_s": [
+    -0.6,
+    1.47
+   ],
+   "best_is_labelled_right": 0.356
+  }
+ },
+ "stride_ms_vs_sensor": {
+  "pooled_all": {
+   "n": 102,
+   "bias": -39.2,
+   "mae": 112.8,
+   "p95_abs": 241.3
+  },
+  "labelled_right_all": {
+   "n": 101,
+   "bias": -266.8,
+   "mae": 299.5,
+   "p95_abs": 738.7
+  },
+  "pooled_told_apart": {
+   "n": 45,
+   "bias": -35.1,
+   "mae": 114.1,
+   "p95_abs": 245.2
+  },
+  "labelled_right_told_apart": {
+   "n": 44,
+   "bias": -78.9,
+   "mae": 152.5,
+   "p95_abs": 389.0
+  }
+ },
+ "thigh_rom_deg_vs_sensor": {
+  "R_rom_deg": {
+   "n": 75,
+   "bias": -2.5,
+   "mae": 7.8,
+   "p95_abs": 21.4,
+   "r": 0.16,
+   "median_ours": 43.4,
+   "median_sensor": 44.6
+  },
+  "L_rom_deg": {
+   "n": 39,
+   "bias": 1.1,
+   "mae": 7.3,
+   "p95_abs": 15.2,
+   "r": 0.4,
+   "median_ours": 44.8,
+   "median_sensor": 42.4
+  }
+ }
+}
