@@ -194,8 +194,14 @@ Owner decisions (2026-11-13), in full in the note's §14:
   measured by this app". D8 "No age-specific reference for your age; compared with all adults."
 - Memory limit stays 420 MB in CI. #36 and #37 merge before this phase's backend PRs.
 - [x] Design note approved (D1–D8 decided) **Done 2026-11-13.**
-- [ ] BE-A1: LJMU thigh-sensor and anthropometry validation (label correctness, right stride time, thigh range); per-side gate
-- [ ] BE-A2: toe-off, timing, kinematics, symmetry, GPS (gaitcore)
+- [x] BE-A1: LJMU thigh-sensor and anthropometry validation (label correctness, right stride time, thigh range); per-side gate **Done 2026-11-13 (PR #43): the sensor isn't time-aligned with the side-view clips (lengths differ by 1.4 s median), so it can't tell the legs apart and the >= 95% label gate can't be measured; per-side timing is worse than pooled (labelled right strides MAE 300 ms vs pooled 113 ms against the sensor), so timing stays pooled; thigh range agrees on average only (docs/validation/leg-labels.md).**
+- Owner decisions (2026-11-14) after BE-A1:
+  - **B now:** v1 knee and hip measures are label-free. Each leg's stance/swing role comes from foot motion and footprints, not MediaPipe's left/right labels, reported for both legs pooled, with D3's knee/hip verdicts.
+  - **A next:** after B's PR, annotate leg identity on ~40 LJMU clips x 8 frames (AI-annotated and cross-checked, as with heel strikes). If label accuracy and the per-clip confidence test pass the D2 gate, per-side values and symmetry verdicts are unlocked in a follow-up PR; if not, per-side stays hidden and the owner is told.
+  - **C (per-side as unvalidated information): no.**
+  - **Docker Desktop** is used for MediaPipe on Linux (D6 arm-swing averages and any landmark extraction).
+- [ ] BE-A2: label-free toe-off, stance/swing/double support, knee and hip key events, ROM and both-legs curves; trunk lean, pelvis oscillation, arm swing (information) (gaitcore). Symmetry waits for A; GPS needs BE-B's references
+- [ ] A: leg-identity annotation (~40 LJMU clips x 8 frames) and the D2 gate; per-side values and symmetry verdicts only if it passes
 - [ ] BE-B: norms and same-method references, verdict engine, quality gate, schema v3, snapshots (consent v3), trends, contract
 - [ ] BE-C: multi-page PDF (English, Hindi)
 - [ ] FE-A: result page
