@@ -1,6 +1,7 @@
 # Design note: gait profile, verdicts and the full report
 
-Status: **draft for the owner's review (2026-11-13). No implementation until it is approved.**
+Status: **approved by the owner on 2026-11-13 with the decisions in §14**, which override anything
+above that differs. Building in the PR order of §12, starting with the per-side measurement (BE-A1).
 Scope: both repositories. The request is the owner's brief of 2026-11-13; this note says how each part
 can be built honestly, what can't, and what the owner must decide first.
 
@@ -293,3 +294,36 @@ Each backend PR reports tests, CI peak memory and anything the owner must decide
 - **D7 GPS reference:** same-method LJMU, as proposed, rather than literature controls.
 - **D8 Ages without a reference:** over 65 (and 41–65 by sex) fall back to the all-adult band, said
   plainly.
+
+## 14. Owner decisions (2026-11-13)
+
+These override the proposals above where they differ.
+
+- **D1 Approved.** Bands as in §2. Release gate: on healthy LJMU walkers, ≤ 5% 🔴 and ≤ 25% 🟡.
+- **D2 Approved.** Gate: ≥ 95% of strides with correct leg labels, and per-side timing no worse than
+  pooled. If it fails globally, per-side metrics are shown **per clip** only when that clip's left/right
+  labelling passes a documented confidence test (defined and validated in BE-A1, in
+  `docs/validation/leg-labels.md`); otherwise pooled values are shown with a note. Symmetry verdicts
+  only on trusted clips.
+- **D3 Approved.** The v1 overall verdict uses cadence, step-time CV, knee and hip kinematics, and
+  symmetry (trusted clips only). Ankle, trunk lean, arm swing and pelvis oscillation are shown as
+  information, without a level.
+- **D4 General-wellness positioning.** Keep 🟢/🟡/🔴 and the overall summary, with this wording:
+  - 🔴 "Outside the typical range. If you have concerns about your walking, a physiotherapist can assess
+    it properly."
+  - 🟡 "Slightly outside the typical range — worth re-testing in 2–4 weeks."
+  - Keep "not a medical device" and add "for general wellness and information".
+  - No screening, detection or referral language anywhere. The overall labels therefore don't use
+    "Consider getting this checked", and the brief's 🔴 summary is replaced by the 🔴 wording above.
+  - All disclaimers (app, PDF, README) are updated consistently.
+- **D5 No real video frames.** "Snapshots" are the pose skeleton drawn on a plain background at heel
+  strike and toe-off, rendered from landmarks. No consent change; the current privacy text stays true.
+  §7's blurred frames and consent v3 are dropped.
+- **D6 Yes.** Download LJMU tasks 3–4 (right upper-arm sensor) of the existing public dataset to check
+  arm swing.
+- **D7 Yes.** GPS against the same-method LJMU reference, labelled "compared with healthy adults
+  measured by this app".
+- **D8 Yes.** When there is no age-specific reference: "No age-specific reference for your age;
+  compared with all adults."
+- **Memory:** keep the 420 MB CI limit.
+- **Migrations:** #36 (email case, 0014) and #37 merge before the backend PRs of this phase.

@@ -177,9 +177,23 @@ Decisions (owner, 2026-11-13):
 - Unchanged: no new video data; sagittal plane only; 512 MB on Render (peak < 450 MB); additive
   migrations only.
 
-Design note: [docs/design/gait-profile.md](../docs/design/gait-profile.md) (draft PR). Waiting on the
-owner's decisions D1–D8 there before any implementation.
-- [ ] Design note approved (D1–D8 decided)
+Design note: [docs/design/gait-profile.md](../docs/design/gait-profile.md) (PR #38), approved 2026-11-13.
+Owner decisions (2026-11-13), in full in the note's §14:
+- D1 thresholds as proposed; release gate ≤ 5% 🔴 and ≤ 25% 🟡 among healthy LJMU walkers.
+- D2 per-side gate ≥ 95% correct leg labels and timing no worse than pooled; if it fails, per-side only
+  per trusted clip (documented confidence test), pooled with a note otherwise; symmetry verdicts only on
+  trusted clips.
+- D3 verdict from cadence, step-time CV, knee and hip kinematics and symmetry; ankle, trunk, arms and
+  pelvis are information only.
+- D4 general wellness: 🔴 "Outside the typical range. If you have concerns about your walking, a
+  physiotherapist can assess it properly."; 🟡 "Slightly outside the typical range — worth re-testing in
+  2–4 weeks."; "not a medical device" stays, "for general wellness and information" added; no
+  screening, detection or referral language.
+- D5 snapshots are the pose skeleton on a plain background (no video frames, no consent change).
+- D6 download LJMU tasks 3–4 (arm sensor) to check arm swing. D7 GPS "compared with healthy adults
+  measured by this app". D8 "No age-specific reference for your age; compared with all adults."
+- Memory limit stays 420 MB in CI. #36 and #37 merge before this phase's backend PRs.
+- [x] Design note approved (D1–D8 decided) **Done 2026-11-13.**
 - [ ] BE-A1: LJMU thigh-sensor and anthropometry validation (label correctness, right stride time, thigh range); per-side gate
 - [ ] BE-A2: toe-off, timing, kinematics, symmetry, GPS (gaitcore)
 - [ ] BE-B: norms and same-method references, verdict engine, quality gate, schema v3, snapshots (consent v3), trends, contract
