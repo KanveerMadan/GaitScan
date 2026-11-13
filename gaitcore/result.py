@@ -7,7 +7,7 @@ that can't be measured is absent (null), never estimated. No error ranges yet (P
 import math
 from dataclasses import dataclass, field
 from importlib.metadata import version
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -15,6 +15,9 @@ from gaitcore import __version__, model
 from gaitcore.accuracy import accuracy_for
 from gaitcore.gait import Walk
 from gaitcore.quality import Rejection
+
+if TYPE_CHECKING:
+    from gaitcore.kinematics import Kinematics
 
 WALK = "walk"  # the test types (pipeline.TESTS): overground walking, validated on LJMU
 TREADMILL = "treadmill"  # walking on a treadmill at an entered belt speed: not yet validated
@@ -190,6 +193,9 @@ class AnalysisResult:
     passes: list[dict[str, Any]] = field(default_factory=list)  # per walk across the frame
     pass_variability: dict[str, Any] | None = None
     curves: dict[str, Any] = field(default_factory=dict)  # gait-cycle curves (not yet validated)
+    # Label-free joint movement and gait phases (gaitcore.kinematics, Phase 11). Not in to_dict() yet:
+    # the result schema (v3) adds it with the references and verdicts (BE-B).
+    kinematics: "Kinematics | None" = field(default=None, repr=False)
     pipeline_version: str = __version__
 
     @property
