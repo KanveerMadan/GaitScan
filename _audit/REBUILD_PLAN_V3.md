@@ -163,3 +163,46 @@ looked at first; local data (`_audit/sandbox/`, `data/`, `probe.db`, `outputs/`)
 - [x] SECURITY.md: comments, profiles and Google sign-in in the asset table
 - [x] Frontend: the same files, README badges and layout
 - [x] LICENSE: the owner's decision (until then: all rights reserved) **Done 2026-11-12: MIT, both repositories; README licence sections updated, not-a-medical-device statement kept.**
+
+## Phase 11 — Gait profile and report (2026-11-13)
+Decisions (owner, 2026-11-13):
+- **Reverses part of 2026-11-12 decision 4:** knee, hip and ankle angles come back, labelled
+  **experimental estimates**. Phase 8's sit-to-stand and chair stand stay cancelled. Stored results
+  keep what they have (0013 deleted knee values; they aren't restorable, and old videos were never kept).
+- **Verdict policy:** per-metric 🟢 typical / 🟡 slightly outside / 🔴 clearly outside against cited
+  ranges, and an overall summary ("Looks typical" / "Worth keeping an eye on" / "Consider getting this
+  checked") that says what to do next, never what is wrong. It names no conditions, uses no banned
+  words, gives no verdict when quality is too low, and always carries "Experimental estimate from a
+  phone video, not a medical assessment".
+- Unchanged: no new video data; sagittal plane only; 512 MB on Render (peak < 450 MB); additive
+  migrations only.
+
+Design note: [docs/design/gait-profile.md](../docs/design/gait-profile.md) (PR #38), approved 2026-11-13.
+Owner decisions (2026-11-13), in full in the note's §14:
+- D1 thresholds as proposed; release gate ≤ 5% 🔴 and ≤ 25% 🟡 among healthy LJMU walkers.
+- D2 per-side gate ≥ 95% correct leg labels and timing no worse than pooled; if it fails, per-side only
+  per trusted clip (documented confidence test), pooled with a note otherwise; symmetry verdicts only on
+  trusted clips.
+- D3 verdict from cadence, step-time CV, knee and hip kinematics and symmetry; ankle, trunk, arms and
+  pelvis are information only.
+- D4 general wellness: 🔴 "Outside the typical range. If you have concerns about your walking, a
+  physiotherapist can assess it properly."; 🟡 "Slightly outside the typical range — worth re-testing in
+  2–4 weeks."; "not a medical device" stays, "for general wellness and information" added; no
+  screening, detection or referral language.
+- D5 snapshots are the pose skeleton on a plain background (no video frames, no consent change).
+- D6 download LJMU tasks 3–4 (arm sensor) to check arm swing. D7 GPS "compared with healthy adults
+  measured by this app". D8 "No age-specific reference for your age; compared with all adults."
+- Memory limit stays 420 MB in CI. #36 and #37 merge before this phase's backend PRs.
+- [x] Design note approved (D1–D8 decided) **Done 2026-11-13.**
+- [x] BE-A1: LJMU thigh-sensor and anthropometry validation (label correctness, right stride time, thigh range); per-side gate **Done 2026-11-13 (PR #43): the sensor isn't time-aligned with the side-view clips (lengths differ by 1.4 s median), so it can't tell the legs apart and the >= 95% label gate can't be measured; per-side timing is worse than pooled (labelled right strides MAE 300 ms vs pooled 113 ms against the sensor), so timing stays pooled; thigh range agrees on average only (docs/validation/leg-labels.md).**
+- Owner decisions (2026-11-14) after BE-A1:
+  - **B now:** v1 knee and hip measures are label-free. Each leg's stance/swing role comes from foot motion and footprints, not MediaPipe's left/right labels, reported for both legs pooled, with D3's knee/hip verdicts.
+  - **A next:** after B's PR, annotate leg identity on ~40 LJMU clips x 8 frames (AI-annotated and cross-checked, as with heel strikes). If label accuracy and the per-clip confidence test pass the D2 gate, per-side values and symmetry verdicts are unlocked in a follow-up PR; if not, per-side stays hidden and the owner is told.
+  - **C (per-side as unvalidated information): no.**
+  - **Docker Desktop** is used for MediaPipe on Linux (D6 arm-swing averages and any landmark extraction).
+- [ ] BE-A2: label-free toe-off, stance/swing/double support, knee and hip key events, ROM and both-legs curves; trunk lean, pelvis oscillation, arm swing (information) (gaitcore). Symmetry waits for A; GPS needs BE-B's references
+- [ ] A: leg-identity annotation (~40 LJMU clips x 8 frames) and the D2 gate; per-side values and symmetry verdicts only if it passes
+- [ ] BE-B: norms and same-method references, verdict engine, quality gate, schema v3, snapshots (consent v3), trends, contract
+- [ ] BE-C: multi-page PDF (English, Hindi)
+- [ ] FE-A: result page
+- [ ] FE-B: history, progress, settings prompt, clinician view, Hindi strings
