@@ -2,7 +2,7 @@
 LJMU_DIR ?= data/ljmu
 LANDMARKS ?= $(LJMU_DIR)/landmarks
 
-.PHONY: help test lint format typecheck check contract evaluate fetch-ljmu fetch-ljmu-imu leg-labels
+.PHONY: help test lint format typecheck check contract evaluate fetch-ljmu fetch-ljmu-imu leg-labels kinematics
 
 help:
 	@echo "make test       run the test suite (SQLite)"
@@ -14,6 +14,7 @@ help:
 	@echo "make fetch-ljmu download the LJMU side-view videos to \$$LJMU_DIR/videos"
 	@echo "make evaluate   accuracy check on LJMU -> evaluation/results/"
 	@echo "make leg-labels left/right check against the LJMU thigh sensor (make fetch-ljmu-imu first)"
+	@echo "make kinematics label-free knee/hip measures on LJMU -> evaluation/results/kinematics.json"
 
 test:
 	ENV=dev uv run pytest -q
@@ -44,3 +45,6 @@ fetch-ljmu-imu:
 
 leg-labels:
 	ENV=dev uv run python -m evaluation.leg_labels --landmarks $(LANDMARKS) --sensor $(LJMU_DIR)/imu
+
+kinematics:
+	ENV=dev uv run python -m evaluation.kinematics --landmarks $(LANDMARKS) --sensor $(LJMU_DIR)/imu

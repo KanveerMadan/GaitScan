@@ -34,7 +34,7 @@ Fukuchi et al. 2018, PeerJ 6:e4640):
 - ankle: the shank (knee -> ankle) against the foot (heel -> toe), - 90, + = dorsiflexion;
 - trunk lean: shoulders -> pelvis line against vertical, + = shoulders ahead;
 - arm swing: shoulder -> wrist against vertical; per stride, the furthest forward minus the furthest back
-  over both arms;
+  of each arm seen through the stride (usually the near arm), the larger if both are;
 - thigh angle: the thigh against vertical, + = knee ahead (what a thigh-worn sensor measures);
 - pelvis oscillation: vertical range of the pelvis per stride after a straight-line detrend, in leg
   lengths.
@@ -395,10 +395,12 @@ def _stride(
     # Toe-off (Zeni et al. 2008): after the other foot lands, this leg's toe furthest behind the pelvis.
     behind = (leg["toe_x"][c1:c2] - pelvis[c1:c2, 0]) * d
     toe_off = int(c1 + int(np.nanargmin(behind))) if np.isfinite(behind).any() else None
-    swing = None
-    both = np.concatenate([arms[0][rows], arms[1][rows]])
-    if np.isfinite(both).mean() >= 0.8:
-        swing = float(np.nanmax(both) - np.nanmin(both))
+    # Arm swing: the range of each arm seen through >= 80% of the stride (in a side view the far arm is
+    # usually hidden behind the body), the larger if both are.
+    ranges = [
+        float(np.nanmax(a[rows]) - np.nanmin(a[rows])) for a in arms if np.isfinite(a[rows]).mean() >= 0.8
+    ]
+    swing = max(ranges) if ranges else None
     return Stride(
         start=c0,
         end=c2,
