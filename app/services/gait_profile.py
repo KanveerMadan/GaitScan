@@ -46,7 +46,15 @@ def _both(pick: Any) -> dict[str, Any]:
 
 
 def _fmt(v: float | None) -> str:
-    return "–" if v is None else (f"{v:.0f}" if abs(v) >= 10 else f"{v:.1f}")
+    """As the app and the PDF write numbers: whole numbers from 100 up, else one decimal. Fewer digits
+    hid differences: 44.8 below a range from 45.3 read "45 (typical 45–71)"."""
+    if v is None:
+        return "–"
+    return f"{v:.0f}" if abs(v) >= 100 else f"{v:.1f}"
+
+
+def _with_unit(text: str, unit: str) -> str:
+    return f"{text}{unit}" if unit in ("°", "%") else f"{text} {unit}"
 
 
 def present(result: dict[str, Any] | None, person: Person) -> dict[str, Any] | None:
@@ -81,10 +89,9 @@ def present(result: dict[str, Any] | None, person: Person) -> dict[str, Any] | N
                     lambda c, m=m, row=row, unit=unit, lo=lo, hi=hi: c["finding"].format(
                         metric=c["metric"][m],
                         direction=c["direction"][row["direction"] or "above"],
-                        value=_fmt(row["value"]),
-                        unit=c["unit"].get(unit, unit),
+                        value=_with_unit(_fmt(row["value"]), c["unit"].get(unit, unit)),
                         lo=_fmt(lo),
-                        hi=_fmt(hi),
+                        hi=_with_unit(_fmt(hi), c["unit"].get(unit, unit)),
                     )
                 ),
             }
