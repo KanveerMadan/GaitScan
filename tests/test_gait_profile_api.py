@@ -129,3 +129,22 @@ def test_trends_list_each_sessions_key_numbers_and_verdict(client, walk):
         } <= set(s)
         assert s["overall"] in ("typical", "keep_an_eye", "outside", None)
     assert client.get("/me/trends").status_code == 401
+
+
+def test_trends_leave_out_treadmill_tests(client, monkeypatch):
+    """Trends are walks over the ground only, as in the app (a treadmill is other conditions)."""
+    _, t = register(client)
+    fake_video(monkeypatch, passes=3, pass_secs=6.0, width=2000, swing_profile="brisk")
+    analyse(client, t)
+    fake_video(monkeypatch, treadmill=True, passes=1, pass_secs=12.0)
+    r = client.post(
+        "/analyses",
+        headers=auth(t),
+        files={"video": ("tm.mp4", b"x" * 64, "video/mp4")},
+        data={"test": "treadmill", "belt_speed_kmh": "4.3"},
+    )
+    assert r.status_code == 202, r.text
+    status = client.get(r.json()["status_url"], headers=auth(t)).json()
+    assert status["analysis"]["result"]["test"] == "treadmill", status
+    series = client.get("/me/trends", headers=auth(t)).json()["sessions"]
+    assert len(series) == 1 and series[0]["overall"] is not None
