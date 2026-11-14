@@ -216,6 +216,21 @@ Owner decisions (2026-11-13), in full in the note's §14:
   - API keys `observations` and `data_confidence` (the audit's removed-output check bans `findings` and `confidence`).
   - Copy lives in the backend (English, draft Hindi), so the app and the PDF say the same thing.
 - [x] BE-B: norms and same-method references, verdict engine, quality gate, schema v3, snapshots (skeleton poses), trends, contract **Built 2026-11-14 (PR stacked on #45).**
-- [ ] BE-C: multi-page PDF (English, Hindi)
-- [ ] FE-A: result page
-- [ ] FE-B: history, progress, settings prompt, clinician view, Hindi strings
+- [x] BE-C: multi-page PDF (English, Hindi) **Built 2026-11-14 (PR stacked on BE-B).**
+- Decisions made while building BE-C (2026-11-14):
+  - Pages: summary; timing and rhythm; joint movement (curves over the typical band, key events, ranges, trunk and arms); progress (only with earlier sessions); recording quality and method (skeleton snapshots, quality, method, error ranges, references, disclaimer). No symmetry page: per-side values are hidden (decision A), and the joint page says why. Pelvis oscillation never appears.
+  - `GET /report/{id}?lang=en|hi`; without `lang`, the reader's language setting. Results stored before schema 3, and treadmill tests, keep the v2 report (English).
+  - Age, sex, session number, progress and the cadence goal are the measured person's, so a linked clinician's report matches the patient's. FE-B must change the Settings line that says age and sex "aren't in shared links or reports" (shared links still compare with all adults).
+  - In the progress table a change smaller than the error range (cadence 4.5, knee 5.6°, hip 4.0°; step-time CV 1 point, GPS 1°) shows as "no change".
+  - Levels use a shape as well as a colour, and the verdict box a border style, so the report reads in black and white.
+  - Hindi: ReportLab shapes a word with one font, so each word is set in Noto Sans Devanagari or Noto Sans (tested for every Hindi string).
+  - The shared disclaimer (API, both PDFs, README) now uses D4's wording and drops "A qualified clinician should interpret them" (referral language).
+- [x] FE-A: result page **Built 2026-11-14 (frontend #37).**
+- [x] FE-B: history, progress, settings prompt, clinician view, Hindi strings **Built 2026-11-14 (frontend #38, stacked on #37).**
+- Decisions made while building FE-A and FE-B (2026-11-14):
+  - No left/right toggle, overlay or symmetry section (decision A); the page says why. Pelvis oscillation never shown.
+  - The typical bands for the joint charts come from a public, cacheable `GET /references` (backend #47) instead of being in every result.
+  - Skeleton snapshots are drawn from the stored pose points (D5).
+  - Progress uses `GET /me/trends` once two tests have a gait profile and then replaces the cadence-only chart; "no change" below the error range, as in the PDF. Trends leave out treadmill tests (backend #47), as the app's trends always have.
+  - Report downloads ask for the user's language; clinicians open patients' sessions from the patient list.
+  - App disclaimers (shell, landing, sign-in) use D4's wording.

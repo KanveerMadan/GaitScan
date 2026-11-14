@@ -3244,6 +3244,29 @@
     ]
    }
   },
+  "/references": {
+   "get": {
+    "operationId": "references_references_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response References References Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "References",
+    "tags": [
+     "references"
+    ]
+   }
+  },
   "/report/{job_id}": {
    "get": {
     "operationId": "get_report_report__job_id__get",
@@ -3255,6 +3278,26 @@
       "schema": {
        "title": "Job Id",
        "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "lang",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "enum": [
+          "en",
+          "hi"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Lang"
       }
      }
     ],

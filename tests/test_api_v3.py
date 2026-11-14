@@ -124,8 +124,10 @@ def test_report_is_built_from_the_stored_result(client):
     email, t = register(client)
     sid = seed_session(email)
     text = pdf_text(client.get(f"/report/{sid}", headers=auth(t)).content)
-    assert "Cadence" in text and "steps/min" in text and "knee" not in text.lower()
-    assert "not measured" in text or "floor calibration" in text.lower()
+    # A v3 result gets the full report (Phase 11): knee and hip measures are back as experimental
+    # estimates (owner, 2026-11-13); the v2 report's checks are in test_no_knee_angle.py.
+    assert "Cadence" in text and "steps/min" in text and "Timing and rhythm" in text
+    assert "floor calibration" in text.lower()
     assert "Risk" not in text and "Mode" not in text
     again = pdf_text(client.get(f"/report/{sid}", headers=auth(t)).content)
     assert again == text  # deterministic: rebuilt from the database every time (F15)
@@ -205,4 +207,5 @@ def test_the_report_names_the_account_holder_when_no_name_is_sent(client, monkey
     ).json()
     sid = client.get(job["status_url"], headers=auth(t)).json()["analysis"]["job_id"]
     assert client.get(f"/sessions/{sid}", headers=auth(t)).json()["patient_name"] == "Asha Rao"
-    assert "Name: Asha Rao" in pdf_text(client.get(f"/report/{sid}", headers=auth(t)).content)
+    text = " ".join(pdf_text(client.get(f"/report/{sid}", headers=auth(t)).content).split())
+    assert "Name Asha Rao" in text and "Asha Rao · " in text  # details table and every page's header

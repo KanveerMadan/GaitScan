@@ -6,7 +6,9 @@ which scans every string here in both languages). The Hindi is a draft for the
 owner to review, like the rest of the app's Hindi (src/i18n/hi.js in the app).
 """
 
-COPY = {
+from typing import Any
+
+COPY: dict[str, dict[str, Any]] = {
     "en": {
         "headline": {
             "typical": "Looks typical.",

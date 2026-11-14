@@ -10,8 +10,9 @@ Measures how you walk from a phone video: cadence and step time, with error rang
 accuracy check. FastAPI + MediaPipe Pose. The web app is in
 [gaitscan-frontend](https://github.com/KanveerMadan/gaitscan-frontend).
 
-> **Not a medical device.** GaitScan is an experimental measurement tool. It does not diagnose
-> conditions or predict outcomes, and its measurements have not been clinically validated.
+> **Not a medical device.** GaitScan is for general wellness and information. It is an experimental
+> measurement tool: it does not assess health conditions or predict outcomes, and its measurements have
+> not been clinically validated.
 
 ## What it measures
 | Measurement | Status | Error range (95% of LJMU clips within) |
@@ -36,8 +37,19 @@ user can act on. Reasons include too short, a low frame rate, nobody in view, a 
 not side-on, too few or irregular steps, or the legs not followed. A second person, or heels out of
 view, for a step or more removes only that stretch.
 
-Not measured, by design: risk or composite scores, symmetry indices, activity labels, ankle or
-frontal-plane angles, uncalibrated distances, exercise advice.
+**Gait profile (pipeline 3.0.0, Phase 11).** A walk over the ground also gets, for both legs together:
+stance, swing and double support; knee, hip and ankle angles over the gait cycle with key events and
+ranges of motion (experimental estimates, error ranges from the literature: Stenum et al. 2021); trunk
+lean and arm swing (information); the Gait Profile Score (Baker et al. 2009). Each key measure is
+compared with healthy adults (cadence: Mobbs et al. 2025; the rest: healthy LJMU walkers measured by
+this app) and an overall summary says what to do next, in general-wellness wording: "Looks typical",
+"Worth keeping an eye on" or "Outside the typical range" ([docs/verdicts.md](docs/verdicts.md)).
+There's a multi-page PDF report in English and Hindi, and a progress view across tests. Left/right
+values and symmetry aren't shown: on a side view the app can't tell the legs apart reliably
+([docs/validation/leg-identity.md](docs/validation/leg-identity.md)).
+
+Not measured, by design: risk scores, symmetry indices, activity labels, frontal-plane angles,
+uncalibrated distances, exercise advice.
 
 ## How to film
 Side-on, landscape, phone still at waist height 3–4 m from the walking line, 30 fps; walk across the
