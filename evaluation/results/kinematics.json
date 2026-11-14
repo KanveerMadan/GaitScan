@@ -1,0 +1,381 @@
+{
+ "generated": "2026-11-14T01:12:35+00:00",
+ "clips": 109,
+ "accepted": 97,
+ "with_three_label_free_strides": 95,
+ "labelled_per_leg_shown": 45,
+ "strike_timing": {
+  "strides": 612,
+  "matched_to_a_reference_strike": 604,
+  "bias_ms_median_of_clips": 0.0,
+  "mae_ms_mean_of_clips": 27.7
+ },
+ "distributions": {
+  "stance_pct": {
+   "n": 95,
+   "median": 62.31,
+   "iqr": [
+    60.76,
+    64.07
+   ]
+  },
+  "double_support_pct": {
+   "n": 92,
+   "median": 24.85,
+   "iqr": [
+    19.84,
+    27.59
+   ]
+  },
+  "knee_ic": {
+   "n": 95,
+   "median": 7.61,
+   "iqr": [
+    4.99,
+    9.77
+   ]
+  },
+  "knee_peak_swing": {
+   "n": 81,
+   "median": 58.61,
+   "iqr": [
+    55.48,
+    63.47
+   ]
+  },
+  "knee_rom": {
+   "n": 77,
+   "median": 57.54,
+   "iqr": [
+    55.0,
+    60.92
+   ]
+  },
+  "hip_peak_ext": {
+   "n": 93,
+   "median": -21.45,
+   "iqr": [
+    -24.7,
+    -17.5
+   ]
+  },
+  "hip_peak_flex": {
+   "n": 81,
+   "median": 31.72,
+   "iqr": [
+    26.33,
+    35.49
+   ]
+  },
+  "hip_rom": {
+   "n": 78,
+   "median": 53.57,
+   "iqr": [
+    49.71,
+    59.1
+   ]
+  },
+  "thigh_rom": {
+   "n": 78,
+   "median": 52.99,
+   "iqr": [
+    48.66,
+    57.55
+   ]
+  },
+  "ankle_rom": {
+   "n": 77,
+   "median": 33.33,
+   "iqr": [
+    29.04,
+    36.02
+   ]
+  },
+  "trunk_lean_deg": {
+   "n": 95,
+   "median": -0.28,
+   "iqr": [
+    -1.28,
+    1.05
+   ]
+  },
+  "pelvis_oscillation": {
+   "n": 95,
+   "median": 0.11,
+   "iqr": [
+    0.1,
+    0.12
+   ]
+  },
+  "arm_swing_deg": {
+   "n": 95,
+   "median": 33.54,
+   "iqr": [
+    22.89,
+    41.21
+   ]
+  }
+ },
+ "thigh_rom_vs_sensor": {
+  "n": 72,
+  "bias_deg": 9.0,
+  "mae_deg": 9.9,
+  "r": 0.44,
+  "median_ours": 52.9,
+  "median_sensor": 44.3
+ },
+ "by_role": {
+  "tuning": {
+   "clips": 88,
+   "accepted": 76,
+   "with_three_label_free_strides": 74,
+   "labelled_per_leg_shown": 31,
+   "strike_timing": {
+    "strides": 465,
+    "matched_to_a_reference_strike": 461,
+    "bias_ms_median_of_clips": 0.0,
+    "mae_ms_mean_of_clips": 30.6
+   },
+   "distributions": {
+    "stance_pct": {
+     "n": 74,
+     "median": 62.5,
+     "iqr": [
+      60.65,
+      64.18
+     ]
+    },
+    "double_support_pct": {
+     "n": 72,
+     "median": 24.64,
+     "iqr": [
+      19.36,
+      27.59
+     ]
+    },
+    "knee_ic": {
+     "n": 74,
+     "median": 7.69,
+     "iqr": [
+      4.99,
+      9.77
+     ]
+    },
+    "knee_peak_swing": {
+     "n": 62,
+     "median": 58.91,
+     "iqr": [
+      55.09,
+      63.87
+     ]
+    },
+    "knee_rom": {
+     "n": 58,
+     "median": 58.03,
+     "iqr": [
+      54.61,
+      61.46
+     ]
+    },
+    "hip_peak_ext": {
+     "n": 72,
+     "median": -21.09,
+     "iqr": [
+      -24.31,
+      -16.58
+     ]
+    },
+    "hip_peak_flex": {
+     "n": 62,
+     "median": 32.46,
+     "iqr": [
+      28.07,
+      35.91
+     ]
+    },
+    "hip_rom": {
+     "n": 59,
+     "median": 53.42,
+     "iqr": [
+      49.81,
+      59.1
+     ]
+    },
+    "thigh_rom": {
+     "n": 59,
+     "median": 52.9,
+     "iqr": [
+      48.57,
+      57.49
+     ]
+    },
+    "ankle_rom": {
+     "n": 58,
+     "median": 34.14,
+     "iqr": [
+      30.44,
+      36.5
+     ]
+    },
+    "trunk_lean_deg": {
+     "n": 74,
+     "median": -0.01,
+     "iqr": [
+      -1.04,
+      1.41
+     ]
+    },
+    "pelvis_oscillation": {
+     "n": 74,
+     "median": 0.11,
+     "iqr": [
+      0.1,
+      0.13
+     ]
+    },
+    "arm_swing_deg": {
+     "n": 74,
+     "median": 33.78,
+     "iqr": [
+      22.98,
+      43.21
+     ]
+    }
+   },
+   "thigh_rom_vs_sensor": {
+    "n": 57,
+    "bias_deg": 9.2,
+    "mae_deg": 9.3,
+    "r": 0.48,
+    "median_ours": 52.9,
+    "median_sensor": 44.7
+   }
+  },
+  "test": {
+   "clips": 21,
+   "accepted": 21,
+   "with_three_label_free_strides": 21,
+   "labelled_per_leg_shown": 14,
+   "strike_timing": {
+    "strides": 147,
+    "matched_to_a_reference_strike": 143,
+    "bias_ms_median_of_clips": 0.0,
+    "mae_ms_mean_of_clips": 17.4
+   },
+   "distributions": {
+    "stance_pct": {
+     "n": 21,
+     "median": 62.07,
+     "iqr": [
+      61.29,
+      63.76
+     ]
+    },
+    "double_support_pct": {
+     "n": 20,
+     "median": 25.4,
+     "iqr": [
+      22.82,
+      27.14
+     ]
+    },
+    "knee_ic": {
+     "n": 21,
+     "median": 7.45,
+     "iqr": [
+      5.08,
+      9.59
+     ]
+    },
+    "knee_peak_swing": {
+     "n": 19,
+     "median": 57.63,
+     "iqr": [
+      56.2,
+      61.74
+     ]
+    },
+    "knee_rom": {
+     "n": 19,
+     "median": 56.31,
+     "iqr": [
+      55.14,
+      59.77
+     ]
+    },
+    "hip_peak_ext": {
+     "n": 21,
+     "median": -22.03,
+     "iqr": [
+      -24.72,
+      -19.84
+     ]
+    },
+    "hip_peak_flex": {
+     "n": 19,
+     "median": 26.67,
+     "iqr": [
+      25.89,
+      32.6
+     ]
+    },
+    "hip_rom": {
+     "n": 19,
+     "median": 54.37,
+     "iqr": [
+      49.99,
+      61.17
+     ]
+    },
+    "thigh_rom": {
+     "n": 19,
+     "median": 53.24,
+     "iqr": [
+      49.33,
+      57.3
+     ]
+    },
+    "ankle_rom": {
+     "n": 19,
+     "median": 30.62,
+     "iqr": [
+      27.96,
+      33.08
+     ]
+    },
+    "trunk_lean_deg": {
+     "n": 21,
+     "median": -0.85,
+     "iqr": [
+      -2.85,
+      0.08
+     ]
+    },
+    "pelvis_oscillation": {
+     "n": 21,
+     "median": 0.1,
+     "iqr": [
+      0.1,
+      0.11
+     ]
+    },
+    "arm_swing_deg": {
+     "n": 21,
+     "median": 32.65,
+     "iqr": [
+      22.71,
+      38.48
+     ]
+    }
+   },
+   "thigh_rom_vs_sensor": {
+    "n": 15,
+    "bias_deg": 7.9,
+    "mae_deg": 12.1,
+    "r": 0.4,
+    "median_ours": 53.2,
+    "median_sensor": 41.9
+   }
+  }
+ }
+}

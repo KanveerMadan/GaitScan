@@ -10,6 +10,7 @@ from gaitcore import quality
 from gaitcore.calibration import Calibration
 from gaitcore.clip import Clip
 from gaitcore.gait import facing, leg_length, measure_passes, measure_walk, typical_step_s
+from gaitcore.kinematics import measure_kinematics
 from gaitcore.result import (
     TREADMILL,
     WALK,
@@ -136,6 +137,9 @@ def _analyse_walk(
         passes=passes,
         pass_variability=pass_variability(passes),
         curves=curves_from_walk(walk),
+        # Label-free knee/hip measures (Phase 11). Not for the treadmill: the belt carries the standing
+        # foot back, so a footprint doesn't stay put.
+        kinematics=measure_kinematics(clip, segments, tracks),
     )
 
 

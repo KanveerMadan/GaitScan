@@ -27,6 +27,7 @@ ANKLE_UP, ANKLE_FWD, TOE_FWD = 0.04 * LEG, 0.05 * LEG, 0.25 * LEG
 STANCE = 0.6
 LIFT = 0.10 * LEG
 M_PER_PX = 0.9 / LEG  # a 0.9 m leg
+ARM = 0.35 * LEG  # shoulder to wrist
 
 
 @dataclass
@@ -46,6 +47,24 @@ def _profile(t, pass_secs, ramp, turn):
     u = t - k * period
     mag = np.clip(np.minimum(u / ramp, (pass_secs - u) / ramp), 0, 1) * (u < pass_secs)
     return np.where(k % 2 == 0, 1.0, -1.0) * mag, k, u
+
+
+def _swing_shape(u, profile):
+    """Fraction of the way from one footprint to the next at swing fraction u (0 at toe-off, 1 at heel
+    strike). "brisk": speed rising linearly over the first RAMP of the swing, constant, then falling to
+    zero over the last RAMP (a trapezoid); the distance is its integral."""
+    if profile == "cosine":
+        return (1 - np.cos(np.pi * u)) / 2
+    ramp = 0.1
+    total = 1 - ramp  # area under the trapezoid with peak speed 1
+    if u < ramp:
+        d = u * u / (2 * ramp)
+    elif u <= 1 - ramp:
+        d = ramp / 2 + (u - ramp)
+    else:
+        r = 1 - u
+        d = total - r * r / (2 * ramp)
+    return d / total
 
 
 def synthetic_clip(
@@ -69,6 +88,10 @@ def synthetic_clip(
     camera_height=None,  # px above the floor; default: hip height
     pelvis_surge=(0.0, 0.0),  # pelvis speed ripple: amplitude (fraction of the speed) per step, per stride
     treadmill=False,  # walk on a belt: the same body motion seen from a frame that moves with the pelvis
+    trunk_lean_deg=0.0,  # shoulders ahead of the hips in the walking direction (Phase 11)
+    arm_swing_deg=0.0,  # each arm swings this far (peak to peak) about the shoulder, against its leg
+    swing_profile="cosine",  # "cosine": smooth over the whole swing; "brisk": as real feet, the foot
+    # speeds up in the first 10% of the swing and brakes in the last 10% (Phase 11 event timing)
 ) -> tuple[Clip, Truth]:
     rng = np.random.default_rng(seed)
     step_t = 60.0 / steps_per_min
@@ -129,7 +152,7 @@ def synthetic_clip(
                 hx[i] = land[j]
                 continue
             u = (ti - off) / (hs[j + 1] - off)
-            hx[i] = land[j] + (land[j + 1] - land[j]) * (1 - np.cos(np.pi * u)) / 2
+            hx[i] = land[j] + (land[j + 1] - land[j]) * _swing_shape(u, swing_profile)
             if hs[j + 1] - off <= T:
                 lift[i] = LIFT * np.sin(np.pi * u)
         feet[side] = (hx, lift)
@@ -192,7 +215,15 @@ def synthetic_clip(
         for name, (x, y) in (("hip", hip), ("knee", knee), ("ankle", ankle), ("heel", heel), ("toe", toe)):
             pts[(side, name)] = proj(x, z, y)
         sh_z = zs * SHOULDER_HALF * lateral
-        pts[(side, "shoulder")] = proj(px, sh_z, pelvis_y - TORSO)
+        lean = np.radians(trunk_lean_deg)
+        sh = (px + face_x * TORSO * np.sin(lean), pelvis_y - TORSO * np.cos(lean))
+        pts[(side, "shoulder")] = proj(sh[0], sh_z, sh[1])
+        if arm_swing_deg:
+            # The arm swings opposite its leg: forward when the same-side heel is behind the pelvis.
+            hx, _ = feet[side]
+            rel = np.clip((hx - px) * direction / (0.5 * s), -1, 1)
+            arm = -np.radians(arm_swing_deg) / 2 * rel  # + = wrist ahead of the shoulder
+            pts[(side, "wrist")] = proj(sh[0] + face_x * ARM * np.sin(arm), sh_z, sh[1] + ARM * np.cos(arm))
 
     idx = {
         ("L", "shoulder"): 11,
@@ -208,6 +239,8 @@ def synthetic_clip(
         ("L", "toe"): 31,
         ("R", "toe"): 32,
     }
+    if arm_swing_deg:
+        idx.update({("L", "wrist"): 15, ("R", "wrist"): 16})
     cols = {}
     for i in range(33):  # head/arms: a point above the shoulders (unused by the pipeline)
         cols[f"lm{i}_x"], cols[f"lm{i}_y"] = proj(px, 0.0, pelvis_y - TORSO - 0.2 * LEG)
