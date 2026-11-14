@@ -42,6 +42,17 @@ def fetch_sensor(out: str) -> None:
                 print("ok", m, flush=True)
 
 
+def fetch_meta(out: str) -> None:
+    """The participants' sex, age and height (Participant_Anthropometry.xlsx), for the same-method
+    references (evaluation/references.py)."""
+    os.makedirs(out, exist_ok=True)
+    with RemoteZip(URL) as z:
+        name = next(n for n in z.namelist() if n.endswith("Participant_Anthropometry.xlsx"))
+        with z.open(name) as src, open(os.path.join(out, "Participant_Anthropometry.xlsx"), "wb") as dst:
+            shutil.copyfileobj(src, dst)
+    print("ok", name)
+
+
 def main(out: str) -> None:
     os.makedirs(out, exist_ok=True)
     todo = [r.clip for r in load_reference() if not os.path.exists(os.path.join(out, f"{r.clip}.mp4"))]
@@ -55,5 +66,7 @@ def main(out: str) -> None:
 if __name__ == "__main__":
     if sys.argv[1] == "--imu":
         fetch_sensor(sys.argv[2])
+    elif sys.argv[1] == "--meta":
+        fetch_meta(sys.argv[2])
     else:
         main(sys.argv[1])
