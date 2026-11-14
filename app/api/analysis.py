@@ -27,6 +27,7 @@ from app.db.database import SessionLocal, get_db
 from app.db.models import AnalysisJob, User
 from app.db.models import Session as SessionModel
 from app.schemas import AnalyzeResponse, JobQueued, JobStatus, Rejection, Result
+from app.services.gait_profile import person_for, person_for_session, present
 from gaitcore.calibration import Calibration, CalibrationError
 from gaitcore.landmarks import VideoReadError, extract_clip
 from gaitcore.pipeline import TESTS, analyse, precheck, probe
@@ -158,9 +159,10 @@ def _store(
         )
     )
     db.commit()
+    person = person_for(db, user_id, profile_id, None)
     return AnalyzeResponse(
         job_id=job_id,
-        result=Result.model_validate(data),
+        result=Result.model_validate(present(data, person)),
         report_url=f"/report/{job_id}",
         disclaimer=DISCLAIMER,
     )
@@ -366,7 +368,7 @@ def analysis_status(
         if session is not None and session.result is not None:
             analysis = AnalyzeResponse(
                 job_id=session.id,
-                result=Result.model_validate(session.result),
+                result=Result.model_validate(present(session.result, person_for_session(session))),
                 report_url=f"/report/{session.id}",
                 disclaimer=DISCLAIMER,
             )

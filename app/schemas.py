@@ -50,6 +50,9 @@ class Result(BaseModel):
     passes: list[dict[str, Any]] = []  # per walk across the frame; absent before Phase 3
     pass_variability: dict[str, Any] | None = None
     curves: dict[str, Any] = {}  # absent before Phase 4
+    # Result schema 3 (Phase 11): the stored profile plus its verdict, worked out on read
+    # (app/services/gait_profile.py); None for results stored before, rejections and the treadmill.
+    gait_profile: dict[str, Any] | None = None
 
 
 class AnalyzeResponse(BaseModel):

@@ -8,6 +8,8 @@ import pytest
 from conftest import PASSWORD, auth, fake_video, link, promote_to_clinician, register, seed_session
 from pypdf import PdfReader
 
+from gaitcore import __version__
+
 REMOVED_KEYS = {
     "activity", "confidence", "risk_score", "overall_risk_score", "risk_label", "risk_meaning",
     "risk_color", "knee_symmetry_index", "hip_symmetry_index", "knee_si", "hip_si", "findings",
@@ -43,7 +45,7 @@ def test_accepted_analysis_returns_and_stores_measurements(client, monkeypatch):
     assert r.status_code == 200, r.text
     body = r.json()
     res = body["result"]
-    assert res["pipeline_version"] == "2.0.0" and res["status"] == "accepted" and res["test"] == "walk"
+    assert res["pipeline_version"] == __version__ and res["status"] == "accepted" and res["test"] == "walk"
     assert res["metrics"]["cadence"]["value"] == pytest.approx(110, abs=2)
     assert res["metrics"]["cadence"]["unit"] == "steps/min"
     assert "peak_knee_flexion" not in res["metrics"] and "peak_knee_flexion" not in res["accuracy"]

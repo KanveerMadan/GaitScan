@@ -17,7 +17,17 @@ OLD_NOTE = (
 
 
 def knee_angle_in(obj) -> bool:
-    text = json.dumps(obj).lower()
+    """The legacy (v2) knee values. The gait profile (schema 3, 2026-11-13: knee angles back as
+    experimental estimates) is left out: its knee measures are new, not the removed v2 ones."""
+
+    def without_profile(o):
+        if isinstance(o, dict):
+            return {k: without_profile(v) for k, v in o.items() if k != "gait_profile"}
+        if isinstance(o, list):
+            return [without_profile(v) for v in o]
+        return o
+
+    text = json.dumps(without_profile(obj)).lower()
     return any(
         k in text for k in ("peak_knee_flexion", "knee_flexion", "knee flexion", "knee angle", "knee bend")
     )

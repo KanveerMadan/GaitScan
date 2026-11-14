@@ -1033,6 +1033,18 @@
       "title": "Curves",
       "type": "object"
      },
+     "gait_profile": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gait Profile"
+     },
      "metrics": {
       "additionalProperties": true,
       "title": "Metrics",
@@ -1821,6 +1833,119 @@
      "role"
     ],
     "title": "TokenResponse",
+    "type": "object"
+   },
+   "TrendPoint": {
+    "properties": {
+     "cadence": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cadence"
+     },
+     "created_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created At"
+     },
+     "gps": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gps"
+     },
+     "hip_rom": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Hip Rom"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "knee_rom": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Knee Rom"
+     },
+     "overall": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Overall"
+     },
+     "step_time_cv": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step Time Cv"
+     }
+    },
+    "required": [
+     "id",
+     "created_at",
+     "overall",
+     "cadence",
+     "step_time_cv",
+     "knee_rom",
+     "hip_rom",
+     "gps"
+    ],
+    "title": "TrendPoint",
+    "type": "object"
+   },
+   "Trends": {
+    "properties": {
+     "sessions": {
+      "items": {
+       "$ref": "#/components/schemas/TrendPoint"
+      },
+      "title": "Sessions",
+      "type": "array"
+     }
+    },
+    "required": [
+     "sessions"
+    ],
+    "title": "Trends",
     "type": "object"
    },
    "ValidationError": {
@@ -2849,6 +2974,60 @@
     "summary": "Update Settings",
     "tags": [
      "settings"
+    ]
+   }
+  },
+  "/me/trends": {
+   "get": {
+    "operationId": "trends_me_trends_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "profile_id",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Profile Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Trends"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Trends",
+    "tags": [
+     "sessions"
     ]
    }
   },

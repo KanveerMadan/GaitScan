@@ -20,6 +20,7 @@ from app.api.profiles import router as profiles_router
 from app.api.sessions import router as sessions_router
 from app.api.settings import router as settings_router
 from app.api.shares import router as shares_router
+from app.api.trends import router as trends_router
 from app.core.config import settings
 from app.core.logging import RequestLogMiddleware, configure_logging
 from app.core.observability import init_sentry
@@ -56,6 +57,7 @@ app.include_router(settings_router)
 app.include_router(google_router)
 app.include_router(inbox_router)
 app.include_router(profiles_router)
+app.include_router(trends_router)
 
 app.add_middleware(RequestLogMiddleware)
 app.add_middleware(

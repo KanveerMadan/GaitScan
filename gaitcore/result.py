@@ -19,6 +19,8 @@ from gaitcore.quality import Rejection
 if TYPE_CHECKING:
     from gaitcore.kinematics import Kinematics
 
+from gaitcore.profile import gait_profile  # noqa: E402
+
 WALK = "walk"  # the test types (pipeline.TESTS): overground walking, validated on LJMU
 TREADMILL = "treadmill"  # walking on a treadmill at an entered belt speed: not yet validated
 MIN_STRIDES_PER_LEG = 3  # a median of >= 3 strides can't be set by one bad stride
@@ -218,6 +220,10 @@ class AnalysisResult:
             "passes": self.passes,
             "pass_variability": self.pass_variability,
             "curves": self.curves,
+            # Result schema 3 (Phase 11): measurements only; the verdict is added when it's read.
+            "gait_profile": gait_profile(self.metrics, self.quality, self.kinematics)
+            if self.accepted
+            else None,
         }
 
 
