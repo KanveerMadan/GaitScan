@@ -18,6 +18,7 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, Tabl
 
 from app.core.copy import DISCLAIMER, ERROR_RANGES
 from app.schemas import public_result
+from app.services.report_full import build_report  # noqa: F401  (the v3 report; build_pdf for v2)
 from gaitcore.accuracy import NOT_YET_VALIDATED, accuracy_for
 
 WALK_ROWS = (  # (metric key, label); per-leg metrics have "left"/"right"

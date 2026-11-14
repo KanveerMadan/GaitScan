@@ -10,8 +10,9 @@ Measures how you walk from a phone video: cadence and step time, with error rang
 accuracy check. FastAPI + MediaPipe Pose. The web app is in
 [gaitscan-frontend](https://github.com/KanveerMadan/gaitscan-frontend).
 
-> **Not a medical device.** GaitScan is an experimental measurement tool. It does not diagnose
-> conditions or predict outcomes, and its measurements have not been clinically validated.
+> **Not a medical device.** GaitScan is for general wellness and information. It is an experimental
+> measurement tool: it does not assess health conditions or predict outcomes, and its measurements have
+> not been clinically validated.
 
 ## What it measures
 | Measurement | Status | Error range (95% of LJMU clips within) |

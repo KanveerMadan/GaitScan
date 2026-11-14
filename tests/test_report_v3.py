@@ -188,3 +188,55 @@ def test_the_report_endpoint_follows_the_language_setting_or_the_query(client, w
         "NotoSansDevanagari" in f for f in fonts(client.get(f"/report/{first}", headers=auth(t)).content)
     )
     assert client.get(f"/report/{sid}?lang=fr", headers=auth(t)).status_code == 422
+
+
+def test_every_hindi_word_is_drawable_in_the_font_it_is_set_in():
+    """ReportLab shapes a word with one font, so a Devanagari word must not contain characters only
+    Noto Sans has (and the reverse)."""
+    from app.core.report_copy import REPORT
+    from app.core.verdict_copy import COPY
+    from app.services.report_full import _register, hindi_words
+
+    cmaps = _register()
+
+    def strings(o):
+        if isinstance(o, dict):
+            for v in o.values():
+                yield from strings(v)
+        elif isinstance(o, list):
+            for v in o:
+                yield from strings(v)
+        elif isinstance(o, str):
+            yield o
+
+    bad = []
+    for text in [*strings(REPORT["hi"]), *strings(COPY["hi"])]:
+        for word, deva in hindi_words(text.replace("{", "").replace("}", "")):
+            if word.isspace():
+                continue
+            face = "NotoSansDevanagari" if deva else "NotoSans"
+            missing = [ch for ch in word if ord(ch) not in cmaps[face]]
+            if missing:
+                bad.append((word, missing))
+    assert not bad, bad
+
+
+def test_a_result_stored_before_v3_still_gets_the_v2_report(client):
+    from conftest import seed_session
+
+    from app.db.database import SessionLocal
+    from app.db.models import Session
+
+    email, t = register(client)
+    sid = seed_session(email)
+    db = SessionLocal()
+    s = db.get(Session, sid)
+    old = dict(s.result)
+    old.pop("gait_profile", None)
+    old["pipeline_version"] = "2.0.0"
+    s.result = old
+    db.commit()
+    db.close()
+    text = " ".join(pages(client.get(f"/report/{sid}", headers=auth(t)).content))
+    assert "GaitScan walking measurements" in text and "Name: Test Patient" in text
+    assert "general wellness and information" in text  # D4 wording in the v2 report too

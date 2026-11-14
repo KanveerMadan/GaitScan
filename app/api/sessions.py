@@ -4,11 +4,14 @@ Legacy sessions (analysed before Plan V3) are listed with `legacy: true` and no 
 old values stay in session_archive and are never served as measurements or mixed into trends.
 """
 
+from typing import Literal
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from sqlalchemy.orm import Session as DBSession
 
 from app.api.profiles import owned_profile
+from app.api.settings import settings_of
 from app.core.copy import DISCLAIMER, LEGACY_NOTE
 from app.core.security import get_current_user
 from app.db.database import get_db
@@ -16,7 +19,8 @@ from app.db.models import ClinicianPatient, User
 from app.db.models import Session as SessionModel
 from app.schemas import Result, SessionDetail, SessionLabels, SessionOut
 from app.services.gait_profile import person_for_session, present
-from app.services.report_pdf import build_pdf
+from app.services.report_pdf import build_pdf, build_report
+from app.services.trends import sessions_of, trend_points
 
 router = APIRouter(tags=["sessions"])
 
@@ -61,6 +65,7 @@ def session_out(s: SessionModel) -> SessionOut:
 @router.get("/report/{job_id}")
 def get_report(
     job_id: str,
+    lang: Literal["en", "hi"] | None = None,
     current_user: User = Depends(get_current_user),
     db: DBSession = Depends(get_db),
 ) -> Response:
@@ -68,7 +73,26 @@ def get_report(
     if s.legacy or s.result is None:
         raise HTTPException(410, LEGACY_NOTE)
     # Built from the stored result every time: deterministic, nothing kept on disk (F15).
-    pdf = build_pdf(s.result, patient_name=s.patient_name, created_at=s.created_at)
+    if s.result.get("gait_profile"):
+        # The full report (Phase 11): in the language asked for, else the reader's own setting.
+        # Age, sex, session number, progress and the goal are the measured person's, as on their
+        # result page; a linked clinician sees what the patient sees.
+        owner = db.get(User, s.user_id)
+        everyone = [x.id for x in sessions_of(db, s.user_id, s.profile_id)]
+        goal = settings_of(owner).goal_cadence if owner is not None and s.profile_id is None else None
+        pdf = build_report(
+            s.result,
+            patient_name=s.patient_name,
+            created_at=s.created_at,
+            lang=lang or settings_of(current_user).language,
+            person=person_for_session(s),
+            report_id=s.id,
+            session_number=everyone.index(s.id) + 1 if s.id in everyone else None,
+            history=trend_points(db, s.user_id, s.profile_id, before=s.created_at),
+            goal_cadence=goal,
+        )
+    else:  # results stored before the gait profile, and the treadmill test: the v2 report
+        pdf = build_pdf(s.result, patient_name=s.patient_name, created_at=s.created_at)
     return Response(
         pdf,
         media_type="application/pdf",

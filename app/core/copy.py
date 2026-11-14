@@ -1,9 +1,12 @@
 """User-facing copy shared by the API and the PDF (wording rules: FUNDAMENTALS_REVIEW 4.3)."""
 
+# Owner decision D4 (2026-11-13): general wellness and information; "not a medical device" stays; no
+# screening, detection or referral language. The same words as the verdict's disclaimer
+# (app/core/verdict_copy.py), so the app, the PDFs and the README agree.
 DISCLAIMER = (
-    "GaitScan is an experimental measurement tool, not a medical device. "
-    "It does not diagnose conditions or predict outcomes, and its measurements "
-    "have not been clinically validated. A qualified clinician should interpret them."
+    "GaitScan is for general wellness and information. It is an experimental measurement tool, not a "
+    "medical device: it does not assess health conditions or predict outcomes, and its measurements "
+    "have not been clinically validated."
 )
 
 LEGACY_NOTE = (

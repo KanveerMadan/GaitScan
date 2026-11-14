@@ -3256,6 +3256,26 @@
        "title": "Job Id",
        "type": "string"
       }
+     },
+     {
+      "in": "query",
+      "name": "lang",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "enum": [
+          "en",
+          "hi"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Lang"
+      }
      }
     ],
     "responses": {

@@ -52,6 +52,8 @@ def with_old_knee_values(sid: str) -> None:
         }
         r["curves"]["knee_flexion"] = {"unit": "deg", "points": 101, "left": [10.0] * 101, "right": None}
         r["notes"] = [OLD_NOTE]
+        r.pop("gait_profile", None)  # stored before schema 3 (2026-11-14)
+        r["pipeline_version"] = "2.0.0"
         s.result = r
         db.commit()
     finally:
