@@ -1,6 +1,7 @@
 """Per-session key numbers for progress (Plan V3 Phase 11): GET /me/trends and the report's progress
 page. Oldest first; the overall verdict is worked out on read, like every result. Results stored before
-the gait profile give None for the profile's numbers; legacy sessions are left out."""
+the gait profile give None for the profile's numbers; legacy sessions and treadmill tests are left
+out."""
 
 from datetime import datetime
 from typing import Any
@@ -48,4 +49,10 @@ def trend_points(
     rows = sessions_of(db, user_id, profile_id)
     if before is not None:
         rows = [s for s in rows if s.created_at is not None and s.created_at < before]
-    return [point(s) for s in rows if not s.legacy and s.result is not None]
+    # Walks over the ground only: a treadmill test is other conditions, as the app's trends have
+    # always treated it.
+    return [
+        point(s)
+        for s in rows
+        if not s.legacy and s.result is not None and s.result.get("test") != "treadmill"
+    ]
