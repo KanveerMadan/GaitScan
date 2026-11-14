@@ -2,7 +2,7 @@
 LJMU_DIR ?= data/ljmu
 LANDMARKS ?= $(LJMU_DIR)/landmarks
 
-.PHONY: help test lint format typecheck check contract evaluate fetch-ljmu fetch-ljmu-imu leg-labels kinematics
+.PHONY: help test lint format typecheck check contract evaluate fetch-ljmu fetch-ljmu-imu leg-labels kinematics references
 
 help:
 	@echo "make test       run the test suite (SQLite)"
@@ -15,6 +15,7 @@ help:
 	@echo "make evaluate   accuracy check on LJMU -> evaluation/results/"
 	@echo "make leg-labels left/right check against the LJMU thigh sensor (make fetch-ljmu-imu first)"
 	@echo "make kinematics label-free knee/hip measures on LJMU -> evaluation/results/kinematics.json"
+	@echo "make references same-method references and the release gate -> gaitcore/norms/ljmu_references.json"
 
 test:
 	ENV=dev uv run pytest -q
@@ -48,3 +49,6 @@ leg-labels:
 
 kinematics:
 	ENV=dev uv run python -m evaluation.kinematics --landmarks $(LANDMARKS) --sensor $(LJMU_DIR)/imu
+
+references:
+	ENV=dev uv run --with openpyxl python -m evaluation.references --landmarks $(LANDMARKS) --meta $(LJMU_DIR)/Participant_Anthropometry.xlsx

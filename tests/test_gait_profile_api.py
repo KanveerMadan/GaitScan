@@ -10,7 +10,7 @@ import pytest
 from conftest import auth, fake_video, register
 
 BANNED_EN = re.compile(
-    r"abnormal|\bbad\b|\bpoor\b|\bwrong\b|disease|diagnos|parkinson|stroke|\blimp|arthritis|injur|screen|detect|refer",
+    r"abnormal|\bbad\b|\bpoor\b|\bwrong\b|disease|diagnos|parkinson|stroke|\blimp|arthritis|injur|screen|detect|\brefer\b|referral",
     re.I,
 )
 BANNED_HI = ("असामान्य", "खराब", "गलत", "बीमारी", "रोग", "निदान", "पार्किंसंस", "लकवा", "स्ट्रोक", "गठिया", "चोट")

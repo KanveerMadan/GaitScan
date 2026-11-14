@@ -10,7 +10,7 @@ import numpy as np
 import pytest
 from synthetic import LEG, M_PER_PX, synthetic_clip
 
-from gaitcore import quality
+from gaitcore import __version__, quality
 from gaitcore.calibration import Calibration, CalibrationError
 from gaitcore.clip import Clip
 from gaitcore.gait import leg_length, measure_passes, measure_walk
@@ -460,7 +460,7 @@ def test_view_unconfirmed_message_asks_for_a_walk_across_the_frame():
 # ---- result shape ------------------------------------------------------------------------------
 def test_result_has_units_quality_and_versions():
     d = analyse(synthetic_clip()[0]).to_dict()
-    assert d["pipeline_version"] == "2.0.0" and d["status"] == "accepted" and d["rejection"] is None
+    assert d["pipeline_version"] == __version__ and d["status"] == "accepted" and d["rejection"] is None
     assert d["model"]["name"] == "pose_landmarker_full" and len(d["model"]["sha256"]) == 64
     for name, m in d["metrics"].items():
         for item in [m] if "unit" in m else list(m.values()):

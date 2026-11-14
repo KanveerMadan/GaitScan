@@ -200,9 +200,22 @@ Owner decisions (2026-11-13), in full in the note's §14:
   - **A next:** after B's PR, annotate leg identity on ~40 LJMU clips x 8 frames (AI-annotated and cross-checked, as with heel strikes). If label accuracy and the per-clip confidence test pass the D2 gate, per-side values and symmetry verdicts are unlocked in a follow-up PR; if not, per-side stays hidden and the owner is told.
   - **C (per-side as unvalidated information): no.**
   - **Docker Desktop** is used for MediaPipe on Linux (D6 arm-swing averages and any landmark extraction).
-- [ ] BE-A2: label-free toe-off, stance/swing/double support, knee and hip key events, ROM and both-legs curves; trunk lean, pelvis oscillation, arm swing (information) (gaitcore). Symmetry waits for A; GPS needs BE-B's references
-- [ ] A: leg-identity annotation (~40 LJMU clips x 8 frames) and the D2 gate; per-side values and symmetry verdicts only if it passes
-- [ ] BE-B: norms and same-method references, verdict engine, quality gate, schema v3, snapshots (consent v3), trends, contract
+- [x] BE-A2: label-free toe-off, stance/swing/double support, knee and hip key events, ROM and both-legs curves; trunk lean, pelvis oscillation, arm swing (information) (gaitcore). Symmetry waits for A; GPS needs BE-B's references **Done 2026-11-14 (#44).**
+- [x] A: leg-identity annotation (~40 LJMU clips x 8 frames) and the D2 gate; per-side values and symmetry verdicts only if it passes **Done 2026-11-14 (#45): not measurable. Identical clothing and motion blur make the front leg indiscernible in most frames, so per-side values and symmetry stay hidden.**
+- Owner decisions (2026-11-14, after BE-A2 and A):
+  - Oblique-camera leg identity (LJMU `_45` clips): not now; a possible later route to per-side values and symmetry. v1 ships label-free both-legs measures only.
+  - Thigh +9° vs the LJMU sensor (r = 0.44): doesn't block (thigh isn't shown). Hip range carries ±4.0° (Stenum 2021) plus a note on the offset; an open question in docs/validation/kinematics.md.
+  - Pelvis oscillation: computed and stored, not shown in v1.
+  - Arm swing: information only until the D6 sensor check runs (when Docker answers).
+- Decisions made while building BE-B (2026-11-14; docs/verdicts.md):
+  - Bands widened to 2.5 / 3.5 SD: D1's 2 / 3 SD gave 34.5% "keep an eye on it" on healthy LJMU walkers (gate 25%); 2.5 / 3.5 gives 13.8% and 0% "outside" (29 participants).
+  - Key metrics: cadence, step-time CV, peak knee flexion in swing, knee range, hip range, peak hip extension; everything else is information; the GPS is information.
+  - Cadence against Mobbs 2025 (literature, + GaitScan's ±4.5 error); every other metric against healthy LJMU walkers measured by this app (`make references`), groups of >= 10.
+  - Verdicts are worked out when a result is read (from current sex and birth year), never stored; shared links compare with all adults.
+  - Snapshots are the skeleton at a heel strike and a toe-off stored as points in the result (drawn as vectors), not images: no table, no migration.
+  - API keys `observations` and `data_confidence` (the audit's removed-output check bans `findings` and `confidence`).
+  - Copy lives in the backend (English, draft Hindi), so the app and the PDF say the same thing.
+- [x] BE-B: norms and same-method references, verdict engine, quality gate, schema v3, snapshots (skeleton poses), trends, contract **Built 2026-11-14 (PR stacked on #45).**
 - [ ] BE-C: multi-page PDF (English, Hindi)
 - [ ] FE-A: result page
 - [ ] FE-B: history, progress, settings prompt, clinician view, Hindi strings

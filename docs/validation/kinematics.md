@@ -74,3 +74,9 @@ sensor's own axis and soft tissue).
 - **Pelvis oscillation** reads about twice the published centre-of-mass excursion even after detrending
   (camera tilt explains 0.03 of 0.12). Recommendation: don't show it in v1.
 - Values are pooled over both legs and, in a single pass, come mostly from the leg nearer the camera.
+
+## Open question (owner, 2026-11-14)
+Why does the 2D thigh range read 9° higher than LJMU's thigh sensor (r = 0.44)? It doesn't block: the
+thigh angle isn't shown to users. Hip range is shown with the literature error (±4.0°, Stenum 2021) and
+this offset as a note (docs/verdicts.md). Candidates: hip landmark placement (MediaPipe's hip point vs the
+joint centre), 2D projection, or the sensor's own axis and soft-tissue movement.

@@ -22,6 +22,7 @@ from app.db.database import get_db
 from app.db.models import Session as SessionModel
 from app.db.models import ShareLink, User
 from app.schemas import Result
+from app.services.gait_profile import present
 
 router = APIRouter(tags=["sharing"])
 NOT_FOUND = "This link is invalid, has expired or was withdrawn."
@@ -130,6 +131,6 @@ def open_shared(body: SharedToken, request: Request, db: DBSession = Depends(get
         raise HTTPException(404, NOT_FOUND)
     return SharedSession(
         created_at=s.created_at.isoformat() if s.created_at else None,
-        result=Result.model_validate(s.result),
+        result=Result.model_validate(present(s.result, None)),  # all adults: no age or sex in a link
         disclaimer=DISCLAIMER,
     )

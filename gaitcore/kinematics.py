@@ -138,6 +138,11 @@ class Kinematics:
     double_support: list[float] = field(default_factory=list)  # % of the stride
     trunk_lean: list[float] = field(default_factory=list)  # deg, per frame of steady walking
     leg_px: float = math.nan
+    # Skeleton at a representative heel strike and toe-off (the median-length stride): pelvis-centred,
+    # in leg lengths, x forward, y up; "lead" is the leg in front. Drawn as the result's snapshots
+    # instead of video frames (owner decision D5).
+    poses: dict[str, Any] = field(default_factory=dict)
+    leg_visibility: float = math.nan  # mean MediaPipe visibility of knees, ankles, heels, toes (steady)
 
     def summary(self) -> dict[str, dict[str, Any] | None]:
         s = self.strides
@@ -342,6 +347,11 @@ def measure_kinematics(clip: Clip, segments: list[Segment], tracks: Tracks) -> K
     tie = TIE_LEGS * leg_px
     pelvis = tracks.pelvis
     shoulders = _mean_visible(tracks[("L", "shoulder")], tracks[("R", "shoulder")])
+    steady = np.concatenate([np.arange(s.start, s.end) for s in segments]) if segments else np.array([], int)
+    vis_cols = [f"lm{SIDES[side][n]}_vis" for side in ("L", "R") for n in LEG_POINTS]
+    if len(steady):
+        k.leg_visibility = float(clip.landmarks[vis_cols].to_numpy(float)[steady].mean())
+    candidates: list[tuple[int, dict[str, Any], dict[str, Any]]] = []
     for seg in segments:
         d = seg.direction
         ch = _raw_chains(clip, tracks, d)
@@ -358,22 +368,54 @@ def measure_kinematics(clip: Clip, segments: list[Segment], tracks: Tracks) -> K
             pick = _untangle(ch, frames, tie)
             if pick is None:
                 continue
-            legs = [
-                _angles(leg, pelvis, shoulders, d)
-                for leg in _leg_tracks(ch, pick, frames[0], clip.n_frames, clip.fps)
-            ]
+            leg_pts = _leg_tracks(ch, pick, frames[0], clip.n_frames, clip.fps)
+            legs = [_angles(leg, pelvis, shoulders, d) for leg in leg_pts]
             toe_offs: dict[int, int | None] = {}
             for i in range(len(frames) - 2):
                 stride = _stride(legs[i % 2], pelvis, frames, i, d, arms, clip.fps, leg_px)
                 if stride is not None:
                     k.strides.append(stride)
                     toe_offs[i] = stride.toe_off
+                    if stride.toe_off is not None:
+                        hs = _pose(leg_pts, i % 2, stride.start, pelvis, shoulders, d, leg_px)
+                        to = _pose(leg_pts, 1 - i % 2, stride.toe_off, pelvis, shoulders, d, leg_px)
+                        if hs is not None and to is not None:
+                            candidates.append((stride.end - stride.start, hs, to))
             for i in range(1, len(frames) - 2):
                 a, b = toe_offs.get(i - 1), toe_offs.get(i)
                 if a is not None and b is not None:
                     span = frames[i + 2] - frames[i]
                     k.double_support.append(100 * ((a - frames[i]) + (b - frames[i + 1])) / span)
+    if candidates:
+        candidates.sort(key=lambda c: c[0])
+        _, hs, to = candidates[len(candidates) // 2]
+        k.poses = {"heel_strike": hs, "toe_off": to}
     return k
+
+
+def _pose(
+    legs: list[dict[str, Array]], lead: int, f: int, pelvis: Array, shoulders: Array, d: float, leg_px: float
+) -> dict[str, Any] | None:
+    """The skeleton at frame f, pelvis-centred, in leg lengths, x forward and y up; None if a point is
+    hidden. `lead` is the index of the leg in front."""
+    origin = pelvis[f]
+
+    def rel(xy: Array) -> list[float] | None:
+        if not np.isfinite(xy).all() or not np.isfinite(origin).all():
+            return None
+        return [
+            round(float((xy[0] - origin[0]) * d / leg_px), 3),
+            round(float(-(xy[1] - origin[1]) / leg_px), 3),
+        ]
+
+    pose = {
+        "pelvis": [0.0, 0.0],
+        "shoulders": rel(shoulders[f]),
+        "lead": {n: rel(legs[lead][n][f]) for n in LEG_POINTS},
+        "trail": {n: rel(legs[1 - lead][n][f]) for n in LEG_POINTS},
+    }
+    points = [pose["shoulders"], *pose["lead"].values(), *pose["trail"].values()]  # type: ignore[union-attr]
+    return None if any(v is None for v in points) else pose
 
 
 def _stride(

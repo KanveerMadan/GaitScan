@@ -15,6 +15,7 @@ from app.db.database import get_db
 from app.db.models import ClinicianPatient, User
 from app.db.models import Session as SessionModel
 from app.schemas import Result, SessionDetail, SessionLabels, SessionOut
+from app.services.gait_profile import person_for_session, present
 from app.services.report_pdf import build_pdf
 
 router = APIRouter(tags=["sessions"])
@@ -49,7 +50,7 @@ def session_out(s: SessionModel) -> SessionOut:
         created_at=s.created_at.isoformat() if s.created_at else None,
         pipeline_version=s.pipeline_version,
         legacy=legacy,
-        result=None if legacy else Result.model_validate(s.result),
+        result=None if legacy else Result.model_validate(present(s.result, person_for_session(s))),
         note=LEGACY_NOTE if legacy else None,
         notes=s.notes,
         tags=list(s.tags or []),
