@@ -35,6 +35,25 @@ INFO_METRICS = (
     "double_support_pct",
 )
 ONE_SIDED = {"step_time_cv": "above"}  # steadier steps are never a concern
+# Measures that can't be negative: rates, times, variability, shares of the stride, ranges and the peak
+# knee bend in swing. Their typical range starts at 0 when mean - TYPICAL_SD SDs would go below it
+# ("-0.1 to 10.8 %" for step-time variability). Angles that can be negative (knee or ankle at heel
+# strike, hip extension and flexion, trunk lean) keep their lower end.
+NON_NEGATIVE = frozenset(
+    {
+        "cadence",
+        "step_time",
+        "step_time_cv",
+        "stance_pct",
+        "swing_pct",
+        "double_support_pct",
+        "knee_peak_swing",
+        "knee_rom",
+        "hip_rom",
+        "ankle_rom",
+        "arm_swing_deg",
+    }
+)
 
 # Recording quality for any verdict (brief section 3.6; configurable here only).
 MIN_VERDICT_STEPS = 10

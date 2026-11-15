@@ -14,6 +14,7 @@ from gaitcore.norms.thresholds import (
     KEY_METRICS,
     MIN_USABLE_FRACTION,
     MIN_VERDICT_STEPS,
+    NON_NEGATIVE,
     ONE_SIDED,
     RED_MIN_CLEAR,
     bands,
@@ -81,7 +82,10 @@ def assess(
         row["error"] = ANGLE_ERRORS[joint] if joint else None
         if ref is not None:
             typical, _ = bands(ref)
-            row["typical"] = [round(ref.mean - typical, 2), round(ref.mean + typical, 2)]
+            lo = ref.mean - typical
+            if m in NON_NEGATIVE:
+                lo = max(lo, 0.0)  # display only: a value can't be below 0, so no level changes
+            row["typical"] = [round(lo, 2), round(ref.mean + typical, 2)]
             row["reference"] = _ref_dict(ref)
             if m in KEY_METRICS:
                 row["level"], row["direction"] = level(v["value"], ref, ONE_SIDED.get(m))
