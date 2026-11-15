@@ -164,7 +164,7 @@ looked at first; local data (`_audit/sandbox/`, `data/`, `probe.db`, `outputs/`)
 - [x] Frontend: the same files, README badges and layout
 - [x] LICENSE: the owner's decision (until then: all rights reserved) **Done 2026-11-12: MIT, both repositories; README licence sections updated, not-a-medical-device statement kept.**
 
-## Phase 11 — Gait profile and report (2026-11-13)
+## Phase 11 — Gait profile and report (2026-11-13): done, merged and deployed 2026-11-14
 Decisions (owner, 2026-11-13):
 - **Reverses part of 2026-11-12 decision 4:** knee, hip and ankle angles come back, labelled
   **experimental estimates**. Phase 8's sit-to-stand and chair stand stay cancelled. Stored results
@@ -216,8 +216,8 @@ Owner decisions (2026-11-13), in full in the note's §14:
   - Snapshots are the skeleton at a heel strike and a toe-off stored as points in the result (drawn as vectors), not images: no table, no migration.
   - API keys `observations` and `data_confidence` (the audit's removed-output check bans `findings` and `confidence`).
   - Copy lives in the backend (English, draft Hindi), so the app and the PDF say the same thing.
-- [x] BE-B: norms and same-method references, verdict engine, quality gate, schema v3, snapshots (skeleton poses), trends, contract **Built 2026-11-14 (PR stacked on #45).**
-- [x] BE-C: multi-page PDF (English, Hindi) **Built 2026-11-14 (PR stacked on BE-B).**
+- [x] BE-B: norms and same-method references, verdict engine, quality gate, schema v3, snapshots (skeleton poses), trends, contract **Merged 2026-11-14 (#46).**
+- [x] BE-C: multi-page PDF (English, Hindi) **Merged 2026-11-14 (#47).**
 - Decisions made while building BE-C (2026-11-14):
   - Pages: summary; timing and rhythm; joint movement (curves over the typical band, key events, ranges, trunk and arms); progress (only with earlier sessions); recording quality and method (skeleton snapshots, quality, method, error ranges, references, disclaimer). No symmetry page: per-side values are hidden (decision A), and the joint page says why. Pelvis oscillation never appears.
   - `GET /report/{id}?lang=en|hi`; without `lang`, the reader's language setting. Results stored before schema 3, and treadmill tests, keep the v2 report (English).
@@ -226,8 +226,8 @@ Owner decisions (2026-11-13), in full in the note's §14:
   - Levels use a shape as well as a colour, and the verdict box a border style, so the report reads in black and white.
   - Hindi: ReportLab shapes a word with one font, so each word is set in Noto Sans Devanagari or Noto Sans (tested for every Hindi string).
   - The shared disclaimer (API, both PDFs, README) now uses D4's wording and drops "A qualified clinician should interpret them" (referral language).
-- [x] FE-A: result page **Built 2026-11-14 (frontend #37).**
-- [x] FE-B: history, progress, settings prompt, clinician view, Hindi strings **Built 2026-11-14 (frontend #38, stacked on #37).**
+- [x] FE-A: result page **Merged 2026-11-14 (frontend #37).**
+- [x] FE-B: history, progress, settings prompt, clinician view, Hindi strings **Merged 2026-11-14 (frontend #38).**
 - Decisions made while building FE-A and FE-B (2026-11-14):
   - No left/right toggle, overlay or symmetry section (decision A); the page says why. Pelvis oscillation never shown.
   - The typical bands for the joint charts come from a public, cacheable `GET /references` (backend #47) instead of being in every result.
