@@ -4,6 +4,48 @@ The rebuild of GaitScan after the technical audit (`_audit/GAITSCAN_AUDIT.md`), 
 (`_audit/REBUILD_PLAN_V3.md`). Backend PRs are in this repository; frontend PRs are in
 `gaitscan-frontend`. "Fxx" refers to the audit findings ([docs/findings.md](docs/findings.md)).
 
+## Phase 11 — Gait profile and report — 2026-11-15 (backend #44–#47; frontend #37, #38)
+Merged and deployed on 2026-11-14. Knee, hip and ankle angles come back as **experimental estimates**,
+reversing part of 2026-11-12. Design note: docs/design/gait-profile.md (owner decisions D1–D8).
+- **#44: label-free kinematics.** Each leg's role in a stride comes from foot motion and footprints,
+  not MediaPipe's left/right labels.
+  - Heel strikes: the front heel slowing below 2.0 leg lengths/s, tuned on tuning clips only. On LJMU's
+    held-out clips, timing is within 17 ms of the reference on average, with no bias.
+  - Toe-off: the toe furthest behind the hips (Zeni et al. 2008), not tuned.
+  - Stance, swing, double support; knee, hip and ankle key events, ranges and curves; trunk lean and
+    arm swing (information); pelvis oscillation (stored, not shown).
+  - Values on 95 of 97 accepted LJMU clips, against 45 with per-leg labels.
+  - The thigh range read 9° above LJMU's thigh sensor on average (r = 0.44); recorded as an open
+    question.
+  - Also: dnspython 2.9.2, which fixed main's red dependency audit.
+- **#45: leg identity.** Annotation couldn't tell the front leg in LJMU's side views (same clothing on
+  both legs, motion blur), so left/right values and symmetry stay hidden.
+- **#46: gait profile, references, verdicts, trends.**
+  - Result schema 3 (pipeline 3.0.0): additive, with every earlier value unchanged and no migration.
+  - References: cadence from Mobbs et al. 2025 by sex and age; everything else from healthy LJMU walkers
+    measured by this app (`make references`, groups of at least 10).
+  - Verdict bands of ±2.5 / ±3.5 SD. D1's ±2 / ±3 failed its own release gate (34.5% "keep an eye on
+    it"); now 13.8%, with 0% "outside".
+  - Six key measures, a quality gate and data confidence, and the Gait Profile Score as information.
+  - General-wellness wording in English and draft Hindi, with the banned words tested in both
+    languages.
+  - The verdict is worked out on read from current age and sex; shared links compare with all adults.
+  - Angle error ranges from Stenum et al. 2021. `GET /me/trends`.
+- **#47: the PDF report and references.**
+  - `GET /report/{id}?lang=en|hi`: a multi-page report (summary, timing, joint movement, progress, and
+    quality and method) with vector charts, readable in black and white.
+  - Noto fonts, with Devanagari shaped by uharfbuzz.
+  - Public `GET /references` for the app's typical bands.
+  - Trends leave out treadmill tests.
+  - Disclaimers say "for general wellness and information".
+- **Frontend #37 and #38:** the new result page, history verdicts, the progress view, the Settings
+  prompt and the clinician view (see that repository's CHANGELOG).
+- **CI peak memory:** 401–403 MB (limit 420).
+- **After the merge:**
+  - #48: a finding's numbers to one decimal, units attached ("44.8° (typical 45.0–70.7°)").
+  - #53 (D6): arm swing against LJMU's upper-arm sensor read +5.3° high (MAE 8.3°, r = 0.71), outside
+    the pre-set bias limit, so it stays information only.
+
 ## Owner decisions — 2026-11-12
 - Knee angle removed from the API, PDF, export and app (Phase 8 cancelled: it can never be
   validated); migration 0013 deleted it from stored results.
