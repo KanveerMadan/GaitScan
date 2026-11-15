@@ -199,3 +199,19 @@ def test_arm_swing_carries_the_d6_error_range_and_stays_information_only():
     v = assess(fake({"arm_swing_deg": 99.0}), None, refs)
     assert v["metrics"]["arm_swing_deg"]["error"]["mae_deg"] == 7.0
     assert v["metrics"]["arm_swing_deg"]["level"] is None and v["overall"] == "typical"
+
+
+def test_typical_ranges_of_measures_that_cant_be_negative_start_at_zero():
+    """mean - 2.5 SD can fall below zero for a measure that can't ("-0.1 to 10.8 %" for step-time
+    variability); its typical range starts at 0. Angles that can be negative keep theirs."""
+    from gaitcore.norms.thresholds import NON_NEGATIVE
+
+    wide = {"step_time_cv": Ref(3, 1.5), "knee_rom": Ref(5, 4), "knee_ic": Ref(2, 4), "cadence": Ref(110, 9)}
+    v = assess(fake({"knee_ic": 1.0, "knee_rom": 5.0}), None, lambda m, s, a: wide.get(m, Ref(0, 1)))
+    assert v["metrics"]["step_time_cv"]["typical"][0] == 0.0
+    assert v["metrics"]["step_time_cv"]["typical"][1] == pytest.approx(3 + TYPICAL_SD * 1.5)
+    assert v["metrics"]["knee_rom"]["typical"][0] == 0.0
+    assert v["metrics"]["knee_ic"]["typical"][0] == pytest.approx(2 - TYPICAL_SD * 4)  # can be negative
+    assert v["metrics"]["cadence"]["typical"][0] > 0  # untouched when already positive
+    assert {"step_time_cv", "stance_pct", "swing_pct", "double_support_pct", "knee_rom", "hip_rom", "ankle_rom", "arm_swing_deg", "cadence"} <= NON_NEGATIVE  # fmt: skip
+    assert not {"knee_ic", "ankle_ic", "hip_peak_ext", "hip_peak_flex", "trunk_lean_deg"} & NON_NEGATIVE
