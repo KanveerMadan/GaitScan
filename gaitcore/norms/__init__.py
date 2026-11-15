@@ -178,6 +178,15 @@ ANGLE_ERRORS = {
     "knee": {"mae_deg": 5.6, "source": "stenum2021", "note": None},
     "hip": {"mae_deg": 4.0, "source": "stenum2021", "note": "ljmu_thigh_offset"},
     "ankle": {"mae_deg": 7.4, "source": "stenum2021", "note": None},
+    # Arm swing (upper arm) against LJMU's upper-arm sensor, the mean absolute difference over the 137
+    # recordings the app accepts (D6, owner 2026-11-15; docs/validation/arm-swing.md). Information only.
+    "arm": {"mae_deg": 7.0, "source": "ljmu_arm_sensor", "note": None},
+}
+SOURCES["ljmu_arm_sensor"] = {
+    "citation": "GaitScan's arm swing against the upper-arm goniometer of the LJMU 360 Degree Gait Capture "
+    "dataset (Topham et al. 2023, Scientific Data 10:320), tasks 3-4 (docs/validation/arm-swing.md).",
+    "url": "https://doi.org/10.1038/s41597-023-02161-8",
+    "licence": "CC BY 4.0",
 }
 SOURCES["stenum2021"] = {
     "citation": "Stenum J, Rossi C, Roemmich RT. Two-dimensional video-based analysis of human gait using pose "

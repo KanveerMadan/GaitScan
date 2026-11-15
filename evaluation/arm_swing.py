@@ -10,9 +10,10 @@ Steps:
 1. `extract` (in Docker: MediaPipe aborts on macOS) writes each clip's landmarks as
    <out>/<clip>.csv.gz + .json, as evaluation/evaluate.py's load_clip reads them.
 2. `compare` runs the pipeline on each clip and compares, per recording:
-   - GaitScan's arm swing as the app shows it (gaitcore.kinematics: shoulder -> wrist against vertical,
-     per stride the range of each arm seen through >= 80% of it, the larger; median over strides);
-   - the same for the upper arm (shoulder -> elbow), which is what the sensor follows;
+   - GaitScan's arm swing as the app shows it (gaitcore.kinematics: the upper arm, shoulder -> elbow,
+     against vertical, per stride the range of each arm seen through >= 80% of it, the larger; median over
+     strides). Until 2026-11-15 it was shoulder -> wrist (owner decision after this check);
+   - the same for shoulder -> wrist, the measure shown before, kept for the record;
    - the sensor's upper-arm swing: the signed swing angle about the main rotation axis
      (evaluation.leg_labels.sagittal_angle), then the median rise or fall between alternating peaks and
      troughs (prominence >= 5 deg), leaving out the first and last (starting and stopping). The thigh
@@ -43,7 +44,7 @@ import numpy as np
 import pandas as pd
 
 CRITERIA = {"bias_abs_max_deg": 5.0, "mae_max_deg": 10.0, "r_min": 0.6}
-ELBOWS = (13, 14)  # MediaPipe Pose left and right elbow
+WRISTS = (15, 16)  # MediaPipe Pose left and right wrist
 MIN_SENSOR_SWINGS = 3
 SENSOR_PROMINENCE_DEG = 5.0
 MIN_STRIDES_UNGATED = 3
@@ -102,16 +103,16 @@ def extract(videos: str, out: str, workers: int) -> None:
             print(f"{i}/{len(todo)} {name}", flush=True)
 
 
-def upper_arm_swing(clip: Any, tracks: Any, strides: list[Any]) -> float | None:
-    """Per stride, the range of each upper arm (shoulder -> elbow against vertical) seen through >= 80%
-    of it, the larger; the median over strides. The same rules as gaitcore.kinematics' arm swing."""
+def wrist_line_swing(clip: Any, tracks: Any, strides: list[Any]) -> float | None:
+    """Per stride, the range of each shoulder -> wrist line against vertical seen through >= 80% of it,
+    the larger; the median over strides: the arm swing shown before 2026-11-15, by the same rules."""
     from gaitcore.kinematics import ARM_DOWN_DEG
     from gaitcore.signals import masked_xy
 
     per_stride = []
     for s in strides:
         ranges = []
-        for side, e in zip(("L", "R"), ELBOWS, strict=True):
+        for side, e in zip(("L", "R"), WRISTS, strict=True):
             v = masked_xy(clip, e) - tracks[(side, "shoulder")]
             a = np.degrees(np.arctan2(v[:, 0] * s.direction, v[:, 1]))
             a = np.where(np.abs(a) <= ARM_DOWN_DEG, a, np.nan)[s.start : s.end + 1]
@@ -161,7 +162,9 @@ def compare_one(name: str, landmarks: str, sensor: str) -> dict[str, Any]:
         # Walking towards image +x the right side faces the camera (docs/validation/leg-identity.md).
         right_arm_near=None if direction is None else bool(direction > 0),
         gaitscan_arm_swing=None if arm is None else round(arm["value"], 2),
-        gaitscan_upper_arm=(None if (u := upper_arm_swing(clip, tracks, k.strides)) is None else round(u, 2)),
+        gaitscan_shoulder_wrist=(
+            None if (u := wrist_line_swing(clip, tracks, k.strides)) is None else round(u, 2)
+        ),
         stride_s=None if step is None else round(2 * step, 3),
     )
     return row
@@ -210,20 +213,20 @@ def summarise(df: pd.DataFrame) -> dict[str, Any]:
     ):
         out[name] = {
             "arm_swing_shown": agreement(part.gaitscan_arm_swing, part.sensor_upper_arm),
-            "upper_arm": agreement(part.gaitscan_upper_arm, part.sensor_upper_arm),
+            "shoulder_wrist": agreement(part.gaitscan_shoulder_wrist, part.sensor_upper_arm),
         }
     ungated = df[df.strides.fillna(0) >= MIN_STRIDES_UNGATED] if "strides" in df else df.iloc[0:0]
     out["without_recording_checks"] = {
         "recordings": int(len(ungated)),
         "arm_swing_shown": agreement(ungated.gaitscan_arm_swing, ungated.sensor_upper_arm),
-        "upper_arm": agreement(ungated.gaitscan_upper_arm, ungated.sensor_upper_arm),
+        "shoulder_wrist": agreement(ungated.gaitscan_shoulder_wrist, ungated.sensor_upper_arm),
     }
     out["rejections"] = df.rejection.value_counts().to_dict() if "rejection" in df else {}
     stride = agreement(acc.stride_s, acc.sensor_stride_s)
     out["stride_time_check"] = stride  # the sensor recording and the clip: the same walk?
     out["passes"] = {
         "arm_swing_shown": passes(out["all"]["arm_swing_shown"]),
-        "upper_arm": passes(out["all"]["upper_arm"]),
+        "shoulder_wrist": passes(out["all"]["shoulder_wrist"]),
     }
     return out
 

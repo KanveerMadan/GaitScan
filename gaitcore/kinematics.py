@@ -33,8 +33,10 @@ Fukuchi et al. 2018, PeerJ 6:e4640):
   is ahead. 2D has no pelvis segment, so this differs from a 3D hip angle by the pelvic tilt;
 - ankle: the shank (knee -> ankle) against the foot (heel -> toe), - 90, + = dorsiflexion;
 - trunk lean: shoulders -> pelvis line against vertical, + = shoulders ahead;
-- arm swing: shoulder -> wrist against vertical; per stride, the furthest forward minus the furthest back
-  of each arm seen through the stride (usually the near arm), the larger if both are;
+- arm swing: the upper arm (shoulder -> elbow) against vertical; per stride, the furthest forward minus
+  the furthest back of each arm seen through the stride (usually the near arm), the larger if both are.
+  The upper arm, not shoulder -> wrist: against LJMU's upper-arm sensor the wrist line read +5.3 deg high
+  because the elbow bends; the upper arm reads +2.7 deg, MAE 7.0 (D6, docs/validation/arm-swing.md);
 - thigh angle: the thigh against vertical, + = knee ahead (what a thigh-worn sensor measures);
 - pelvis oscillation: vertical range of the pelvis per stride after a straight-line detrend, in leg
   lengths.
@@ -63,7 +65,7 @@ MAX_FILL = 2  # frames of a hidden point filled by interpolation (67 ms at 30 fp
 STRIKE_SEARCH = 0.4  # of a step time, before a step event, to find the heel strike
 PLANTED = 2.0  # leg lengths per second: the front heel slower than this has landed (LJMU tuning clips)
 ARM_DOWN_DEG = 60.0  # an arm more than this far from hanging down isn't an arm swing (or isn't an arm)
-WRISTS = (15, 16)  # MediaPipe Pose left and right wrist
+ELBOWS = (13, 14)  # MediaPipe Pose left and right elbow (arm swing follows the upper arm, D6)
 JOINTS = ("knee", "hip", "ankle")
 
 
@@ -331,9 +333,9 @@ def _mean_visible(a: Array, b: Array) -> Array:
 
 def _arm_angles(clip: Clip, tracks: Tracks, d: float) -> list[Array]:
     arms = []
-    for side, w in zip(("L", "R"), WRISTS, strict=True):
-        v = masked_xy(clip, w) - tracks[(side, "shoulder")]
-        a = np.degrees(np.arctan2(v[:, 0] * d, v[:, 1]))  # + = wrist ahead; 0 = hanging straight down
+    for side, e in zip(("L", "R"), ELBOWS, strict=True):
+        v = masked_xy(clip, e) - tracks[(side, "shoulder")]
+        a = np.degrees(np.arctan2(v[:, 0] * d, v[:, 1]))  # + = elbow ahead; 0 = hanging straight down
         arms.append(np.where(np.abs(a) <= ARM_DOWN_DEG, a, np.nan))
     return arms
 
