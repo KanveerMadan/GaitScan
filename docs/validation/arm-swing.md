@@ -1,5 +1,10 @@
 # Arm swing against LJMU's upper-arm sensor (Phase 11, owner decision D6)
 
+> **Update 2026-11-15 (owner):** arm swing is now measured on the upper arm (shoulder → elbow), which met
+> the criteria below, and shows ±7.0° (its MAE against the sensor). It stays information only. Re-running
+> `make arm-swing` reproduces the same numbers, with the shown measure now the upper arm and
+> shoulder → wrist kept as `shoulder_wrist` for the record.
+
 Date: 2026-11-15. Reproduce with `make fetch-ljmu-arm`, `docker build -t gaitscan-api .` and
 `make arm-swing` (landmarks need MediaPipe, which aborts on macOS, so they're extracted in the Docker
 image). The numbers are `evaluation/results/arm_swing.json` (per recording: `arm_swing_clips.csv`).

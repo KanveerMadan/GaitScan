@@ -70,7 +70,10 @@ COPY: dict[str, dict[str, Any]] = {
             "double_support_pct": "Double support",
         },
         "unit": {"steps/min": "steps/min", "%": "%", "deg": "°"},
-        "error": "Error range: about ±{mae}° (a similar video method against motion capture, Stenum et al. 2021).",
+        "error": {
+            "stenum2021": "Error range: about ±{mae}° (a similar video method against motion capture, Stenum et al. 2021).",
+            "ljmu_arm_sensor": "Error range: about ±{mae}° (against a sensor worn on the upper arm, on healthy walkers of a public dataset, LJMU).",
+        },
         "error_note": {
             "ljmu_thigh_offset": "On healthy test walkers, GaitScan's thigh range read about 9° more than a sensor worn on the thigh, on average. The cause isn't known yet.",
         },
@@ -136,7 +139,10 @@ COPY: dict[str, dict[str, Any]] = {
             "double_support_pct": "दोनों पैर ज़मीन पर",
         },
         "unit": {"steps/min": "कदम/मिनट", "%": "%", "deg": "°"},
-        "error": "त्रुटि सीमा: लगभग ±{mae}° (मोशन कैप्चर से तुलना किया गया एक मिलता-जुलता वीडियो तरीका, Stenum et al. 2021)।",
+        "error": {
+            "stenum2021": "त्रुटि सीमा: लगभग ±{mae}° (मोशन कैप्चर से तुलना किया गया एक मिलता-जुलता वीडियो तरीका, Stenum et al. 2021)।",
+            "ljmu_arm_sensor": "त्रुटि सीमा: लगभग ±{mae}° (एक सार्वजनिक डेटासेट, LJMU, के स्वस्थ प्रतिभागियों में ऊपरी बाँह पर पहने सेंसर से तुलना)।",
+        },
         "error_note": {
             "ljmu_thigh_offset": "स्वस्थ परीक्षण प्रतिभागियों में, GaitScan की जाँघ की गति-सीमा जाँघ पर पहने सेंसर से औसतन लगभग 9° ज़्यादा आई। इसका कारण अभी पता नहीं है।",
         },

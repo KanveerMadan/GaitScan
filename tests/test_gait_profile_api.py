@@ -176,3 +176,15 @@ def test_a_finding_gives_its_numbers_to_one_decimal_with_the_degree_sign_attache
     assert "44.8° (typical 45.3–70.8°)" in text["en"], text["en"]
     assert " °" not in text["en"] and " °" not in text["hi"]
     assert "44.8°" in text["hi"]
+
+
+def test_each_error_range_names_where_it_comes_from_in_both_languages(client, walk):
+    _, t = register(client)
+    metrics = analyse(client, t)["result"]["gait_profile"]["verdict"]["metrics"]
+    assert "Stenum et al. 2021" in metrics["knee_rom"]["error"]["text"]["en"]
+    from app.core.verdict_copy import COPY
+
+    for lang in ("en", "hi"):
+        text = COPY[lang]["error"]["ljmu_arm_sensor"].format(mae=7.0)
+        assert "±7.0°" in text
+    assert "upper arm" in COPY["en"]["error"]["ljmu_arm_sensor"]

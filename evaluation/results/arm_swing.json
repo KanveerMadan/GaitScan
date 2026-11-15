@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-15T04:51:04+00:00",
+ "generated": "2026-11-15T09:19:26+00:00",
  "recordings": 232,
  "with_landmarks": 232,
  "accepted": 139,
@@ -12,18 +12,6 @@
  "all": {
   "arm_swing_shown": {
    "n": 137,
-   "gaitscan_mean": 31.1,
-   "sensor_mean": 25.8,
-   "bias": 5.3,
-   "mae": 8.3,
-   "limits_of_agreement": [
-    -14.3,
-    24.9
-   ],
-   "r": 0.71
-  },
-  "upper_arm": {
-   "n": 137,
    "gaitscan_mean": 28.5,
    "sensor_mean": 25.8,
    "bias": 2.7,
@@ -33,22 +21,22 @@
     22.2
    ],
    "r": 0.6
+  },
+  "shoulder_wrist": {
+   "n": 137,
+   "gaitscan_mean": 31.1,
+   "sensor_mean": 25.8,
+   "bias": 5.3,
+   "mae": 8.3,
+   "limits_of_agreement": [
+    -14.3,
+    24.9
+   ],
+   "r": 0.71
   }
  },
  "right_arm_near": {
   "arm_swing_shown": {
-   "n": 68,
-   "gaitscan_mean": 28.6,
-   "sensor_mean": 26.0,
-   "bias": 2.6,
-   "mae": 5.5,
-   "limits_of_agreement": [
-    -11.5,
-    16.7
-   ],
-   "r": 0.88
-  },
-  "upper_arm": {
    "n": 68,
    "gaitscan_mean": 26.0,
    "sensor_mean": 26.0,
@@ -59,22 +47,22 @@
     12.2
    ],
    "r": 0.86
+  },
+  "shoulder_wrist": {
+   "n": 68,
+   "gaitscan_mean": 28.6,
+   "sensor_mean": 26.0,
+   "bias": 2.6,
+   "mae": 5.5,
+   "limits_of_agreement": [
+    -11.5,
+    16.7
+   ],
+   "r": 0.88
   }
  },
  "right_arm_far": {
   "arm_swing_shown": {
-   "n": 69,
-   "gaitscan_mean": 33.4,
-   "sensor_mean": 25.6,
-   "bias": 7.9,
-   "mae": 11.0,
-   "limits_of_agreement": [
-    -14.9,
-    30.6
-   ],
-   "r": 0.53
-  },
-  "upper_arm": {
    "n": 69,
    "gaitscan_mean": 31.0,
    "sensor_mean": 25.6,
@@ -85,23 +73,23 @@
     29.0
    ],
    "r": 0.42
+  },
+  "shoulder_wrist": {
+   "n": 69,
+   "gaitscan_mean": 33.4,
+   "sensor_mean": 25.6,
+   "bias": 7.9,
+   "mae": 11.0,
+   "limits_of_agreement": [
+    -14.9,
+    30.6
+   ],
+   "r": 0.53
   }
  },
  "without_recording_checks": {
   "recordings": 179,
   "arm_swing_shown": {
-   "n": 178,
-   "gaitscan_mean": 32.2,
-   "sensor_mean": 26.6,
-   "bias": 5.6,
-   "mae": 8.8,
-   "limits_of_agreement": [
-    -15.4,
-    26.5
-   ],
-   "r": 0.67
-  },
-  "upper_arm": {
    "n": 178,
    "gaitscan_mean": 29.1,
    "sensor_mean": 26.6,
@@ -112,6 +100,18 @@
     24.3
    ],
    "r": 0.52
+  },
+  "shoulder_wrist": {
+   "n": 178,
+   "gaitscan_mean": 32.2,
+   "sensor_mean": 26.6,
+   "bias": 5.6,
+   "mae": 8.8,
+   "limits_of_agreement": [
+    -15.4,
+    26.5
+   ],
+   "r": 0.67
   }
  },
  "rejections": {
@@ -136,7 +136,7 @@
   "r": 0.48
  },
  "passes": {
-  "arm_swing_shown": false,
-  "upper_arm": true
+  "arm_swing_shown": true,
+  "shoulder_wrist": false
  }
 }

@@ -4,6 +4,16 @@ The rebuild of GaitScan after the technical audit (`_audit/GAITSCAN_AUDIT.md`), 
 (`_audit/REBUILD_PLAN_V3.md`). Backend PRs are in this repository; frontend PRs are in
 `gaitscan-frontend`. "Fxx" refers to the audit findings ([docs/findings.md](docs/findings.md)).
 
+## Arm swing on the upper arm — 2026-11-15 (owner, after D6)
+- Arm swing is measured on the upper arm (shoulder → elbow), not shoulder → wrist. Against LJMU's
+  upper-arm sensor it has bias +2.7°, MAE 7.0° and r 0.60, which meets the criteria set before D6;
+  shoulder → wrist read +5.3° high because the elbow bends.
+- It shows an error range of ±7.0° (source: the LJMU arm sensor) and stays information only.
+- Error-range wording now names its source (Stenum 2021 for knee, hip and ankle; the LJMU arm sensor
+  for arm swing), in English and Hindi. The PDF's notes and method page say so.
+- References rebuilt (`make references`): only arm swing changed (all adults 33.8 ± 14.2° → 28.3 ±
+  9.9°); the release gate is unchanged. Golden file regenerated.
+
 ## Phase 11 — Gait profile and report — 2026-11-15 (backend #44–#47; frontend #37, #38)
 Merged and deployed on 2026-11-14. Knee, hip and ankle angles come back as **experimental estimates**,
 reversing part of 2026-11-12. Design note: docs/design/gait-profile.md (owner decisions D1–D8).

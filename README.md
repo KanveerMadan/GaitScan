@@ -42,7 +42,7 @@ are left out. Values are for both legs together (see "What isn't shown").
 | Stance, swing, double support (% of the stride) | Heel strikes validated on LJMU (17 ms mean error on held-out clips); toe-off not validated (no reference), values plausible | — |
 | Knee, hip, ankle: key events and range of motion, curves over the gait cycle | **Experimental estimate** (no angle reference in LJMU) | About ±5.6° knee, ±4.0° hip, ±7.4° ankle (a similar video method against motion capture: Stenum et al. 2021). Hip also notes that its thigh range read 9° above LJMU's thigh sensor on average |
 | Trunk lean | Information, not validated | — |
-| Arm swing | Information only. Against LJMU's upper-arm sensor (D6) it read +5.3° high on average (MAE 8.3°, r = 0.71), outside the bias limit set beforehand ([arm swing](docs/validation/arm-swing.md)) | — |
+| Arm swing (upper arm, shoulder → elbow) | Information only, never changes the summary. Checked against LJMU's upper-arm sensor (D6): bias +2.7°, r = 0.60 ([arm swing](docs/validation/arm-swing.md)) | ±7.0° (mean difference from the sensor) |
 | Gait Profile Score (Baker et al. 2009) | Information: the knee, hip and ankle curves against healthy LJMU walkers' | Typical 0–8.1° (95% of healthy LJMU walkers) |
 | Step length (m), walking speed (m/s) | **Not yet validated**; only with a floor calibration | — |
 | Treadmill test: cadence, step time, step length from the entered belt speed | **Not yet validated** (no treadmill reference clips) | — |

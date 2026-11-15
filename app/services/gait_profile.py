@@ -72,7 +72,7 @@ def present(result: dict[str, Any] | None, person: Person) -> dict[str, Any] | N
         if err is not None:
             err = {
                 **err,
-                "text": _both(lambda c, e=err: c["error"].format(mae=e["mae_deg"])),
+                "text": _both(lambda c, e=err: c["error"][e["source"]].format(mae=e["mae_deg"])),
                 "note_text": None if not err["note"] else _both(lambda c, e=err: c["error_note"][e["note"]]),
             }
         metrics[m] = {**row, "reference": ref, "error": err, "name": _both(lambda c, m=m: c["metric"][m])}
