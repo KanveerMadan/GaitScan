@@ -59,3 +59,6 @@ Cadence ±4.5 steps/min and step time ±0.024 s (LJMU). Angles (no reference in 
 similar method, Stenum et al. 2021 (OpenPose vs motion capture, Table 6): knee ±5.6°, hip ±4.0°, ankle
 ±7.4°. Hip also notes that on LJMU the thigh range read 9° higher than a thigh sensor on average
 (docs/validation/kinematics.md).
+Arm swing has no error range: against LJMU's upper-arm sensor (D6) it read +5.3° high on average
+(MAE 8.3°, r 0.71), which misses the criteria set before the check (bias within ±5°)
+([docs/validation/arm-swing.md](validation/arm-swing.md)). It stays information only.

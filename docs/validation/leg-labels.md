@@ -65,7 +65,7 @@ the sensor can't confirm individual values, for the same reason as above.
   `legs_told_apart`: labelled step times regular, each leg's strides ≈ two steps; passes 45 of 102
   here), but there is **no ground truth on LJMU to validate it**. In particular, it can't catch a clip
   whose labels are swapped consistently (every value right, sides named wrongly).
-- Arm swing (D6) would meet the same limit: the arm sensor (tasks 3–4) gives average agreement only.
+- Arm swing (D6) meets the same limit: the arm sensor (tasks 3–4) gives average agreement only. Done 2026-11-15: [arm-swing.md](arm-swing.md).
   Extracting landmarks for those clips also needs MediaPipe on Linux (Docker), which doesn't run on the
   development Mac.
 
