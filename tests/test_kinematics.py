@@ -201,7 +201,16 @@ def test_trunk_lean_pelvis_oscillation_and_arm_swing():
     )  # LEG = 200 px
 
 
-def test_without_wrists_there_is_no_arm_swing():
+def test_arm_swing_is_the_upper_arms_so_a_bending_elbow_doesnt_widen_it():
+    """D6 (docs/validation/arm-swing.md): the shoulder -> wrist line read +5.3 deg high against LJMU's
+    upper-arm sensor because the elbow bends; arm swing follows the upper arm (shoulder -> elbow)."""
+    clip, _ = synthetic_clip(
+        passes=3, pass_secs=6.0, width=2000, swing_profile="brisk", arm_swing_deg=30.0, elbow_bend_deg=25.0
+    )
+    assert kinematics(clip).summary()["arm_swing_deg"]["value"] == pytest.approx(30.0, abs=3.0)
+
+
+def test_without_elbows_there_is_no_arm_swing():
     s = kinematics(synthetic_clip(passes=3, pass_secs=6.0, width=2000, swing_profile="brisk")[0]).summary()
     assert s["arm_swing_deg"] is None
 

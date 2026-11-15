@@ -28,6 +28,7 @@ STANCE = 0.6
 LIFT = 0.10 * LEG
 M_PER_PX = 0.9 / LEG  # a 0.9 m leg
 ARM = 0.35 * LEG  # shoulder to wrist
+UPPER_ARM = 0.18 * LEG  # shoulder to elbow
 
 
 @dataclass
@@ -89,7 +90,8 @@ def synthetic_clip(
     pelvis_surge=(0.0, 0.0),  # pelvis speed ripple: amplitude (fraction of the speed) per step, per stride
     treadmill=False,  # walk on a belt: the same body motion seen from a frame that moves with the pelvis
     trunk_lean_deg=0.0,  # shoulders ahead of the hips in the walking direction (Phase 11)
-    arm_swing_deg=0.0,  # each arm swings this far (peak to peak) about the shoulder, against its leg
+    arm_swing_deg=0.0,  # each upper arm swings this far (peak to peak) about the shoulder, against its leg
+    elbow_bend_deg=0.0,  # the elbow bends up to this far as the arm comes forward (forearm swings wider)
     swing_profile="cosine",  # "cosine": smooth over the whole swing; "brisk": as real feet, the foot
     # speeds up in the first 10% of the swing and brakes in the last 10% (Phase 11 event timing)
 ) -> tuple[Clip, Truth]:
@@ -222,8 +224,15 @@ def synthetic_clip(
             # The arm swings opposite its leg: forward when the same-side heel is behind the pelvis.
             hx, _ = feet[side]
             rel = np.clip((hx - px) * direction / (0.5 * s), -1, 1)
-            arm = -np.radians(arm_swing_deg) / 2 * rel  # + = wrist ahead of the shoulder
-            pts[(side, "wrist")] = proj(sh[0] + face_x * ARM * np.sin(arm), sh_z, sh[1] + ARM * np.cos(arm))
+            arm = -np.radians(arm_swing_deg) / 2 * rel  # + = elbow ahead of the shoulder
+            el = (sh[0] + face_x * UPPER_ARM * np.sin(arm), sh[1] + UPPER_ARM * np.cos(arm))
+            fore = arm + np.radians(elbow_bend_deg) * np.clip(-rel, 0, 1)  # bends when the arm is forward
+            pts[(side, "elbow")] = proj(el[0], sh_z, el[1])
+            pts[(side, "wrist")] = proj(
+                el[0] + face_x * (ARM - UPPER_ARM) * np.sin(fore),
+                sh_z,
+                el[1] + (ARM - UPPER_ARM) * np.cos(fore),
+            )
 
     idx = {
         ("L", "shoulder"): 11,
@@ -240,7 +249,7 @@ def synthetic_clip(
         ("R", "toe"): 32,
     }
     if arm_swing_deg:
-        idx.update({("L", "wrist"): 15, ("R", "wrist"): 16})
+        idx.update({("L", "elbow"): 13, ("R", "elbow"): 14, ("L", "wrist"): 15, ("R", "wrist"): 16})
     cols = {}
     for i in range(33):  # head/arms: a point above the shoulders (unused by the pipeline)
         cols[f"lm{i}_x"], cols[f"lm{i}_y"] = proj(px, 0.0, pelvis_y - TORSO - 0.2 * LEG)

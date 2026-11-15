@@ -141,6 +141,7 @@ def fake(values, steps=20, vis=0.9, n=8):
             "ankle_rom",
             "knee_ic",
             "hip_peak_flex",
+            "arm_swing_deg",
         )
     }
     return {
@@ -188,3 +189,13 @@ def test_too_little_walking_gives_no_verdict_and_says_how_to_re_record():
     v = assess(fake({}, steps=MIN_VERDICT_STEPS - 1), None, refs)
     assert v["overall"] is None and v["no_verdict"] == "too_few_steps"
     assert "walk_more_passes" in v["tips"]
+
+
+def test_arm_swing_carries_the_d6_error_range_and_stays_information_only():
+    from gaitcore.norms import ANGLE_ERRORS, SOURCES
+
+    assert ANGLE_ERRORS["arm"] == {"mae_deg": 7.0, "source": "ljmu_arm_sensor", "note": None}
+    assert "LJMU" in SOURCES["ljmu_arm_sensor"]["citation"]
+    v = assess(fake({"arm_swing_deg": 99.0}), None, refs)
+    assert v["metrics"]["arm_swing_deg"]["error"]["mae_deg"] == 7.0
+    assert v["metrics"]["arm_swing_deg"]["level"] is None and v["overall"] == "typical"
