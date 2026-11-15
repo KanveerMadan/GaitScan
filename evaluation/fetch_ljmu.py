@@ -1,5 +1,6 @@
-"""Download the LJMU side-view clips that ljmu_reference.csv lists (Topham et al. 2023, CC BY 4.0), or with
---imu the right-thigh goniometer files of tasks 1-2.
+"""Download the LJMU side-view clips that ljmu_reference.csv lists (Topham et al. 2023, CC BY 4.0); with
+--imu the right-thigh goniometer files of tasks 1-2; with --arm the right-upper-arm goniometer files of
+tasks 3-4 and their side-view clips (owner decision D6).
 
 Reads only those members of the 19 GB dataset zip, with HTTP range requests, and saves them as
 <out>/<clip>.mp4. Needs remotezip and zipfile-deflate64 (`make fetch-ljmu` adds them for the run).
@@ -42,6 +43,34 @@ def fetch_sensor(out: str) -> None:
                 print("ok", m, flush=True)
 
 
+ARM_SENSOR = re.compile(r"Participant_(\d+)/Experiment_([12])/E[12]T([34])/P\d+_E[12]T[34]\.csv")
+
+
+def fetch_arm(out: str) -> None:
+    """Tasks 3 and 4 of experiments 1 and 2: the sensor is on the right arm just above the elbow
+    (Topham et al. 2023, "Experimental tasks"), one 8 m walk past the side camera (a -> b in task 3,
+    b -> a in task 4). Saves <out>/imu/P<p>_E<e>T<t>.csv and <out>/videos/P<p>_E<e>T<t>_90.mp4 for
+    every recording that has both (evaluation/arm_swing.py)."""
+    os.makedirs(os.path.join(out, "imu"), exist_ok=True)
+    os.makedirs(os.path.join(out, "videos"), exist_ok=True)
+    with RemoteZip(URL) as z:
+        names = set(z.namelist())
+        for m in sorted(n for n in names if ARM_SENSOR.fullmatch(n)):
+            folder, csv = m.rsplit("/", 1)
+            stem = csv[:-4]
+            video = f"{folder}/{stem}_90.mp4"
+            if video not in names:
+                continue
+            for src_name, dest in (
+                (m, os.path.join(out, "imu", csv)),
+                (video, os.path.join(out, "videos", f"{stem}_90.mp4")),
+            ):
+                if not os.path.exists(dest):
+                    with z.open(src_name) as src, open(dest, "wb") as dst:
+                        shutil.copyfileobj(src, dst)
+            print("ok", stem, flush=True)
+
+
 def fetch_meta(out: str) -> None:
     """The participants' sex, age and height (Participant_Anthropometry.xlsx), for the same-method
     references (evaluation/references.py)."""
@@ -66,6 +95,8 @@ def main(out: str) -> None:
 if __name__ == "__main__":
     if sys.argv[1] == "--imu":
         fetch_sensor(sys.argv[2])
+    elif sys.argv[1] == "--arm":
+        fetch_arm(sys.argv[2])
     elif sys.argv[1] == "--meta":
         fetch_meta(sys.argv[2])
     else:

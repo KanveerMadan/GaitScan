@@ -54,7 +54,7 @@ Plausibility (no reference in LJMU; medians over clips, IQR):
 | Hip ROM | 53.6° (49.7–59.1) | |
 | Ankle ROM | 33.3° (29.0–36.0) | |
 | Trunk lean | −0.3° (−1.3 to 1.1) | |
-| Arm swing (visible arm) | 33.5° (22.9–41.2) | |
+| Arm swing (visible arm) | 33.5° (22.9–41.2) | against LJMU's upper-arm sensor: +5.3° bias, MAE 8.3°, r 0.71 ([arm-swing.md](arm-swing.md)) |
 | Pelvis oscillation (detrended) | 0.11 leg lengths (0.10–0.12) | about twice published values; see below |
 
 **Thigh range against the thigh sensor** (72 clips, on average only, as the sensor isn't time-aligned

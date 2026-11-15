@@ -2,7 +2,7 @@
 LJMU_DIR ?= data/ljmu
 LANDMARKS ?= $(LJMU_DIR)/landmarks
 
-.PHONY: help test lint format typecheck check contract evaluate fetch-ljmu fetch-ljmu-imu leg-labels kinematics references
+.PHONY: help test lint format typecheck check contract evaluate fetch-ljmu fetch-ljmu-imu leg-labels kinematics references fetch-ljmu-arm arm-swing
 
 help:
 	@echo "make test       run the test suite (SQLite)"
@@ -16,6 +16,7 @@ help:
 	@echo "make leg-labels left/right check against the LJMU thigh sensor (make fetch-ljmu-imu first)"
 	@echo "make kinematics label-free knee/hip measures on LJMU -> evaluation/results/kinematics.json"
 	@echo "make references same-method references and the release gate -> gaitcore/norms/ljmu_references.json"
+	@echo "make arm-swing   arm swing against the LJMU upper-arm sensor (make fetch-ljmu-arm first; landmarks in Docker)"
 
 test:
 	ENV=dev uv run pytest -q
@@ -52,3 +53,12 @@ kinematics:
 
 references:
 	ENV=dev uv run --with openpyxl python -m evaluation.references --landmarks $(LANDMARKS) --meta $(LJMU_DIR)/Participant_Anthropometry.xlsx
+
+fetch-ljmu-arm:
+	uv run --with remotezip --with zipfile-deflate64 python -m evaluation.fetch_ljmu --arm $(LJMU_DIR)/arm
+
+# Landmarks need MediaPipe, which aborts on macOS: extracted in the Docker image (docker build -t gaitscan-api .).
+arm-swing:
+	docker run --rm --user root -v $(CURDIR):/work -w /work --entrypoint python gaitscan-api \
+		-m evaluation.arm_swing extract --videos $(LJMU_DIR)/arm/videos --landmarks $(LJMU_DIR)/arm/landmarks
+	ENV=dev uv run python -m evaluation.arm_swing compare --landmarks $(LJMU_DIR)/arm/landmarks --sensor $(LJMU_DIR)/arm/imu
