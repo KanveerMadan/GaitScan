@@ -24,7 +24,7 @@ jobs:
       TEST_POSTGRES_URL: postgresql://postgres:ci@localhost:5432/gaitscan_test
       MPLBACKEND: Agg
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: System libraries for opencv-contrib and mediapipe's native library (as in the Dockerfile)
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgl1 libglib2.0-0 libegl1 libgles2
       - uses: astral-sh/setup-uv@v6
@@ -48,7 +48,7 @@ jobs:
   docker:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - run: docker build -t gaitscan-api:ci .
       - name: Smoke check the image (pinned model hash, MediaPipe load, one synthetic analysis)
         run: docker run --rm -e PYTHONPATH=/app -v "$PWD/tests:/t:ro" gaitscan-api:ci python /t/docker_smoke.py
