@@ -148,3 +148,31 @@ def test_trends_leave_out_treadmill_tests(client, monkeypatch):
     assert status["analysis"]["result"]["test"] == "treadmill", status
     series = client.get("/me/trends", headers=auth(t)).json()["sessions"]
     assert len(series) == 1 and series[0]["overall"] is not None
+
+
+def test_a_finding_gives_its_numbers_to_one_decimal_with_the_degree_sign_attached():
+    """44.8 below a typical range from 45.2 read "45 ° (typical 45–71 °)": rounded to whole degrees, the
+    value looked inside the range, and the degree sign floated."""
+    from app.services.gait_profile import present
+    from gaitcore.norms import Reference
+
+    profile = {
+        "schema": 3,
+        "timing": {"cadence": {"value": 110.0, "n": 20, "unit": "steps/min"}, "step_time_cv": {"value": 3.0, "n": 20, "unit": "%"}},
+        "kinematics": {"knee_rom": {"value": 44.8, "n": 8, "unit": "deg"}},
+        "quality": {"steps": 20, "usable_frame_fraction": 0.6, "leg_visibility": 0.9},
+    }  # fmt: skip
+    import gaitcore.verdict as V
+
+    real = V.default_reference
+    V.default_reference = lambda m, s, a: (
+        Reference(58.05, 5.1, 40, "all adults", "ljmu_same_method", "same_method") if m == "knee_rom" else real(m, s, a)
+    )  # fmt: skip
+    try:
+        v = present({"gait_profile": profile}, None)["gait_profile"]["verdict"]
+    finally:
+        V.default_reference = real
+    text = next(o["text"] for o in v["observations"] if o["metric"] == "knee_rom")
+    assert "44.8° (typical 45.3–70.8°)" in text["en"], text["en"]
+    assert " °" not in text["en"] and " °" not in text["hi"]
+    assert "44.8°" in text["hi"]

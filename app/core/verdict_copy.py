@@ -42,7 +42,7 @@ COPY: dict[str, dict[str, Any]] = {
         "disclaimer": "GaitScan is for general wellness and information. It is not a medical device: it does not assess health conditions, and its measurements have not been clinically validated.",
         "level": {"typical": "Typical", "slightly_outside": "Slightly outside", "clearly_outside": "Outside"},
         "direction": {"above": "above", "below": "below"},
-        "finding": "{metric} is {direction} the typical range: {value} {unit} (typical {lo}–{hi} {unit}).",
+        "finding": "{metric} is {direction} the typical range: {value} (typical {lo}–{hi}).",
         "fallback": {
             "all_adults": "No age-specific reference for your age; compared with all adults.",
             "no_sex": "No sex-specific reference; compared with adults of your age.",
@@ -108,7 +108,7 @@ COPY: dict[str, dict[str, Any]] = {
         "disclaimer": "GaitScan सामान्य सेहत और जानकारी के लिए है। यह चिकित्सा उपकरण नहीं है: यह स्वास्थ्य स्थितियों का आकलन नहीं करता, और इसके माप चिकित्सकीय रूप से प्रमाणित नहीं हैं।",
         "level": {"typical": "सामान्य", "slightly_outside": "थोड़ा बाहर", "clearly_outside": "बाहर"},
         "direction": {"above": "ऊपर", "below": "नीचे"},
-        "finding": "{metric} सामान्य सीमा से {direction} है: {value} {unit} (सामान्य {lo}–{hi} {unit})।",
+        "finding": "{metric} सामान्य सीमा से {direction} है: {value} (सामान्य {lo}–{hi})।",
         "fallback": {
             "all_adults": "आपकी उम्र के लिए अलग तुलना उपलब्ध नहीं; सभी वयस्कों से तुलना की गई।",
             "no_sex": "लिंग के अनुसार तुलना उपलब्ध नहीं; आपकी उम्र के वयस्कों से तुलना की गई।",
